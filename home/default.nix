@@ -15,6 +15,10 @@ in {
 
     home.packages = with pkgs;
       [
+        #System packages
+        # Make touchID work from inside tmux
+        pam-reattach
+
         # Library packages
         openssl
         clang
