@@ -4,11 +4,12 @@ let cfg = config.home-config-manager;
 in {
   options.home-config-manager = {
     includeFonts = lib.mkEnableOption "fonts";
+    isDarwin = lib.mkEnableOption "include darwin configuration";
     enableExtras = lib.mkEnableOption "enable extra packages";
     enableProf = lib.mkEnableOption "enable professional packages";
   };
 
-  imports = [ ./defaultPrograms ./vscode ./zsh ./neovim ];
+  imports = [ ./defaultPrograms ./vscode ./zsh ./neovim ./darwin ];
 
   config = {
 
