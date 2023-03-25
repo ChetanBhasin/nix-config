@@ -8,7 +8,7 @@ in {
     enableProf = lib.mkEnableOption "enable professional packages";
   };
 
-  imports = [ ./defaultPrograms ./vscode ./zsh ];
+  imports = [ ./defaultPrograms ./vscode ./zsh ./neovim ];
 
   config = {
 
