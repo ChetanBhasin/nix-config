@@ -42,3 +42,7 @@ Hugh is configured for Darwin (i.e., MacOS). The above given `make` target will 
 ```bash
 make apply-nix host=bill
 ```
+
+# Credits
+
+Thanks for [Frank](https://github.com/fmoda3/nix-configs) for sharing his Nix configuration, from which I learned a lot.
