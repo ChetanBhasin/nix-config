@@ -9,7 +9,7 @@ in {
       vimAlias = true;
       vimdiffAlias = true;
       extraPackages = with pkgs;
-        [ lua ctags ] ++ lib.optionals pkgs.stdenv.isDarwin [
+        [ lua ctags stylua ] ++ lib.optionals pkgs.stdenv.isDarwin [
           darwin.apple_sdk.frameworks.Security
           darwin.apple_sdk.frameworks.CoreFoundation
           darwin.apple_sdk.frameworks.CoreServices
@@ -19,6 +19,14 @@ in {
           })
         ];
       plugins = with pkgs.vimPlugins; [
+        {
+          plugin = formatter-nvim;
+          config = ''
+            packadd! formatter.nvim
+            :luafile ${./includes/formatter.lua}
+            nnoremap <leader>F :Format<CR>
+          '';
+        }
         {
           plugin = nvim-web-devicons;
           config = ''
