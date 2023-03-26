@@ -5,12 +5,8 @@
     nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
 
     # Environment/system management
-    darwin = {
-      url = "github:lnl7/nix-darwin";
-    };
-    home-manager = {
-      url = "github:nix-community/home-manager";
-    };
+    darwin = { url = "github:lnl7/nix-darwin"; };
+    home-manager = { url = "github:nix-community/home-manager"; };
 
     # Other sources
     flake-utils.url = "github:numtide/flake-utils";
@@ -51,9 +47,7 @@
     let
       nixpkgsConfig = with inputs; {
         config = { allowUnfree = true; };
-        overlays = [
-          inputs.rust-overlay.overlays.default
-        ];
+        overlays = [ inputs.rust-overlay.overlays.default ];
       };
       darwinModules = { user, host }:
         with inputs; [
@@ -106,7 +100,7 @@
         };
         markus = darwin.lib.darwinSystem {
           system = "aarch64-darwin";
-          moduels = darwinModules {
+          modules = darwinModules {
             user = "chetan";
             host = "markus";
           };
