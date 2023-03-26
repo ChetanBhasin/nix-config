@@ -17,6 +17,7 @@
         svelte.svelte-vscode
         streetsidesoftware.code-spell-checker
         serayuzgur.crates
+        sumneko.lua
       ] ++ pkgs.vscode-utils.extensionsFromVscodeMarketplace [{
         name = "vscode-icons";
         publisher = "vscode-icons-team";
