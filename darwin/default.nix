@@ -40,11 +40,8 @@ in {
       onActivation = { cleanup = "uninstall"; };
       casks = [
         "1password"
-        "brave-browser"
         "db-browser-for-sqlite"
-        "docker"
         "firefox"
-        "google-chrome"
         "hammerspoon"
         "iterm2"
         "jetbrains-toolbox"
@@ -56,6 +53,9 @@ in {
         ++ lib.optionals cfg.enableExtras [
           "whatsapp"
           "cryptomator"
+          "google-chrome"
+          "docker"
+          "brave-browser"
           "balenaetcher"
           "tailscale"
           "steam"
