@@ -9,16 +9,12 @@ in {
     enableProf = lib.mkEnableOption "enable professional packages";
   };
 
-  imports = [ ./defaultPrograms ./vscode ./zsh ./neovim ./tmux ./darwin ];
+  imports = [ ./defaultPrograms ./zsh ./neovim ./tmux ./darwin ];
 
   config = {
 
     home.packages = with pkgs;
       [
-        #System packages
-        # Make touchID work from inside tmux
-        pam-reattach
-
         # Library packages
         openssl
         clang
@@ -62,6 +58,10 @@ in {
       ] ++ lib.optionals cfg.enableExtras [ wasm-pack podman ]
       ++ lib.optionals cfg.enableProf [ tilt helmfile ]
       ++ lib.optionals pkgs.stdenv.isDarwin [
+        #System packages
+        # Make touchID work from inside tmux
+        pam-reattach
+
         darwin.apple_sdk.frameworks.Security
         darwin.apple_sdk.frameworks.CoreFoundation
         darwin.apple_sdk.frameworks.CoreServices

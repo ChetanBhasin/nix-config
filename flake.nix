@@ -108,23 +108,43 @@
         };
       };
       nixosConfigurations = {
-        bill = nixpkgs.lib.nixosSystem {
-          system = "aarch64-linux";
+        #bill = nixpkgs.lib.nixosSystem {
+        #  system = "aarch64-linux";
+        #  modules = nixosModules {
+        #    host = "bill";
+        #    user = "chetan";
+        #  };
+        #  specialArgs = { inherit inputs nixpkgs; };
+        #};
+        #goku = nixpkgs.lib.nixosSystem {
+        #  system = "aarch64-linux";
+        #  modules = nixosModules {
+        #    host = "goku";
+        #    user = "chetan";
+        #  };
+        #  specialArgs = { inherit inputs nixpkgs; };
+        #};
+        dtest = nixpkgs.lib.nixosSystem {
           modules = nixosModules {
-            host = "bill";
+            host = "dtest";
             user = "chetan";
           };
-          specialArgs = { inherit inputs nixpkgs; };
-        };
-        goku = nixpkgs.lib.nixosSystem {
-          system = "aarch64-linux";
-          modules = nixosModules {
-            host = "goku";
-            user = "chetan";
-          };
-          specialArgs = { inherit inputs nixpkgs; };
         };
       };
-    };
+      deploy = {
+        nodes = {
+          dtest = {
+            hostname = "64.227.125.4";
+            profiles.system = {
+              user = "chetan";
+              sshUser = "root";
+              remoteBuild = true;
+              path = deploy-rs.lib.x86_64-linux.activate.nixos
+                self.nixosConfigurations.dtest;
+            };
+          };
+        };
+      };
 
+    };
 }
