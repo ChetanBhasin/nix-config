@@ -20,14 +20,6 @@ in {
         ];
       plugins = with pkgs.vimPlugins; [
         {
-          plugin = formatter-nvim;
-          config = ''
-            packadd! formatter.nvim
-            :luafile ${./includes/formatter.lua}
-            nnoremap <leader>F :Format<CR>
-          '';
-        }
-        {
           plugin = nvim-web-devicons;
           config = ''
             packadd! nvim-web-devicons

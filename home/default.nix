@@ -16,9 +16,6 @@ in {
     home.packages = with pkgs;
       [
         #System packages
-        # Make touchID work from inside tmux
-        pam-reattach
-
         # Library packages
         openssl
         clang
@@ -62,6 +59,10 @@ in {
       ] ++ lib.optionals cfg.enableExtras [ wasm-pack podman ]
       ++ lib.optionals cfg.enableProf [ tilt helmfile ]
       ++ lib.optionals pkgs.stdenv.isDarwin [
+        # Make touchID work from inside tmux
+        pam-reattach
+        libiconv
+
         darwin.apple_sdk.frameworks.Security
         darwin.apple_sdk.frameworks.CoreFoundation
         darwin.apple_sdk.frameworks.CoreServices
