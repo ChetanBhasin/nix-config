@@ -28,6 +28,10 @@ in {
         rdkafka
 
         # CLI Packages
+        wapm-cli
+        nodejs-18_x
+        wasmer
+        yarn
         cmake
         cachix
         starship
