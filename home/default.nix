@@ -24,6 +24,7 @@ in {
         clang
         libcxxabi
         lld
+        ncurses
         zsh-completions
         rdkafka
 
@@ -31,6 +32,7 @@ in {
         wapm-cli
         nodejs-18_x
         wasmer
+	terraform
         yarn
         cmake
         cachix
@@ -39,6 +41,8 @@ in {
         kubectl
         gawk
         kubectx
+	morph
+	colmena
         jq
         direnv
         git-ignore

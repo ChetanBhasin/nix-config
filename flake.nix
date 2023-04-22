@@ -47,7 +47,7 @@
     let
       nixpkgsConfig = with inputs; {
         config = { allowUnfree = true; };
-        overlays = [ inputs.rust-overlay.overlays.default ];
+        overlays = [ inputs.rust-overlay.overlays.default (import ./overlays/libtmux.nix) ];
       };
       darwinModules = { user, host }:
         with inputs; [
