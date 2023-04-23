@@ -7,6 +7,7 @@
     # Environment/system management
     darwin = { url = "github:lnl7/nix-darwin"; };
     home-manager = { url = "github:nix-community/home-manager"; };
+    neovim = { url = "github:neovim/neovim/v0.8.3?dir=contrib"; };
 
     # Other sources
     flake-utils.url = "github:numtide/flake-utils";
@@ -47,7 +48,11 @@
     let
       nixpkgsConfig = with inputs; {
         config = { allowUnfree = true; };
-        overlays = [ inputs.rust-overlay.overlays.default (import ./overlays/libtmux.nix) ];
+        overlays = [
+          inputs.rust-overlay.overlays.default
+          # inputs.neovim.overlay
+          (final: prev: { nvchad = prev.callPackage ./packages/nvchad { }; })
+        ];
       };
       darwinModules = { user, host }:
         with inputs; [

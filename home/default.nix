@@ -13,6 +13,8 @@ in {
 
   config = {
 
+    fonts.fontconfig.enable = true;
+
     home.packages = with pkgs;
       [
         #System packages
@@ -20,6 +22,8 @@ in {
         pam-reattach
 
         # Library packages
+        nerdfonts
+        nvchad
         openssl
         clang
         libcxxabi
@@ -30,9 +34,11 @@ in {
 
         # CLI Packages
         wapm-cli
+        go
         nodejs-18_x
         wasmer
-	terraform
+        flyctl
+        terraform
         yarn
         cmake
         cachix
@@ -41,8 +47,8 @@ in {
         kubectl
         gawk
         kubectx
-	morph
-	colmena
+        morph
+        colmena
         jq
         direnv
         git-ignore

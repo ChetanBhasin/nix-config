@@ -34,6 +34,10 @@ in {
       extraOptions = "experimental-features = nix-command flakes";
     };
 
+    fonts.fonts = with pkgs; [
+      nerdfonts
+    ];
+
     homebrew = {
       enable = true;
       onActivation.autoUpdate = true;
@@ -49,6 +53,8 @@ in {
         "postico"
         "tor-browser"
         "vlc"
+	"mysqlworkbench"
+	"fork"
       ] ++ lib.optionals cfg.enableProf [ "thunderbird" ]
         ++ lib.optionals cfg.enableExtras [
           "whatsapp"
