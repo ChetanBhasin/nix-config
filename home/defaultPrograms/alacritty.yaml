@@ -99,7 +99,7 @@ key_bindings:
   - { key: C, mods: Control, chars: "\x03" }
 
 font:
-  size: 14
+  size: 15
   normal:
     family: "Hack Nerd Font"
     style: Regular

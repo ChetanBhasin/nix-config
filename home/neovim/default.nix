@@ -39,5 +39,7 @@ in {
 
     xdg.configFile."nvim".source = nvchad;
     xdg.configFile."nvim".recursive = true;
+    xdg.configFile."nvim/lua/custom".source = ./custom;
+    xdg.configFile."nvim/lua/custom".recursive = true;
   };
 }
