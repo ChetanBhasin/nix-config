@@ -34,6 +34,11 @@ in {
       extraOptions = "experimental-features = nix-command flakes";
     };
 
+    fonts = {
+      fontDir.enable = true;
+      fonts = with pkgs; [ dejavu_fonts nerdfonts ];
+    };
+
     homebrew = {
       enable = true;
       onActivation.autoUpdate = true;
