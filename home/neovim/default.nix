@@ -15,6 +15,11 @@ in {
       viAlias = true;
       vimAlias = true;
       vimdiffAlias = true;
+      withNodeJs = true;
+      plugins = with pkgs; [
+        vimPlugins.cmp-copilot
+        vimPlugins.copilot-vim
+      ];
       extraPackages = with pkgs;
         [
           lua
