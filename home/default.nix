@@ -38,9 +38,10 @@ in {
         tmux
         kubectl
         gawk
+        gettext
+        htop
         kubectx
         jq
-        direnv
         git-ignore
         tree
         bat
@@ -63,8 +64,10 @@ in {
         sccache
         libiconv
         direnv
+        luajit
+        terraform
       ] ++ lib.optionals cfg.enableExtras [ wasm-pack podman ]
-      ++ lib.optionals cfg.enableProf [ tilt helmfile ]
+      ++ lib.optionals cfg.enableProf [ tilt helmfile atlantis consul grpc nomad protobuf vault readline ]
       ++ lib.optionals pkgs.stdenv.isDarwin [
         darwin.apple_sdk.frameworks.Security
         darwin.apple_sdk.frameworks.CoreFoundation
