@@ -45,21 +45,23 @@ in {
       onActivation = { cleanup = "uninstall"; };
       casks = [
         "1password"
+        "alacritty"
         "db-browser-for-sqlite"
         "firefox"
+        "fork"
         "hammerspoon"
         "iterm2"
         "jetbrains-toolbox"
         "macfuse"
         "postico"
         "tor-browser"
+        "open-in-code"
         "vlc"
       ] ++ lib.optionals cfg.enableProf [ "thunderbird" ]
         ++ lib.optionals cfg.enableExtras [
           "whatsapp"
           "cryptomator"
           "google-chrome"
-          "docker"
           "brave-browser"
           "balenaetcher"
           "tailscale"
