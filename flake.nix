@@ -14,13 +14,6 @@
       url = "github:edolstra/flake-compat";
       flake = false;
     };
-    rust-overlay = {
-      url = "github:oxalica/rust-overlay";
-      inputs = {
-        nixpkgs.follows = "nixpkgs";
-        flake-utils.follows = "flake-utils";
-      };
-    };
     devshell = {
       url = "github:numtide/devshell";
       inputs = {
@@ -47,7 +40,7 @@
     let
       nixpkgsConfig = with inputs; {
         config = { allowUnfree = true; };
-        overlays = [ inputs.rust-overlay.overlays.default ];
+        overlays = [ ];
       };
       darwinModules = { user, host }:
         with inputs; [

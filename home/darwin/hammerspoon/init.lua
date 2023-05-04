@@ -12,3 +12,5 @@ hs.hotkey.bind(hyper, "w", function() hs.application.launchOrFocus("WhatsApp") e
 hs.hotkey.bind(hyper, "g", function() hs.application.launchOrFocus("Discord") end)
 hs.hotkey.bind(hyper, "c", function() hs.application.launchOrFocus("Visual Studio Code") end)
 hs.hotkey.bind(hyper, "x", function() hs.application.launchOrFocus("Xcode") end)
+hs.hotkey.bind(hyper, "l", function() hs.application.launchOrFocus("Slack") end)
+hs.hotkey.bind(hyper, "z", function() hs.application.launchOrFocus("Zoom") end)

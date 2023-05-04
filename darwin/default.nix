@@ -52,7 +52,6 @@ in {
         "hammerspoon"
         "iterm2"
         "jetbrains-toolbox"
-        "macfuse"
         "postico"
         "tor-browser"
         "open-in-code"
@@ -81,6 +80,7 @@ in {
           "alfred"
           "monitorcontrol"
           "arc"
+          "macfuse"
         ];
     };
 
