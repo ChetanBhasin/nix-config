@@ -1,14 +1,5 @@
 { config, pkgs, lib, ... }:
-with lib;
-let
-  python-debug = pkgs.python3.withPackages (p: with p; [ debugpy ]);
-  nvchad = pkgs.fetchFromGitHub {
-    owner = "NvChad";
-    repo = "NvChad";
-    rev = "main";
-    sha256 = "sha256-B7KX+o1wNGhq7cqUb6WWaocrk1/h81jl8HLI9JDlME0=";
-  };
-in {
+with lib; {
   config = {
     programs.neovim = {
       enable = true;
@@ -16,35 +7,17 @@ in {
       vimAlias = true;
       vimdiffAlias = true;
       withNodeJs = true;
-      plugins = with pkgs; [
-        vimPlugins.cmp-copilot
-        vimPlugins.copilot-vim
-      ];
+      withPython3 = true;
       extraPackages = with pkgs;
-        [
-          lua
-          ctags
-          stylua
-          ripgrep
-          nerdfonts
-          (rust-bin.stable.latest.default.override {
-            extensions = [ "rust-src" "rust-analyzer" ];
-            targets = [ "wasm32-unknown-unknown" ];
-          })
-        ] ++ lib.optionals pkgs.stdenv.isDarwin [
+        [ lua go ctags stylua ripgrep gzip nerdfonts ]
+        ++ lib.optionals pkgs.stdenv.isDarwin [
           darwin.apple_sdk.frameworks.Security
           darwin.apple_sdk.frameworks.CoreFoundation
           darwin.apple_sdk.frameworks.CoreServices
-          (rust-bin.stable.latest.default.override {
-            extensions = [ "rust-src" "rust-analyzer" ];
-            targets = [ "aarch64-apple-darwin" "wasm32-unknown-unknown" ];
-          })
         ];
     };
 
-    xdg.configFile."nvim".source = nvchad;
+    xdg.configFile."nvim".source = ./nvchad;
     xdg.configFile."nvim".recursive = true;
-    xdg.configFile."nvim/lua/custom".source = ./custom;
-    xdg.configFile."nvim/lua/custom".recursive = true;
   };
 }

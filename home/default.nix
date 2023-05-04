@@ -66,16 +66,22 @@ in {
         direnv
         luajit
         terraform
+        rustup
       ] ++ lib.optionals cfg.enableExtras [ wasm-pack podman ]
-      ++ lib.optionals cfg.enableProf [ tilt helmfile atlantis consul grpc nomad protobuf vault readline ]
-      ++ lib.optionals pkgs.stdenv.isDarwin [
+      ++ lib.optionals cfg.enableProf [
+        tilt
+        helmfile
+        atlantis
+        consul
+        grpc
+        nomad
+        protobuf
+        vault
+        readline
+      ] ++ lib.optionals pkgs.stdenv.isDarwin [
         darwin.apple_sdk.frameworks.Security
         darwin.apple_sdk.frameworks.CoreFoundation
         darwin.apple_sdk.frameworks.CoreServices
-        (rust-bin.stable.latest.default.override {
-          extensions = [ "rust-src" "rust-analyzer" ];
-          targets = [ "aarch64-apple-darwin" "wasm32-unknown-unknown" ];
-        })
       ];
 
     home.stateVersion = "23.05";
