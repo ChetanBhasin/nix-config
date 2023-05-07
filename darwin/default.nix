@@ -76,11 +76,11 @@ in {
           "discord"
           "deepl"
           "caffeine"
-          "texmaker"
           "alfred"
           "monitorcontrol"
           "arc"
           "macfuse"
+          "oracle-jdk"
         ];
     };
 
