@@ -26,8 +26,12 @@ in {
         lld
         zsh-completions
         rdkafka
+        clojure
+        gnuplot
+        graphviz
 
         # CLI Packages
+        leiningen
         wapm-cli
         nodejs-18_x
         wasmer
