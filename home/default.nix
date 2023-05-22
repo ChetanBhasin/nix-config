@@ -46,6 +46,7 @@ in {
         htop
         kubectx
         jq
+        gitoxide
         git-ignore
         tree
         bat
