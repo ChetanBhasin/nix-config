@@ -2,11 +2,11 @@
   description = "Chetan Bhasin's Nix configuration";
   inputs = {
     # Package sets
-    nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
+    nixpkgs.url = "github:nixos/nixpkgs/release-23.05";
 
     # Environment/system management
     darwin = { url = "github:lnl7/nix-darwin"; };
-    home-manager = { url = "github:nix-community/home-manager"; };
+    home-manager = { url = "github:nix-community/home-manager/release-23.05"; };
 
     # Other sources
     flake-utils.url = "github:numtide/flake-utils";
