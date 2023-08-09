@@ -63,6 +63,7 @@ in {
         fzf
         python3Full
         podman
+        qemu
         nixfmt
         protobuf
         zlib
