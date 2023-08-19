@@ -38,6 +38,7 @@ in {
         yarn
         cmake
         cachix
+        elixir
         starship
         tmux
         kubectl
