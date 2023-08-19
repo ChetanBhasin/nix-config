@@ -14,3 +14,4 @@ hs.hotkey.bind(hyper, "c", function() hs.application.launchOrFocus("Visual Studi
 hs.hotkey.bind(hyper, "x", function() hs.application.launchOrFocus("Xcode") end)
 hs.hotkey.bind(hyper, "l", function() hs.application.launchOrFocus("Slack") end)
 hs.hotkey.bind(hyper, "z", function() hs.application.launchOrFocus("Zoom") end)
+hs.hotkey.bind(hyper, "n", function() hs.application.launchOrFocus("Obsidian") end)
