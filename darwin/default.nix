@@ -58,6 +58,7 @@ in {
         "vlc"
         "obsidian"
         "slack"
+        "arc"
       ] ++ lib.optionals cfg.enableProf [ "thunderbird" ]
         ++ lib.optionals cfg.enableExtras [
           "whatsapp"
