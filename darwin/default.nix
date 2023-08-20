@@ -57,6 +57,7 @@ in {
         "open-in-code"
         "vlc"
         "obsidian"
+        "slack"
       ] ++ lib.optionals cfg.enableProf [ "thunderbird" ]
         ++ lib.optionals cfg.enableExtras [
           "whatsapp"
