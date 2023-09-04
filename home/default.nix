@@ -58,7 +58,7 @@ in {
         gnupg
         virtualenv
         wget
-        pkgconfig
+        pkg-config
         git-lfs
         curl
         fzf

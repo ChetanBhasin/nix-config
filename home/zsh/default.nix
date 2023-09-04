@@ -15,7 +15,9 @@
       OPENSSL_LIB_DIR = "${pkgs.openssl.out}/lib";
       OPENSSL_DIR = "${pkgs.openssl.dev}";
       PKG_CONFIG_LIBDIR = "${pkgs.rdkafka}/lib/pkgconfig";
-      LIBRARY_PATH = "${pkgs.libiconv}/lib";
+      LIBRARY_PATH = "LIBRARY_PATH:${pkgs.libiconv}/lib";
+      PKG_CONFIG_PATH =
+        "$PKG_CONFIG_PATH:${nixpkgs.rdkafka}/lib/pkgconfig:${nixpkgs.libiconv}/lib/pkgconfig";
     };
 
     initExtra = ''
