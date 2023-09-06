@@ -59,9 +59,11 @@ in {
         "obsidian"
         "slack"
         "arc"
+        "zoom"
       ] ++ lib.optionals cfg.enableProf [ "thunderbird" ]
         ++ lib.optionals cfg.enableExtras [
           "whatsapp"
+          "cron"
           "cryptomator"
           "google-chrome"
           "brave-browser"
