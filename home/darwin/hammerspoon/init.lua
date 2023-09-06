@@ -1,6 +1,6 @@
 local hyper = { 'option', 'command' }
 
-hs.hotkey.bind(hyper, "b", function() hs.application.launchOrFocus("Firefox") end)
+hs.hotkey.bind(hyper, "b", function() hs.application.launchOrFocus("Arc") end)
 hs.hotkey.bind(hyper, "t", function() hs.application.launchOrFocus("Alacritty") end)
 hs.hotkey.bind(hyper, "f", function() hs.application.launchOrFocus("Figma") end)
 hs.hotkey.bind(hyper, "e", function() hs.application.launchOrFocus("Signal") end)
@@ -13,6 +13,5 @@ hs.hotkey.bind(hyper, "g", function() hs.application.launchOrFocus("Discord") en
 hs.hotkey.bind(hyper, "c", function() hs.application.launchOrFocus("Visual Studio Code") end)
 hs.hotkey.bind(hyper, "x", function() hs.application.launchOrFocus("Xcode") end)
 hs.hotkey.bind(hyper, "l", function() hs.application.launchOrFocus("Slack") end)
-hs.hotkey.bind(hyper, "a", function() hs.application.launchOrFocus("Arc") end)
 hs.hotkey.bind(hyper, "z", function() hs.application.launchOrFocus("Zoom") end)
 hs.hotkey.bind(hyper, "n", function() hs.application.launchOrFocus("Obsidian") end)
