@@ -31,6 +31,7 @@ in {
         graphviz
 
         # CLI Packages
+        flyctl
         leiningen
         wapm-cli
         nodejs-18_x
