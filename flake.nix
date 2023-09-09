@@ -42,8 +42,21 @@
         config = { allowUnfree = true; };
         overlays = [ ];
       };
-      darwinModules = { user, host }:
-        with inputs; [
+      darwinModules = { system, user, host }:
+        let
+          linuxSystem = builtins.replaceStrings [ "darwin" ] [ "linux" ] system;
+          pkgs = nixpkgs.legacyPackages."${system}";
+          darwin-builder = nixpkgs.lib.nixosSystem {
+            system = linuxSystem;
+            modules = [
+              "${nixpkgs}/nixos/modules/profiles/macos-builder.nix"
+              {
+                virtualisation.host.pkgs = pkgs;
+                system.nixos.revision = nixpkgs.lib.mkForce null;
+              }
+            ];
+          };
+        in with inputs; [
           # Main `nix-darwin` config
           (./. + "/hosts/${host}/configuration.nix")
           # `home-manager` module
@@ -55,6 +68,25 @@
             home-manager = {
               useGlobalPkgs = true;
               users.${user} = import (./. + "/hosts/${host}/home.nix");
+            };
+          }
+          {
+            nix.distributedBuilds = true;
+            nix.buildMachines = [{
+              hostName = "ssh://builder@localhost";
+              system = linuxSystem;
+              maxJobs = 4;
+              supportedFeatures = [ "kvm" "benchmark" "big-parallel" ];
+            }];
+            launchd.daemons.darwin-builder = {
+              command =
+                "${darwin-builder.config.system.build.macos-builder-installer}/bin/create-builder";
+              serviceConfig = {
+                KeepAlive = true;
+                RunAtLoad = true;
+                StandardOutPath = "/var/log/darwin-builder.log";
+                StandardErrorPath = "/var/log/darwin-builder.log";
+              };
             };
           }
         ];
@@ -86,6 +118,7 @@
         hugh = darwin.lib.darwinSystem {
           system = "aarch64-darwin";
           modules = darwinModules {
+            system = "aarch64-darwin";
             user = "chetan";
             host = "hugh";
           };
@@ -94,6 +127,7 @@
         markus = darwin.lib.darwinSystem {
           system = "aarch64-darwin";
           modules = darwinModules {
+            system = "aarch64-darwin";
             user = "chetan";
             host = "markus";
           };
