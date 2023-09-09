@@ -31,6 +31,7 @@ in {
         graphviz
 
         # CLI Packages
+        sops
         flyctl
         leiningen
         wapm-cli
