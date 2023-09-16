@@ -92,6 +92,7 @@ in {
         darwin.apple_sdk.frameworks.Security
         darwin.apple_sdk.frameworks.CoreFoundation
         darwin.apple_sdk.frameworks.CoreServices
+        darwin.apple_sdk.frameworks.SystemConfiguration
       ];
 
     home.stateVersion = "23.05";
