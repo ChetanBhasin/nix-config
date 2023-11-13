@@ -168,3 +168,6 @@ git-ammend-old() (
   git checkout "$current_branch"
   git rebase --onto "$new_sha" "$apply_to"
 )
+
+# Let's add installed Rust and cargo path here
+export PATH="$PATH:$HOME/.cargo/bin"
