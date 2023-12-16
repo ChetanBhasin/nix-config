@@ -83,7 +83,7 @@ in {
           "spotify"
           "deepl"
           "caffeine"
-          "alfred"
+          "raycast"
           "monitorcontrol"
           "arc"
           "macfuse"
