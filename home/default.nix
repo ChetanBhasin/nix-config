@@ -60,6 +60,7 @@ in {
         fd
         gnupg
         virtualenv
+        vault
         wget
         pkg-config
         git-lfs
