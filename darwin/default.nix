@@ -88,6 +88,7 @@ in {
           "monitorcontrol"
           "arc"
           "macfuse"
+          "notion"
           "oracle-jdk"
         ];
     };
