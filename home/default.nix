@@ -36,7 +36,7 @@ in {
         flyctl
         leiningen
         wapm-cli
-        nodejs-18_x
+        nodejs_20
         wasmer
         yarn
         cmake
