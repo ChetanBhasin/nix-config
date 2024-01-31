@@ -2,7 +2,7 @@
   description = "Chetan Bhasin's Nix configuration";
   inputs = {
     # Package sets
-    nixpkgs.url = "github:nixos/nixpkgs/release-23.05";
+    nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
 
     # Environment/system management
     darwin = { url = "github:lnl7/nix-darwin"; };
