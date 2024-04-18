@@ -63,6 +63,7 @@ in {
         "zoom"
       ] ++ lib.optionals cfg.enableProf [ "thunderbird" ]
         ++ lib.optionals cfg.enableExtras [
+          "ticktick"
           "whatsapp"
           "cron"
           "cryptomator"
