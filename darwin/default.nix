@@ -65,7 +65,7 @@ in {
         ++ lib.optionals cfg.enableExtras [
           "ticktick"
           "whatsapp"
-          "cron"
+          "notion-calendar"
           "cryptomator"
           "google-chrome"
           "brave-browser"
