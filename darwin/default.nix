@@ -43,6 +43,9 @@ in {
       enable = true;
       onActivation.autoUpdate = true;
       onActivation = { cleanup = "uninstall"; };
+      brews = [
+        "flyctl"
+      ];
       casks = [
         "1password"
         "alacritty"

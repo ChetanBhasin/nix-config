@@ -33,7 +33,6 @@ in {
         # CLI Packages
         sops
         sqlx-cli
-        flyctl
         leiningen
         wapm-cli
         nodejs_20
