@@ -2,6 +2,7 @@ set -o vi
 
 source ~/.creds
 eval "$(direnv hook zsh)"
+eval "$(nodenv init -)"
 
 
 alias lsl="exa -lLsSuUhHa"
