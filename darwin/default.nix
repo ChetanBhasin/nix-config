@@ -45,6 +45,7 @@ in {
       onActivation = { cleanup = "uninstall"; };
       brews = [
         "flyctl"
+        "nodenv"
       ];
       casks = [
         "1password"

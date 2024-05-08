@@ -35,9 +35,7 @@ in {
         sqlx-cli
         leiningen
         wapm-cli
-        nodejs_20
         wasmer
-        yarn
         cmake
         cachix
         elixir
