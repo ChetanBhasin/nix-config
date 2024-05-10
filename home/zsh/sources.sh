@@ -15,6 +15,9 @@ alias update="nix-channel --update && darwin-rebuild switch && home-manager swit
 alias cleanup="brew cleanup && brew doctor && nix-collect-garbage"
 alias cleanupdate="enablepassword && update && cleanup"
 
+export DOCKER_HOST='unix:///Users/chetan/.local/share/containers/podman/machine/qemu/podman.sock'
+
+
 # Install nix packages in local default profile
 function ninstall() {
 	nix profile install "github:NixOS/nixpkgs#$1"
