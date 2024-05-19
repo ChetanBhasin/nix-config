@@ -46,6 +46,7 @@ in {
         gettext
         htop
         kubectx
+        ngrok
         jq
         gitoxide
         git-ignore
