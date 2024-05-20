@@ -21,22 +21,14 @@
         flake-utils.follows = "flake-utils";
       };
     };
-    deploy-rs = {
-      url = "github:serokell/deploy-rs";
-      inputs = {
-        nixpkgs.follows = "nixpkgs";
-        utils.follows = "flake-utils";
-        flake-compat.follows = "flake-compat";
-      };
-    };
     nixos-generators = {
       url = "github:nix-community/nixos-generators";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
 
-  outputs = inputs@{ self, nixpkgs, darwin, home-manager, flake-utils, deploy-rs
-    , devshell, nixos-generators, ... }:
+  outputs = inputs@{ self, nixpkgs, darwin, home-manager, flake-utils, devshell
+    , nixos-generators, ... }:
     let
       nixpkgsConfig = with inputs; {
         config = { allowUnfree = true; };
@@ -100,24 +92,45 @@
           specialArgs = { inherit inputs nixpkgs; };
         };
       };
-      nixosConfigurations = {
-        bill = nixpkgs.lib.nixosSystem {
-          system = "aarch64-linux";
-          modules = nixosModules {
-            host = "bill";
-            user = "chetan";
+      colmena = {
+        meta = {
+          nixpkgs = import nixpkgs {
+            system = "x86_64-linux";
+            config = { allowUnfree = true; };
+            overlays = [ ];
           };
-          specialArgs = { inherit inputs nixpkgs; };
         };
-        goku = nixpkgs.lib.nixosSystem {
-          system = "aarch64-linux";
-          modules = nixosModules {
-            host = "goku";
-            user = "chetan";
+
+        venus = {
+          deployment = {
+            targetHost = "venus";
+            targetUser = "chetan";
+            allowLocalDeployment = true;
+            buildOnTarget = true;
           };
-          specialArgs = { inherit inputs nixpkgs; };
+        };
+
+        defaults = { pkgs, name, ... }: {
+          deployment = {
+            keys."tailscale.auth" = {
+              keyCommand = [ "sops" "--decrypt" "secrets/tailscale" ];
+              destDir = "/run/keys";
+            };
+          };
+          imports = [
+            (./. + "/bootconfig/${name}.nix")
+            (./. + "/hosts/${name}/configuration.nix")
+          ];
+          networking.hostName = "${name}";
+          users.users.root.openssh.authorizedKeys.keys = [
+            # chetan's mac key
+            "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC8y+WOiiqxKGRQHGdtRGL2R4Ptqs7uEXX89WwvUQTc9A2zTFjGNcQvDCP6+qw6FQgDCaLdNozojfPQxo/VqMiWf1KXvBOPMONc+AUURhPxw8lD1FSc5AsLAw68BrxnFLbYrKmJT6qr3Ap/D6NGNlJUN3mR/e8Bj2wpKNSidmn9aDBxuGLkBmYJ8K8Wdalg47WwQ7wvzxCn4MFjM8CINyaI3p0mouZdCeCd/JcJgeLqN1JGuHCdgwzS9FgAWwQ0s/zb33icxS3qlHYLOch8YpD1wCceHJEv8dRQxwoEbdho9VwUzZGE8y2YPLxNLShSjUEPK5rLbfz4kUrWZCEX0LHhwyBKW0u8O7RArCKVDjJkiVEWoIrTmYx3CxppYnuyKPe85vUwqQzafN1EVvtfwQcJHBknG/9Fo5sU+juuTMIbFHNwFjBH4MzOnIRBAV2lGy4YsGZwE/+HVB9kFqZf3KrBeRSZsNMUxC0AXapOHKimHyUyHS/bJUH3onqPV1cD8/k= chetan@Chetans-Air"
+          ];
+          users.users.chetan.openssh.authorizedKeys.keys = [
+            # chetan's mac key
+            "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC8y+WOiiqxKGRQHGdtRGL2R4Ptqs7uEXX89WwvUQTc9A2zTFjGNcQvDCP6+qw6FQgDCaLdNozojfPQxo/VqMiWf1KXvBOPMONc+AUURhPxw8lD1FSc5AsLAw68BrxnFLbYrKmJT6qr3Ap/D6NGNlJUN3mR/e8Bj2wpKNSidmn9aDBxuGLkBmYJ8K8Wdalg47WwQ7wvzxCn4MFjM8CINyaI3p0mouZdCeCd/JcJgeLqN1JGuHCdgwzS9FgAWwQ0s/zb33icxS3qlHYLOch8YpD1wCceHJEv8dRQxwoEbdho9VwUzZGE8y2YPLxNLShSjUEPK5rLbfz4kUrWZCEX0LHhwyBKW0u8O7RArCKVDjJkiVEWoIrTmYx3CxppYnuyKPe85vUwqQzafN1EVvtfwQcJHBknG/9Fo5sU+juuTMIbFHNwFjBH4MzOnIRBAV2lGy4YsGZwE/+HVB9kFqZf3KrBeRSZsNMUxC0AXapOHKimHyUyHS/bJUH3onqPV1cD8/k= chetan@Chetans-Air"
+          ];
         };
       };
     };
-
 }

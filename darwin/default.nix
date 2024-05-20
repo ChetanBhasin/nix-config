@@ -43,10 +43,7 @@ in {
       enable = true;
       onActivation.autoUpdate = true;
       onActivation = { cleanup = "uninstall"; };
-      brews = [
-        "flyctl"
-        "nodenv"
-      ];
+      brews = [ "flyctl" "nodenv" ];
       casks = [
         "1password"
         "alacritty"
@@ -93,7 +90,7 @@ in {
           "monitorcontrol"
           "shureplus-motiv"
           "insta360-studio"
-          "proton-main"
+          "proton-mail"
           "arc"
           "macfuse"
           "notion"

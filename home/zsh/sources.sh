@@ -16,6 +16,7 @@ alias cleanup="brew cleanup && brew doctor && nix-collect-garbage"
 alias cleanupdate="enablepassword && update && cleanup"
 
 export DOCKER_HOST='unix:///Users/chetan/.local/share/containers/podman/machine/qemu/podman.sock'
+export SOPS_AGE_KEY_FILE="$HOME/.age/key.txt"
 
 
 # Install nix packages in local default profile
