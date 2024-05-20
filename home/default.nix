@@ -38,15 +38,12 @@ in {
         wasmer
         cmake
         cachix
-        elixir
-        starship
         tmux
         kubectl
         gawk
         gettext
         htop
         kubectx
-        ngrok
         jq
         gitoxide
         git-ignore
@@ -65,8 +62,6 @@ in {
         curl
         fzf
         python3Full
-        podman
-        qemu
         nixfmt
         protobuf
         zlib
@@ -75,9 +70,16 @@ in {
         direnv
         luajit
         terraform
+        starship
         rustup
-      ] ++ lib.optionals cfg.enableExtras [ wasm-pack podman ]
-      ++ lib.optionals cfg.enableProf [
+      ] ++ lib.optionals cfg.enableExtras [
+        wasm-pack
+        podman
+        colmena
+        elixir
+        ngrok
+        qemu
+      ] ++ lib.optionals cfg.enableProf [
         tilt
         helmfile
         atlantis
