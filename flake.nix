@@ -25,10 +25,15 @@
       url = "github:nix-community/nixos-generators";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    snm = {
+      url = "gitlab:simple-nixos-mailserver/nixos-mailserver/nixos-23.05";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
   };
 
   outputs = inputs@{ self, nixpkgs, darwin, home-manager, flake-utils, devshell
-    , nixos-generators, ... }:
+    , nixos-generators, snm, ... }:
     let
       nixpkgsConfig = with inputs; {
         config = { allowUnfree = true; };
@@ -108,6 +113,7 @@
             allowLocalDeployment = true;
             buildOnTarget = true;
           };
+          imports = [ inputs.snm.nixosModule ];
         };
 
         defaults = { pkgs, name, ... }: {
@@ -115,6 +121,11 @@
             keys."tailscale.auth" = {
               keyCommand = [ "sops" "--decrypt" "secrets/tailscale" ];
               destDir = "/run/keys";
+            };
+            keys."f57bfb1a-b6c7-4201-b80e-e0d45aa6709a.json" = {
+              keyCommand = [ "sops" "--decrypt" "secrets/cloudflare/git.json" ];
+              destDir = "/home/cloudflared/.cloudflared/";
+              user = "cloudflared";
             };
           };
           imports = [
