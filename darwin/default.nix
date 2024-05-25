@@ -43,7 +43,7 @@ in {
       enable = true;
       onActivation.autoUpdate = true;
       onActivation = { cleanup = "uninstall"; };
-      brews = [ "flyctl" "nodenv" ];
+      brews = [ "flyctl" "nodenv" "docker" ];
       casks = [
         "1password"
         "alacritty"
