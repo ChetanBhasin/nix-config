@@ -74,8 +74,8 @@ in {
         rustup
       ] ++ lib.optionals cfg.enableExtras [
         wasm-pack
-        podman
         colmena
+        colima
         elixir
         ngrok
         qemu
