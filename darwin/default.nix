@@ -85,6 +85,7 @@ in {
           "screen-studio"
           "proton-mail"
           "macfuse"
+          "orbstack"
           "notion"
           "oracle-jdk"
         ];

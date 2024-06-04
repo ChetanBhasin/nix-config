@@ -75,7 +75,6 @@ in {
       ] ++ lib.optionals cfg.enableExtras [
         wasm-pack
         colmena
-        colima
         elixir
         ngrok
         qemu
