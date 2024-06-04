@@ -1,4 +1,4 @@
-{ pkgs, lib, ... }: {
+{ self, pkgs, lib, ... }: {
   virtualisation.containers.enable = true;
   virtualisation = {
     podman = {
@@ -41,6 +41,7 @@
     rootUrl = "https://git.lorcanservices.com";
     settings.server.ROOT_URL = "https://git.lorcanservices.com";
     settings.server.SSH_DOMAIN = "git-ssh.lorcanservices.com";
+    settings.actions.ENABLED = true;
     httpPort = 3001;
   };
 
@@ -56,6 +57,44 @@
           "git-ssh.lorcanservices.com" = { service = "ssh://localhost:22"; };
         };
       };
+    };
+  };
+
+  environment.etc."nextcloud-admin-pass".text = "thispasswordisnotsecure";
+
+  services.nextcloud = {
+    enable = true;
+    package = pkgs.nextcloud28;
+    hostName = "venus.panther-ling.ts.net";
+    config = {
+      adminpassFile = "/etc/nextcloud-admin-pass";
+      trustedProxies = [ "127.0.0.1" ];
+    };
+    extraApps = {
+      inherit (pkgs.nextcloud28Packages.apps) mail calendar onlyoffice spreed;
+    };
+    extraAppsEnable = true;
+
+    extraOptions.enabledPreviewProviders = [
+      "OC\\Preview\\BMP"
+      "OC\\Preview\\GIF"
+      "OC\\Preview\\JPEG"
+      "OC\\Preview\\Krita"
+      "OC\\Preview\\MarkDown"
+      "OC\\Preview\\MP3"
+      "OC\\Preview\\OpenDocument"
+      "OC\\Preview\\PNG"
+      "OC\\Preview\\TXT"
+      "OC\\Preview\\XBitmap"
+      "OC\\Preview\\HEIC"
+    ];
+  };
+
+  services.nginx.virtualHosts = {
+    "venus.panther-ling.ts.net" = {
+      locations."/*".proxyPass = "http://127.0.0.1";
+      forceSSL = false;
+      enableACME = false;
     };
   };
 }
