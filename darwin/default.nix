@@ -64,6 +64,7 @@ in {
         ++ lib.optionals cfg.enableExtras [
           "ticktick"
           "whatsapp"
+          "tradingview"
           "notion-calendar"
           "cryptomator"
           "tailscale"
