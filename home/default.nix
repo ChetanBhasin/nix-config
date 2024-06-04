@@ -76,6 +76,7 @@ in {
         colmena
         elixir
         gleam
+        erlang
         ngrok
         qemu
       ] ++ lib.optionals cfg.enableProf [

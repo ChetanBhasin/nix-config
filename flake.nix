@@ -6,7 +6,7 @@
 
     # Environment/system management
     darwin = { url = "github:lnl7/nix-darwin"; };
-    home-manager = { url = "github:nix-community/home-manager/release-23.05"; };
+    home-manager = { url = "github:nix-community/home-manager/release-24.05"; };
 
     # Other sources
     flake-utils.url = "github:numtide/flake-utils";
