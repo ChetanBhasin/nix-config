@@ -12,7 +12,6 @@ in {
   imports = [ ./defaultPrograms ./vscode ./zsh ./neovim ./tmux ./darwin ];
 
   config = {
-
     home.packages = with pkgs;
       [
         #System packages
@@ -76,6 +75,7 @@ in {
         wasm-pack
         colmena
         elixir
+        gleam
         ngrok
         qemu
       ] ++ lib.optionals cfg.enableProf [
