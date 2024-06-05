@@ -2,14 +2,23 @@
   description = "Chetan Bhasin's Nix configuration";
   inputs = {
     # Package sets
-    nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-24.05";
 
     # Environment/system management
-    darwin = { url = "github:lnl7/nix-darwin"; };
-    home-manager = { url = "github:nix-community/home-manager/release-24.05"; };
+    darwin = {
+      url = "github:lnl7/nix-darwin";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    home-manager = {
+      url = "github:nix-community/home-manager/release-24.05";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     # Other sources
-    flake-utils.url = "github:numtide/flake-utils";
+    flake-utils = {
+      url = "github:numtide/flake-utils";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     flake-compat = {
       url = "github:edolstra/flake-compat";
       flake = false;
