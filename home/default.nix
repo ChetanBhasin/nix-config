@@ -21,7 +21,7 @@ in {
         # Library packages
         openssl
         clang
-        libcxxabi
+        libcxx
         lld
         zsh-completions
         rdkafka
@@ -33,7 +33,6 @@ in {
         sops
         sqlx-cli
         leiningen
-        wapm-cli
         wasmer
         cmake
         cachix
@@ -48,9 +47,8 @@ in {
         git-ignore
         tree
         bat
-        nixfmt
         htop
-        exa
+        eza
         fd
         gnupg
         virtualenv
@@ -61,7 +59,7 @@ in {
         curl
         fzf
         python3Full
-        nixfmt
+        nixfmt-classic
         protobuf
         zlib
         sccache

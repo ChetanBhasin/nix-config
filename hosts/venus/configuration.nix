@@ -25,5 +25,5 @@
 
   environment.systemPackages = [ pkgs.nextcloud28 ];
 
-  system.stateVersion = "23.11";
+  system.stateVersion = "23.05;
 }

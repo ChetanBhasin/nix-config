@@ -4,10 +4,10 @@ let
     pluginName = "catppuccin";
     version = "default";
     src = pkgs.fetchFromGitHub {
-      owner = "Millrocious";
+      owner = "catppuccin";
       repo = "tmux";
-      rev = "f71e781b56a45c97dfaa6519bc2914837a9b5f78";
-      sha256 = "sha256-fJlQYstWEk3y1kJxoY+ylJ8vU9zTeidDr/vIp9ZtubM=";
+      rev = "10d1b1f7c3e235dfe0bb0082970cb559615bdb25";
+      sha256 = "sha256-Csvw9JLe6Djs5svYpW20Lh3pJ/og4WHtghwaISnK2dI=";
     };
   };
 in {
