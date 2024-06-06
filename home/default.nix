@@ -74,6 +74,7 @@ in {
         colmena
         elixir
         gleam
+        rebar3
         erlang
         ngrok
         qemu

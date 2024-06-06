@@ -2,7 +2,7 @@
   description = "Chetan Bhasin's Nix configuration";
   inputs = {
     # Package sets
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-24.05";
+    nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
 
     # Environment/system management
     darwin = {
@@ -17,7 +17,6 @@
     # Other sources
     flake-utils = {
       url = "github:numtide/flake-utils";
-      inputs.nixpkgs.follows = "nixpkgs";
     };
     flake-compat = {
       url = "github:edolstra/flake-compat";
