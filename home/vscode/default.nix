@@ -6,7 +6,7 @@
     mutableExtensionsDir = true;
     extensions = with pkgs.vscode-extensions;
       [
-        matklad.rust-analyzer
+        rust-lang.rust-analyzer
         ms-azuretools.vscode-docker
         vscodevim.vim
         mkhl.direnv
