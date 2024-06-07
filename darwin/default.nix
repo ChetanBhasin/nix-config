@@ -71,6 +71,7 @@ in {
           "tailscale"
           "telegram"
           "signal"
+          "remarkable"
           "protonvpn"
           "proton-drive"
           "protonmail-bridge"
