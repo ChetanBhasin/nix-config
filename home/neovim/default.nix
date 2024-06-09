@@ -36,47 +36,34 @@ with lib; {
         ];
       plugins = with pkgs.vimPlugins; [
         plenary-nvim
+        vim-cool
+        vim-smoothie
+        vim-closer
         telescope-nvim
+        telescope-file-browser-nvim
+        nvim-web-devicons
+        lualine-nvim
         dressing-nvim
+        fidget-nvim
         comment-nvim
         catppuccin-nvim
         FTerm-nvim
         undotree
         rust-tools-nvim
         nvim-lspconfig
-        (nvim-treesitter.withPlugins (plugins:
-          with plugins; [
-            tree-sitter-bash
-            tree-sitter-css
-            tree-sitter-dart
-            tree-sitter-dockerfile
-            tree-sitter-eex
-            tree-sitter-elixir
-            tree-sitter-graphql
-            tree-sitter-go
-            tree-sitter-hcl
-            tree-sitter-html
-            tree-sitter-json
-            tree-sitter-jsonnet
-            tree-sitter-latex
-            tree-sitter-lua
-            tree-sitter-make
-            tree-sitter-markdown
-            tree-sitter-nix
-            tree-sitter-org-nvim
-            tree-sitter-prisma
-            tree-sitter-python
-            tree-sitter-regex
-            tree-sitter-rust
-            tree-sitter-scala
-            tree-sitter-svelte
-            tree-sitter-sql
-            tree-sitter-toml
-            tree-sitter-tsx
-            tree-sitter-typescript
-            tree-sitter-vim
-            tree-sitter-yaml
-          ]))
+        mason-nvim
+        mason-lspconfig-nvim
+        cmp-nvim-lsp
+        cmp-nvim-lua
+        cmp-zsh
+        cmp-git
+        cmp-tmux
+        cmp-spell
+        cmp-clippy
+        cmp-copilot
+        cmp-treesitter
+        nvim-treesitter.withAllGrammars
+        copilot-lua
       ];
     };
 

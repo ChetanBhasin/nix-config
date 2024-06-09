@@ -34,3 +34,9 @@ vim.opt.termguicolors = true
 
 -- Let's have 8 lines unless EOF when we scroll down
 vim.opt.scrolloff = 8
+
+-- Use vim keybindings in command mode
+vim.keymap.set("n" , "<C-h>", "<C-w>h")
+vim.keymap.set("n" , "<C-j>", "<C-w>j")
+vim.keymap.set("n" , "<C-k>", "<C-w>k")
+vim.keymap.set("n" , "<C-l>", "<C-w>l")
