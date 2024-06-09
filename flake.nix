@@ -10,14 +10,12 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     home-manager = {
-      url = "github:nix-community/home-manager/release-24.05";
+      url = "github:nix-community/home-manager/master";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
     # Other sources
-    flake-utils = {
-      url = "github:numtide/flake-utils";
-    };
+    flake-utils = { url = "github:numtide/flake-utils"; };
     flake-compat = {
       url = "github:edolstra/flake-compat";
       flake = false;
@@ -29,10 +27,6 @@
         flake-utils.follows = "flake-utils";
       };
     };
-    nixos-generators = {
-      url = "github:nix-community/nixos-generators";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
     snm = {
       url = "gitlab:simple-nixos-mailserver/nixos-mailserver/nixos-23.05";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -41,7 +35,7 @@
   };
 
   outputs = inputs@{ self, nixpkgs, darwin, home-manager, flake-utils, devshell
-    , nixos-generators, snm, ... }:
+    , snm, ... }:
     let
       nixpkgsConfig = with inputs; {
         config = { allowUnfree = true; };

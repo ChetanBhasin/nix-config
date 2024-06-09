@@ -18,5 +18,5 @@
     package = pkgs.alacritty;
   };
 
-  xdg.configFile."alacritty/alacritty.yml".source = ./alacritty.yaml;
+  xdg.configFile."alacritty/alacritty.toml".source = ./alacritty.toml;
 }

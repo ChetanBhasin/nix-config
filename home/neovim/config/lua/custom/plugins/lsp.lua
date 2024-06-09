@@ -1,36 +1,87 @@
-local lsp = {}
+local lspconfig = require('lspconfig')
 
-function lsp.setup()
-    require 'lspconfig'.tsserver.setup({})
-    require 'lspconfig'.pyright.setup({})
-    require 'lspconfig'.rnix.setup({})
-    require 'lspconfig'.jsonls.setup({})
-    require 'lspconfig'.yamlls.setup({})
-    require 'lspconfig'.dockerls.setup({})
-    require 'lspconfig'.lua_ls.setup({})
-    require 'lspconfig'.bashls.setup({})
+local lsp_capabilities = require('cmp_nvim_lsp').default_capabilities()
 
-    local rt = require('rust-tools')
-    rt.setup({
-        server = {
-            capabilities = {},
-            on_attach = function(_, bufnr)
-                -- Hover actions
-                vim.keymap.set("n", "<C-space>", rt.hover_actions.hover_actions, { buffer = bufnr })
-                -- Code action groups
-                vim.keymap.set("n", "<Leader>a", rt.code_action_group.code_action_group, { buffer = bufnr })
-                -- require 'illuminate'.on_attach(client)
-                vim.api.nvim_buf_set_option(bufnr, "formatexpr", "v:lua.vim.lsp.formatexpr()")
-                vim.api.nvim_buf_set_option(bufnr, "omnifunc", "v:lua.vim.lsp.omnifunc")
-                vim.api.nvim_buf_set_option(bufnr, "tagfunc", "v:lua.vim.lsp.tagfunc")
-            end,
-            ["rust-analyzer"] = {
-                checkOnSave = {
-                    command = "clippy"
-                },
-            },
-        },
-    })
-end
+lspconfig.tsserver.setup({
+    capabilities = lsp_capabilities,
+})
+lspconfig.pyright.setup({
+    capabilities = lsp_capabilities,
+})
+lspconfig.rnix.setup({
+    capabilities = lsp_capabilities,
+})
+lspconfig.jsonls.setup({
+    capabilities = lsp_capabilities,
+})
+lspconfig.yamlls.setup({
+    capabilities = lsp_capabilities,
+})
+lspconfig.dockerls.setup({
+    capabilities = lsp_capabilities,
+})
+lspconfig.lua_ls.setup({
+    capabilities = lsp_capabilities,
+})
+lspconfig.bashls.setup({
+    capabilities = lsp_capabilities,
+})
+lspconfig.tsserver.setup({
+    capabilities = lsp_capabilities,
+})
+lspconfig.gleam.setup({
+    capabilities = lsp_capabilities,
+})
+require 'lspconfig'.rust_analyzer.setup {
+    capabilities = lsp_capabilities,
+}
 
-return lsp
+-- LSP Settings
+vim.api.nvim_create_autocmd('LspAttach', {
+    desc = 'LSP actions',
+    callback = function()
+        local bufmap = function(mode, lhs, rhs)
+            local opts = { buffer = true }
+            vim.keymap.set(mode, lhs, rhs, opts)
+        end
+
+        -- Displays hover information about the symbol under the cursorlsp
+        bufmap('n', '<Leader>lh', '<cmd>lua vim.lsp.buf.hover()<cr>')
+
+        -- Format the code
+        bufmap('n', '<Leader>lf', '<cmd>lua vim.lsp.buf.format()<cr>')
+
+        -- Jump to the definition
+        bufmap('n', 'gd', '<cmd>lua vim.lsp.buf.definition()<cr>')
+
+        -- Jump to declaration
+        bufmap('n', 'gc', '<cmd>lua vim.lsp.buf.declaration()<cr>')
+
+        -- Lists all the implementations for the symbol under the cursor
+        bufmap('n', 'gi', '<cmd>lua vim.lsp.buf.implementation()<cr>')
+
+        -- Jumps to the definition of the type symbol
+        bufmap('n', 'gt', '<cmd>lua vim.lsp.buf.type_definition()<cr>')
+
+        -- Lists all the references
+        bufmap('n', 'gr', '<cmd>lua vim.lsp.buf.references()<cr>')
+
+        -- Displays a function's signature information
+        bufmap('n', '<Leader>ls', '<cmd>lua vim.lsp.buf.signature_help()<cr>')
+
+        -- Renames all references to the symbol under the cursor
+        bufmap('n', '<Leader>lr', '<cmd>lua vim.lsp.buf.rename()<cr>')
+
+        -- Selects a code action available at the current cursor position
+        bufmap('n', '<Leader>la', '<cmd>lua vim.lsp.buf.code_action()<cr>')
+
+        -- Show diagnostics in a floating window
+        bufmap('n', '<Leader>ld', '<cmd>lua vim.diagnostic.open_float()<cr>')
+
+        -- Move to the previous diagnostic
+        bufmap('n', '[d', '<cmd>lua vim.diagnostic.goto_prev()<cr>')
+
+        -- Move to the next diagnostic
+        bufmap('n', ']d', '<cmd>lua vim.diagnostic.goto_next()<cr>')
+    end
+})

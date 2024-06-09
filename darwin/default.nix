@@ -60,6 +60,7 @@ in {
         "arc"
         "utm"
         "zoom"
+        "jordanbaird-ice"
       ] ++ lib.optionals cfg.enableProf [ "thunderbird" ]
         ++ lib.optionals cfg.enableExtras [
           "ticktick"
