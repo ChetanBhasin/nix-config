@@ -111,8 +111,8 @@ mods = "Control"
 
 [window]
 blur = true
-padding = { x = 5, y = 10 }
-decorations = "buttonless"
+padding = { x = 5, y = 20 }
+decorations = "transparent"
 dynamic_padding = true
 dynamic_title = true
 opacity = 0.9
