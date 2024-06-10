@@ -43,7 +43,8 @@ in {
       enable = true;
       onActivation.autoUpdate = true;
       onActivation = { cleanup = "uninstall"; };
-      brews = [ "flyctl" "nodenv" "docker" ];
+      brews = [ ] ++ lib.optionals cfg.enableProf [ "krb5" "docker" "rocksdb" ]
+        ++ lib.optionals cfg.enableExtras [ "flyctl" "nodenv" "docker" ];
       casks = [
         "1password"
         "alacritty"
@@ -59,8 +60,6 @@ in {
         "slack"
         "arc"
         "utm"
-        "zoom"
-        "jordanbaird-ice"
       ] ++ lib.optionals cfg.enableProf [ "thunderbird" ]
         ++ lib.optionals cfg.enableExtras [
           "ticktick"
@@ -90,6 +89,7 @@ in {
           "macfuse"
           "orbstack"
           "notion"
+          "zoom"
           "oracle-jdk"
         ];
     };

@@ -34,6 +34,7 @@ in {
         sqlx-cli
         leiningen
         wasmer
+        yq
         cmake
         cachix
         tmux
