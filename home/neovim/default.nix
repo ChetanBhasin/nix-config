@@ -41,6 +41,8 @@ with lib; {
         vim-closer
         telescope-nvim
         telescope-file-browser-nvim
+        # neo-tree-nvim
+        nvim-tree-lua
         nvim-web-devicons
         lualine-nvim
         dressing-nvim

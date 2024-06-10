@@ -25,6 +25,10 @@ require("custom.plugins.dressing")
 -- Setup cmp
 require("custom.plugins.cmp")
 
+-- Setup neotree
+-- require("custom.plugins.neotree")
+require("nvim-tree").setup()
+
 -- Setup colors
 require("custom.colors")
 DefineColors("catppuccin-mocha")
