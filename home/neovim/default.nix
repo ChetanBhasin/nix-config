@@ -51,9 +51,11 @@ with lib; {
         undotree
         rust-tools-nvim
         nvim-lspconfig
+        vim-vsnip
         mason-nvim
         mason-lspconfig-nvim
         cmp-nvim-lsp
+        cmp-vsnip
         cmp-nvim-lua
         cmp-zsh
         cmp-git

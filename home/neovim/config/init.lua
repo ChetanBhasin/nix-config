@@ -22,6 +22,9 @@ require("custom.plugins.lualine")
 -- Import plugin configurations
 require("custom.plugins.dressing")
 
+-- Setup cmp
+require("custom.plugins.cmp")
+
 -- Setup colors
 require("custom.colors")
 DefineColors("catppuccin-mocha")
