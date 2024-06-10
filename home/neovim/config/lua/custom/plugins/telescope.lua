@@ -6,6 +6,13 @@ require("telescope").setup {
             theme = "ivy",
             -- disables netrw and use telescope-file-browser in its place
             hijack_netrw = true,
+            grouped = true;
+            depth = 3;
+            auto_depth = true;
+            layout_config = {
+                prompt_position = "top",
+                preview_width = 0.3,
+            },
             mappings = {
                 ["i"] = {
                     -- your custom insert mode mappings
@@ -34,3 +41,4 @@ end)
 vim.keymap.set("n", "<space>fb", function()
     require("telescope").extensions.file_browser.file_browser({path = "%:p:h", select_buffer = true})
 end)
+

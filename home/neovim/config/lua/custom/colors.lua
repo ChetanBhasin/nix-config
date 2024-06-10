@@ -1,6 +1,6 @@
 function DefineColors(scheme)
     -- Let's set a default color scheme
-    color_scheme = scheme or "catppuccin-mocha"
+    local color_scheme = scheme or "catppuccin-mocha"
     -- Apply the color scheme
     vim.cmd.colorscheme(color_scheme)
 
@@ -9,3 +9,12 @@ function DefineColors(scheme)
     -- Set the background to transparent for floating windows
     vim.api.nvim_set_hl(0, "NormalFloat", { bg = "none" })
 end
+
+require("catppuccin").setup {
+    integrations = {
+        cmp = true,
+        gitsigns = true,
+        nvimtree = true,
+        treesitter = true,
+    }
+}
