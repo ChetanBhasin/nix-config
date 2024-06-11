@@ -43,7 +43,7 @@ in {
       enable = true;
       onActivation.autoUpdate = true;
       onActivation = { cleanup = "uninstall"; };
-      brews = [ ] ++ lib.optionals cfg.enableProf [ "krb5" "docker" "rocksdb" ]
+      brews = [ "cloudflared" ] ++ lib.optionals cfg.enableProf [ "krb5" "docker" "rocksdb" ]
         ++ lib.optionals cfg.enableExtras [ "flyctl" "nodenv" "docker" ];
       casks = [
         "1password"
