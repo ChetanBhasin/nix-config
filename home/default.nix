@@ -44,6 +44,7 @@ in {
         htop
         kubectx
         jq
+        pipx
         gitoxide
         git-ignore
         tree

@@ -11,9 +11,6 @@ lspconfig.pyright.setup({
 lspconfig.rnix.setup({
     capabilities = lsp_capabilities,
 })
-lspconfig.jsonls.setup({
-    capabilities = lsp_capabilities,
-})
 lspconfig.yamlls.setup({
     capabilities = lsp_capabilities,
 })
@@ -46,25 +43,25 @@ vim.api.nvim_create_autocmd('LspAttach', {
         end
 
         -- Displays hover information about the symbol under the cursorlsp
-        bufmap('n', '<Leader>lh', '<cmd>lua vim.lsp.buf.hover()<cr>')
+        bufmap('n', '<S-h>', '<cmd>lua vim.lsp.buf.hover()<cr>')
 
         -- Format the code
-        bufmap('n', '<Leader>lf', '<cmd>lua vim.lsp.buf.format()<cr>')
+        bufmap('n', '<S-f>', '<cmd>lua vim.lsp.buf.format()<cr>')
 
         -- Jump to the definition
-        bufmap('n', 'gd', '<cmd>lua vim.lsp.buf.definition()<cr>')
+        bufmap('n', 'gd', ':Telescope lsp_definitions<CR><cr>')
 
         -- Jump to declaration
         bufmap('n', 'gc', '<cmd>lua vim.lsp.buf.declaration()<cr>')
 
         -- Lists all the implementations for the symbol under the cursor
-        bufmap('n', 'gi', '<cmd>lua vim.lsp.buf.implementation()<cr>')
+        bufmap('n', 'gi', ':Telescope :lsp_implementations<cr>')
 
         -- Jumps to the definition of the type symbol
         bufmap('n', 'gt', '<cmd>lua vim.lsp.buf.type_definition()<cr>')
 
         -- Lists all the references
-        bufmap('n', 'gr', '<cmd>lua vim.lsp.buf.references()<cr>')
+        bufmap('n', 'gr', ':Telescope :lsp_references<cr>')
 
         -- Displays a function's signature information
         bufmap('n', '<Leader>ls', '<cmd>lua vim.lsp.buf.signature_help()<cr>')
