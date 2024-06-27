@@ -41,6 +41,8 @@ with lib; {
         vim-closer
         telescope-nvim
         telescope-file-browser-nvim
+        telescope-ui-select-nvim
+        legendary-nvim
         # neo-tree-nvim
         nvim-tree-lua
         nvim-web-devicons

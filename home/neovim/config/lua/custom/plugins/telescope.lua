@@ -2,13 +2,16 @@
 -- IMPORTANT!: this is only a showcase of how you can set default options!
 require("telescope").setup {
     extensions = {
+        extensions = {
+            ["ui-select"] = {}
+        },
         file_browser = {
             theme = "ivy",
             -- disables netrw and use telescope-file-browser in its place
             hijack_netrw = true,
-            grouped = true;
-            depth = 3;
-            auto_depth = true;
+            grouped = true,
+            depth = 3,
+            auto_depth = true,
             layout_config = {
                 prompt_position = "top",
                 preview_width = 0.3,
@@ -39,6 +42,5 @@ vim.keymap.set('n', '<leader>fr', function()
     })
 end)
 vim.keymap.set("n", "<space>fb", function()
-    require("telescope").extensions.file_browser.file_browser({path = "%:p:h", select_buffer = true})
+    require("telescope").extensions.file_browser.file_browser({ path = "%:p:h", select_buffer = true })
 end)
-
