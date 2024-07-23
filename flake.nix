@@ -124,15 +124,28 @@
               keyCommand = [ "sops" "--decrypt" "secrets/tailscale" ];
               destDir = "/run/keys";
             };
-            keys."f57bfb1a-b6c7-4201-b80e-e0d45aa6709a.json" = {
-              keyCommand = [ "sops" "--decrypt" "secrets/cloudflare/git.json" ];
-              destDir = "/home/cloudflared/.cloudflared/";
-              user = "cloudflared";
-            };
           };
           imports = [
             (./. + "/bootconfig/${name}.nix")
             (./. + "/hosts/${name}/configuration.nix")
+            # `home-manager` module
+            home-manager.nixosModules.home-manager
+            {
+              nixpkgs = nixpkgsConfig;
+              # `home-manager` config
+              users.users.chetan = {
+                home = "/home/chetan";
+                isNormalUser = true;
+                group = "chetan";
+                extraGroups = [ "wheel" ];
+              };
+              users.groups.chetan = { };
+              home-manager = {
+                useGlobalPkgs = true;
+                useUserPackages = true;
+                users.chetan = import (./. + "/hosts/venus/home.nix");
+              };
+            }
           ];
           networking.hostName = "${name}";
           users.users.root.openssh.authorizedKeys.keys = [

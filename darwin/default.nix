@@ -1,7 +1,8 @@
 { config, pkgs, lib, ... }:
 with lib;
 let cfg = config.darwin-config-manager;
-in {
+in
+{
   options.darwin-config-manager = {
     enableSudoTouch = lib.mkEnableOption "sudo touch id";
     enableExtras = lib.mkEnableOption "enable extra macOS applications";
@@ -35,8 +36,7 @@ in {
     };
 
     fonts = {
-      fontDir.enable = true;
-      fonts = with pkgs; [ dejavu_fonts nerdfonts ];
+      packages = with pkgs; [ dejavu_fonts hack-font ];
     };
 
     homebrew = {
@@ -61,37 +61,38 @@ in {
         "arc"
         "utm"
       ] ++ lib.optionals cfg.enableProf [ "thunderbird" ]
-        ++ lib.optionals cfg.enableExtras [
-          "ticktick"
-          "whatsapp"
-          "tradingview"
-          "notion-calendar"
-          "cryptomator"
-          "tailscale"
-          "tailscale"
-          "telegram"
-          "signal"
-          "remarkable"
-          "protonvpn"
-          "proton-drive"
-          "protonmail-bridge"
-          "figma"
-          "discord"
-          "spotify"
-          "deepl"
-          "caffeine"
-          "raycast"
-          "monitorcontrol"
-          "shureplus-motiv"
-          "insta360-studio"
-          "screen-studio"
-          "proton-mail"
-          "macfuse"
-          "orbstack"
-          "notion"
-          "zoom"
-          "oracle-jdk"
-        ];
+      ++ lib.optionals cfg.enableExtras [
+        "ticktick"
+        "yubico-authenticator"
+        "whatsapp"
+        "tradingview"
+        "notion-calendar"
+        "cryptomator"
+        "tailscale"
+        "tailscale"
+        "telegram"
+        "signal"
+        "remarkable"
+        "protonvpn"
+        "proton-drive"
+        "protonmail-bridge"
+        "figma"
+        "discord"
+        "spotify"
+        "deepl"
+        "caffeine"
+        "raycast"
+        "monitorcontrol"
+        "shureplus-motiv"
+        "insta360-studio"
+        "screen-studio"
+        "proton-mail"
+        "macfuse"
+        "orbstack"
+        "notion"
+        "zoom"
+        "oracle-jdk"
+      ];
     };
 
     # Use Touch ID for sudo

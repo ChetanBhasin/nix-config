@@ -16,7 +16,6 @@ in {
       [
         #System packages
         # Make touchID work from inside tmux
-        pam-reattach
 
         # Library packages
         openssl
@@ -25,15 +24,13 @@ in {
         lld
         zsh-completions
         rdkafka
-        clojure
         gnuplot
         graphviz
 
         # CLI Packages
         sops
+        jujutsu
         sqlx-cli
-        leiningen
-        wasmer
         yq
         cmake
         cachix
@@ -46,7 +43,6 @@ in {
         jq
         pipx
         gitoxide
-        git-ignore
         tree
         bat
         htop
@@ -54,7 +50,6 @@ in {
         fd
         gnupg
         virtualenv
-        vault
         wget
         pkg-config
         git-lfs
@@ -79,14 +74,10 @@ in {
         rebar3
         erlang
         ngrok
-        qemu
       ] ++ lib.optionals cfg.enableProf [
         tilt
         helmfile
-        atlantis
-        consul
         grpc
-        nomad
         protobuf
         vault
         readline
@@ -95,6 +86,7 @@ in {
         darwin.apple_sdk.frameworks.CoreFoundation
         darwin.apple_sdk.frameworks.CoreServices
         darwin.apple_sdk.frameworks.SystemConfiguration
+        pam-reattach
       ];
 
     home.stateVersion = "23.05";
