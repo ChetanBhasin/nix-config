@@ -41,45 +41,6 @@ vim.api.nvim_create_autocmd('LspAttach', {
             local opts = { buffer = true }
             vim.keymap.set(mode, lhs, rhs, opts)
         end
-
-        -- Displays hover information about the symbol under the cursorlsp
-        bufmap('n', '<S-h>', '<cmd>lua vim.lsp.buf.hover()<cr>')
-
-        -- Format the code
-        bufmap('n', '<S-f>', '<cmd>lua vim.lsp.buf.format()<cr>')
-
-        -- Jump to the definition
-        bufmap('n', 'gd', ':Telescope lsp_definitions<CR><cr>')
-
-        -- Jump to declaration
-        bufmap('n', 'gc', '<cmd>lua vim.lsp.buf.declaration()<cr>')
-
-        -- Lists all the implementations for the symbol under the cursor
-        bufmap('n', 'gi', ':Telescope :lsp_implementations<cr>')
-
-        -- Jumps to the definition of the type symbol
-        bufmap('n', 'gt', '<cmd>lua vim.lsp.buf.type_definition()<cr>')
-
-        -- Lists all the references
-        bufmap('n', 'gr', ':Telescope :lsp_references<cr>')
-
-        -- Displays a function's signature information
-        bufmap('n', '<Leader>ls', '<cmd>lua vim.lsp.buf.signature_help()<cr>')
-
-        -- Renames all references to the symbol under the cursor
-        bufmap('n', '<Leader>lr', '<cmd>lua vim.lsp.buf.rename()<cr>')
-
-        -- Selects a code action available at the current cursor position
-        bufmap('n', '<Leader>la', '<cmd>lua vim.lsp.buf.code_action()<cr>')
-
-        -- Show diagnostics in a floating window
-        bufmap('n', '<Leader>ld', '<cmd>lua vim.diagnostic.open_float()<cr>')
-
-        -- Move to the previous diagnostic
-        bufmap('n', '[d', '<cmd>lua vim.diagnostic.goto_prev()<cr>')
-
-        -- Move to the next diagnostic
-        bufmap('n', ']d', '<cmd>lua vim.diagnostic.goto_next()<cr>')
     end
 })
 
@@ -90,16 +51,15 @@ vim.api.nvim_create_autocmd('LspAttach', {
 -- noselect: Do not select, force to select one from the menu
 -- shortness: avoid showing extra messages when using completion
 -- updatetime: set updatetime for CursorHold
-vim.opt.completeopt = {'menuone', 'noselect', 'noinsert'}
-vim.opt.shortmess = vim.opt.shortmess + { c = true}
-vim.api.nvim_set_option('updatetime', 300) 
+vim.opt.completeopt = { 'menuone', 'noselect', 'noinsert' }
+vim.opt.shortmess = vim.opt.shortmess + { c = true }
+vim.api.nvim_set_option('updatetime', 300)
 
 -- Fixed column for diagnostics to appear
 -- Show autodiagnostic popup on cursor hover_range
--- Goto previous / next diagnostic warning / error 
--- Show inlay_hints more frequently 
+-- Goto previous / next diagnostic warning / error
+-- Show inlay_hints more frequently
 vim.cmd([[
     set signcolumn=yes
     autocmd CursorHold * lua vim.diagnostic.open_float(nil, { focusable = false })
 ]])
-
