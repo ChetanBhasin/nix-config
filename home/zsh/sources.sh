@@ -5,6 +5,7 @@ eval "$(direnv hook zsh)"
 eval "$(nodenv init -)"
 
 
+alias k="kubectl"
 alias lsl="exa -lLsSuUhHa"
 alias ls="exa"
 alias l="ls -lah"

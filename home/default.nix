@@ -1,7 +1,8 @@
 { config, pkgs, lib, ... }:
 with lib;
 let cfg = config.home-config-manager;
-in {
+in
+{
   options.home-config-manager = {
     includeFonts = lib.mkEnableOption "fonts";
     isDarwin = lib.mkEnableOption "include darwin configuration";
@@ -66,6 +67,8 @@ in {
         terraform
         starship
         rustup
+        helmfile
+        kubernetes-helm
       ] ++ lib.optionals cfg.enableExtras [
         wasm-pack
         colmena
@@ -76,7 +79,6 @@ in {
         ngrok
       ] ++ lib.optionals cfg.enableProf [
         tilt
-        helmfile
         grpc
         protobuf
         vault
