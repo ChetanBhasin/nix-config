@@ -125,6 +125,7 @@ legendary.setup({
     { "<leader>rn", vim.lsp.buf.rename,                   description = "LSP Rename" },
     { "K",          vim.lsp.buf.hover,                    description = "LSP Hover" },
     { "gd",         vim.lsp.buf.definition,               description = "LSP Goto Definition" },
+    { "<leader>f",  ":NvimTreeToggle<CR>",                description = "Toggle NvimTree" },
     { "<leader>o",  ":AerialToggle!<CR>",                 description = "Aerial" },
   },
   functions = {

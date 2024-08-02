@@ -40,8 +40,8 @@ with lib; {
         vim-smoothie
         vim-closer
         telescope-nvim
-        telescope-file-browser-nvim
         telescope-ui-select-nvim
+        nvim-tree-lua
         legendary-nvim
         # neo-tree-nvim
         nvim-tree-lua
