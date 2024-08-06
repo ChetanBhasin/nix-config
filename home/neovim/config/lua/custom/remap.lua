@@ -37,109 +37,68 @@ local legendary = require("legendary")
 local filters = require("legendary.filters")
 
 local format = function()
-  vim.lsp.buf.format({
-    filter = function(filter_client)
-      -- Remove tsserver from LSPs available for formatting
-      return filter_client.name ~= "tsserver"
-    end,
-  })
+    vim.lsp.buf.format({
+        filter = function(filter_client)
+            -- Remove tsserver from LSPs available for formatting
+            return filter_client.name ~= "tsserver"
+        end,
+    })
 end
 
 local function find_related()
-  require("telescope.builtin").find_files({ cwd = vim.fn.expand("%:p:h") })
+    require("telescope.builtin").find_files({ cwd = vim.fn.expand("%:p:h") })
 end
 
 legendary.setup({
-  keymaps = {
-    {
-      "<C-leader>",
-      function()
-        legendary.find({ filters = { filters.mode("n"), filters.keymaps() } })
-      end,
-      description = "Show Legendary (normal)",
-      mode = "n",
+    keymaps = {
+        {
+            "<C-leader>",
+            function()
+                legendary.find({ filters = { filters.mode("n"), filters.keymaps() } })
+            end,
+            description = "Show Legendary (normal)",
+            mode = "n",
+        },
+        {
+            "<C-Space>",
+            function()
+                legendary.find({ filters = { filters.mode("v"), filters.keymaps() } })
+            end,
+            description = "Show Legendary (visual)",
+            mode = "v",
+        },
+        { "<leader>ew", ":e %%<CR>",                          description = "Edit file" },
+        { "<leader>es", ":split<CR>",                         description = "Split horizontally" },
+        { "<leader>ev", ":vsplit<CR>",                        description = "Split vertically" },
+        { "<leader>ff", format,                               description = "Reformat file" },
+        -- Telescope
+        { "<C-p>",      ":Telescope find_files<CR>",          description = "Search file names" },
+        { "<leader>fw", ":Telescope live_grep<CR>",           description = "Search inside files" },
+        { "<leader>fr", find_related,                         description = "Find related files" },
+        { "gd",         ":Telescope lsp_definitions<CR>",     description = "Search LSP Definitions" },
+        { "gr",         ":Telescope lsp_references<CR>",      description = "Search LSP References" },
+        { "gi",         ":Telescope lsp_implementations<CR>", description = "Search LSP Implementations" },
+        { "[e",         vim.diagnostic.goto_next,             description = "Next diagnostic" },
+        { "]e",         vim.diagnostic.goto_prev,             description = "Prev diagnostic" },
+        { "<leader>ac", vim.lsp.buf.code_action,              description = "LSP Code Action" },
+        { "<leader>rn", vim.lsp.buf.rename,                   description = "LSP Rename" },
+        { "K",          vim.lsp.buf.hover,                    description = "LSP Hover" },
+        { "gd",         vim.lsp.buf.definition,               description = "LSP Goto Definition" },
+        { "gi",         vim.lsp.buf.implementation,           description = "LSP Goto Implementation" },
+        { "<leader>f",  ":NvimTreeToggle<CR>",                description = "Toggle NvimTree" },
     },
-    {
-      "<C-Space>",
-      function()
-        legendary.find({ filters = { filters.mode("i"), filters.keymaps() } })
-      end,
-      description = "Show Legendary (insert)",
-      mode = "i",
+    functions = {
     },
-    {
-      "<C-Space>",
-      function()
-        legendary.find({ filters = { filters.mode("v"), filters.keymaps() } })
-      end,
-      description = "Show Legendary (visual)",
-      mode = "v",
+    autocmds = {
+        {
+            name = "LspFormatting",
+            clear = true,
+            {
+                "BufWritePre",
+                format,
+            },
+        },
     },
-    { "<leader>ew", ":e %%<CR>",   description = "Edit file" },
-    { "<leader>es", ":split<CR>",  description = "Split horizontally" },
-    { "<leader>ev", ":vsplit<CR>", description = "Split vertically" },
-    { "<leader>ff", format,        description = "Reformat file" },
-    -- Tmux Navigator
-    {
-      "<C-h>",
-      ":NavigatorLeft<CR>",
-      description = "Tmux select pane to the left",
-      opts = {
-        silent = true,
-      },
-    },
-    {
-      "<C-j>",
-      ":NavigatorDown<CR>",
-      description = "Tmux select pane to the bottom",
-      opts = {
-        silent = true,
-      },
-    },
-    {
-      "<C-k>",
-      ":NavigatorUp<CR>",
-      description = "Tmux select pane to the top",
-      opts = {
-        silent = true,
-      },
-    },
-    {
-      "<C-l>",
-      ":NavigatorRight<CR>",
-      description = "Tmux select pane to the right",
-      opts = {
-        silent = true,
-      },
-    },
-    -- Telescope
-    { "<C-p>",      ":Telescope find_files<CR>",          description = "Search file names" },
-    { "<leader>fw", ":Telescope live_grep<CR>",           description = "Search inside files" },
-    { "<leader>fr", find_related,                         description = "Find related files" },
-    { "gd",         ":Telescope lsp_definitions<CR>",     description = "Search LSP Definitions" },
-    { "gr",         ":Telescope lsp_references<CR>",      description = "Search LSP References" },
-    { "gi",         ":Telescope lsp_implementations<CR>", description = "Search LSP Implementations" },
-    { "[e",         vim.diagnostic.goto_next,             description = "Next diagnostic" },
-    { "]e",         vim.diagnostic.goto_prev,             description = "Prev diagnostic" },
-    { "<leader>ac", vim.lsp.buf.code_action,              description = "LSP Code Action" },
-    { "<leader>rn", vim.lsp.buf.rename,                   description = "LSP Rename" },
-    { "K",          vim.lsp.buf.hover,                    description = "LSP Hover" },
-    { "gd",         vim.lsp.buf.definition,               description = "LSP Goto Definition" },
-    { "<leader>f",  ":NvimTreeToggle<CR>",                description = "Toggle NvimTree" },
-    { "<leader>o",  ":AerialToggle!<CR>",                 description = "Aerial" },
-  },
-  functions = {
-  },
-  autocmds = {
-    {
-      name = "LspFormatting",
-      clear = true,
-      {
-        "BufWritePre",
-        format,
-      },
-    },
-  },
 })
 
 -- Use vim keybindings in command mode
