@@ -43,7 +43,6 @@ with lib; {
         telescope-ui-select-nvim
         nvim-tree-lua
         legendary-nvim
-        # neo-tree-nvim
         nvim-tree-lua
         nvim-web-devicons
         lualine-nvim
