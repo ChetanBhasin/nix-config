@@ -10,6 +10,8 @@ require("custom.plugins.treesitter")
 
 -- Setup Mason for language server installations
 require("custom.plugins.mason")
+-- Setup nvim-tree
+require("custom.plugins.nvimtree")
 -- Set LSP configuration
 require("custom.plugins.lsp")
 
