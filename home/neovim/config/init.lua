@@ -25,9 +25,14 @@ require("custom.plugins.dressing")
 -- Setup cmp
 require("custom.plugins.cmp")
 
--- Setup neotree
--- require("custom.plugins.neotree")
+-- Setup barbecue
+require("barbecue").setup()
+
+-- Setup nvim-tree
 require("nvim-tree").setup()
+
+-- Setup comments
+require('Comment').setup()
 
 -- Setup colors
 require("custom.colors")

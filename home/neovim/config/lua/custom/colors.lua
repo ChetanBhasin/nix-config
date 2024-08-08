@@ -11,10 +11,23 @@ function DefineColors(scheme)
 end
 
 require("catppuccin").setup {
+    highlight_overrides = {
+        mocha = function(C)
+            return {
+                NvimTreeNormal = { bg = C.none },
+                CmpBorder = { fg = C.surface2 },
+                Pmenu = { bg = C.none },
+                NormalFloat = { bg = C.none },
+                TelescopeBorder = { link = "FloatBorder" }
+            }
+        end
+    },
     integrations = {
         cmp = true,
+        telescope = true,
         gitsigns = true,
         nvimtree = true,
         treesitter = true,
+        treesitter_context = true,
     }
 }
