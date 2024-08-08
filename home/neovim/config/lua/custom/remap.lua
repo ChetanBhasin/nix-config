@@ -1,11 +1,9 @@
 -- Set the leader key to space
 vim.g.mapleader = " "
 
-
 -- Let's set some basic settings
 -- Line numbers enabled
 vim.opt.nu = true
-
 -- Tab stops at 4 units
 vim.opt.tabstop = 4
 vim.opt.softtabstop = 4
@@ -36,6 +34,29 @@ vim.opt.scrolloff = 8
 local legendary = require("legendary")
 local filters = require("legendary.filters")
 
+-- Harpoon Functions
+function show_harpoon()
+    require('harpoon').ui:toggle_quick_menu(require('harpoon'):list())
+end
+
+local function add_harpoon()
+    require('harpoon'):list():add()
+end
+
+local function remove_harpoon()
+    require('harpoon'):list():remove()
+end
+
+local function left_harpoon()
+    require('harpoon'):list():prev()
+end
+
+local function right_harpoon()
+    require('harpoon'):list():next()
+end
+
+-- End Harpooo FUnction
+
 local format = function()
     vim.lsp.buf.format({
         filter = function(filter_client)
@@ -49,10 +70,11 @@ local function find_related()
     require("telescope.builtin").find_files({ cwd = vim.fn.expand("%:p:h") })
 end
 
+
 legendary.setup({
     keymaps = {
         {
-            "<C-leader>",
+            "<C-Space>",
             function()
                 legendary.find({ filters = { filters.mode("n"), filters.keymaps() } })
             end,
@@ -88,6 +110,11 @@ legendary.setup({
         { "<leader>f",  ":NvimTreeToggle<CR>",                description = "Toggle NvimTree" },
         { "<leader>ft", ":Telescope buffers<CR>",             description = "Look for buggers" },
         { "<leader>ct", ":%bd|e#<CR>",                        description = "Close except current buffer" },
+        { "<leader>a",  add_harpoon,                          description = "Add file to harpoon" },
+        { "<leader>d",  remove_harpoon,                       description = "Remove file from harpoon" },
+        { "<C-i>",      show_harpoon,                         description = "Show harpoon menu" },
+        { "<C-{>",      left_harpoon,                         description = "Navigate harpoon left" },
+        { "<C>-}>",     right_harpoon,                        description = "Navigate harpoon right" },
     },
     functions = {
     },

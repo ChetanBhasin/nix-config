@@ -46,6 +46,7 @@ with lib; {
         legendary-nvim
         nvim-tree-lua
         nvim-web-devicons
+        harpoon2
         lualine-nvim
         dressing-nvim
         fidget-nvim
@@ -58,7 +59,6 @@ with lib; {
         vim-vsnip
         mason-nvim
         mason-lspconfig-nvim
-        harpoon
         legendary-nvim
         cmp-nvim-lsp
         cmp-vsnip
