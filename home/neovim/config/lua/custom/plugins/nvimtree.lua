@@ -15,3 +15,4 @@ local function auto_update_path()
 end
 
 vim.api.nvim_create_autocmd("BufEnter", { callback = auto_update_path })
+vim.api.nvim_create_autocmd("TabEnter", { callback = auto_update_path })
