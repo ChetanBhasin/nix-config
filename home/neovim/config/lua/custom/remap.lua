@@ -86,6 +86,8 @@ legendary.setup({
         { "gd",         vim.lsp.buf.definition,               description = "LSP Goto Definition" },
         { "gi",         vim.lsp.buf.implementation,           description = "LSP Goto Implementation" },
         { "<leader>f",  ":NvimTreeToggle<CR>",                description = "Toggle NvimTree" },
+        { "<leader>ft", ":Telescope buffers<CR>",             description = "Look for buggers" },
+        { "<leader>ct", ":%bd|e#<CR>",                        description = "Close except current buffer" },
     },
     functions = {
     },

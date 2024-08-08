@@ -37,11 +37,12 @@ with lib; {
       plugins = with pkgs.vimPlugins; [
         plenary-nvim
         vim-cool
+        comment-nvim
+        barbecue-nvim
         vim-smoothie
         vim-closer
         telescope-nvim
         telescope-ui-select-nvim
-        nvim-tree-lua
         legendary-nvim
         nvim-tree-lua
         nvim-web-devicons
