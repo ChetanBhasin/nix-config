@@ -27,6 +27,3 @@ require("telescope").setup {
         },
     },
 }
-
--- Setup Telescope for Harpoon
-require("telescope").load_extension "harpoon"

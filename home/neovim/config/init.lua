@@ -1,12 +1,12 @@
--- Remap keys
-require("custom.remap")
-
 -- Floating terminal
 require("custom.plugins.fterm")
 -- Set options for Telescope
 require("custom.plugins.telescope")
 -- Set options for Treesitter
 require("custom.plugins.treesitter")
+
+-- Setup Harpoon
+require("custom.plugins.harpoon").setup()
 
 -- Setup Mason for language server installations
 require("custom.plugins.mason")
@@ -39,3 +39,6 @@ require('Comment').setup()
 -- Setup colors
 require("custom.colors")
 DefineColors("catppuccin-mocha")
+
+-- Remap keys
+require("custom.remap")
