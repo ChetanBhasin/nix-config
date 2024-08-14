@@ -27,7 +27,6 @@ in
         rdkafka
         gnuplot
         graphviz
-
         # CLI Packages
         sops
         jujutsu
@@ -77,6 +76,7 @@ in
         rebar3
         erlang
         ngrok
+        argocd
       ] ++ lib.optionals cfg.enableProf [
         tilt
         grpc
