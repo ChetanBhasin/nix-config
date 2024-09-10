@@ -1,8 +1,7 @@
 { config, pkgs, lib, ... }:
 with lib;
 let cfg = config.darwin-config-manager;
-in
-{
+in {
   options.darwin-config-manager = {
     enableSudoTouch = lib.mkEnableOption "sudo touch id";
     enableExtras = lib.mkEnableOption "enable extra macOS applications";
@@ -35,15 +34,14 @@ in
       extraOptions = "experimental-features = nix-command flakes";
     };
 
-    fonts = {
-      packages = with pkgs; [ dejavu_fonts hack-font ];
-    };
+    fonts = { packages = with pkgs; [ dejavu_fonts hack-font ]; };
 
     homebrew = {
       enable = true;
       onActivation.autoUpdate = true;
       onActivation = { cleanup = "uninstall"; };
-      brews = [ "cloudflared" ] ++ lib.optionals cfg.enableProf [ "krb5" "docker" "rocksdb" ]
+      brews = [ "cloudflared" ]
+        ++ lib.optionals cfg.enableProf [ "krb5" "docker" "rocksdb" ]
         ++ lib.optionals cfg.enableExtras [ "flyctl" "nodenv" "docker" ];
       casks = [
         "1password"
@@ -61,38 +59,38 @@ in
         "arc"
         "utm"
       ] ++ lib.optionals cfg.enableProf [ "thunderbird" ]
-      ++ lib.optionals cfg.enableExtras [
-        "ticktick"
-        "yubico-authenticator"
-        "whatsapp"
-        "tradingview"
-        "notion-calendar"
-        "cryptomator"
-        "tailscale"
-        "tailscale"
-        "telegram"
-        "signal"
-        "remarkable"
-        "protonvpn"
-        "proton-drive"
-        "protonmail-bridge"
-        "figma"
-        "discord"
-        "spotify"
-        "deepl"
-        "caffeine"
-        "raycast"
-        "monitorcontrol"
-        "shureplus-motiv"
-        "insta360-studio"
-        "screen-studio"
-        "proton-mail"
-        "macfuse"
-        "orbstack"
-        "notion"
-        "zoom"
-        "oracle-jdk"
-      ];
+        ++ lib.optionals cfg.enableExtras [
+          "ticktick"
+          "yubico-authenticator"
+          "whatsapp@beta"
+          "tradingview"
+          "notion-calendar"
+          "cryptomator"
+          "tailscale"
+          "tailscale"
+          "telegram"
+          "signal"
+          "remarkable"
+          "protonvpn"
+          "proton-drive"
+          "protonmail-bridge"
+          "figma"
+          "discord"
+          "spotify"
+          "deepl"
+          "caffeine"
+          "raycast"
+          "monitorcontrol"
+          "shureplus-motiv"
+          "insta360-studio"
+          "screen-studio"
+          "proton-mail"
+          "macfuse"
+          "orbstack"
+          "notion"
+          "zoom"
+          "oracle-jdk"
+        ];
     };
 
     # Use Touch ID for sudo
