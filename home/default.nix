@@ -29,6 +29,7 @@ in
         graphviz
         # CLI Packages
         sops
+        awscli2
         jujutsu
         sqlx-cli
         yq
