@@ -42,6 +42,7 @@ in
         htop
         kubectx
         jq
+        deno
         pipx
         gitoxide
         tree
