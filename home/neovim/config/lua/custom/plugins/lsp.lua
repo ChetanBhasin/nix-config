@@ -23,9 +23,6 @@ lspconfig.lua_ls.setup({
 lspconfig.bashls.setup({
     capabilities = lsp_capabilities,
 })
-lspconfig.tsserver.setup({
-    capabilities = lsp_capabilities,
-})
 lspconfig.gleam.setup({
     capabilities = lsp_capabilities,
 })
