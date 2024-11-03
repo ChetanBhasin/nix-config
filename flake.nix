@@ -54,6 +54,7 @@
           home-manager.nixosModules.home-manager
           {
             nixpkgs = nixpkgsConfig;
+            users.users.${user}.shell = nixpkgs.nushell;
             # `home-manager` config
             users.users.${user} = {
               home = "/home/${user}";
@@ -69,7 +70,8 @@
             };
           }
         ];
-    in {
+    in
+    {
       darwinConfigurations = {
         hugh = darwin.lib.darwinSystem {
           system = "aarch64-darwin";
