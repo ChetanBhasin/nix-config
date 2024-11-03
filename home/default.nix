@@ -10,7 +10,7 @@ in
     enableProf = lib.mkEnableOption "enable professional packages";
   };
 
-  imports = [ ./defaultPrograms ./vscode ./zsh ./neovim ./tmux ./darwin ];
+  imports = [ ./defaultPrograms ./vscode ./zsh ./nushell ./neovim ./tmux ./darwin ];
 
   config = {
     home.packages = with pkgs;
@@ -24,6 +24,8 @@ in
         libcxx
         lld
         zsh-completions
+        nushell
+        carapace
         rdkafka
         gnuplot
         graphviz
