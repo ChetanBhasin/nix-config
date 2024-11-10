@@ -10,7 +10,7 @@ in
     enableProf = lib.mkEnableOption "enable professional packages";
   };
 
-  imports = [ ./defaultPrograms ./vscode ./zsh ./nushell ./neovim ./tmux ./darwin ];
+  imports = [ ./defaultPrograms ./vscode ./zsh ./neovim ./tmux ./darwin ];
 
   config = {
     home.packages = with pkgs;
