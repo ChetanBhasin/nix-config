@@ -59,6 +59,7 @@ in
         "slack"
         "arc"
         "utm"
+        "nikitabobko/tap/aerospace"
       ] ++ lib.optionals cfg.enableProf [ "thunderbird" ]
       ++ lib.optionals cfg.enableExtras [
         "ticktick"
