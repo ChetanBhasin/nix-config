@@ -93,6 +93,10 @@ in
         "notion"
         "zoom"
         "oracle-jdk"
+        "ollama"
+        "logi-options-plus"
+        "cursor"
+        "chatgpt"
       ];
     };
 
