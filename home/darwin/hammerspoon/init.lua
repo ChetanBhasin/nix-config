@@ -1,7 +1,7 @@
 local hyper = { 'option', 'command' }
 
 hs.hotkey.bind(hyper, "b", function() hs.application.launchOrFocus("Arc") end)
-hs.hotkey.bind(hyper, "t", function() hs.application.launchOrFocus("Alacritty") end)
+hs.hotkey.bind(hyper, "t", function() hs.application.launchOrFocus("Ghostty") end)
 hs.hotkey.bind(hyper, "f", function() hs.application.launchOrFocus("Figma") end)
 hs.hotkey.bind(hyper, "e", function() hs.application.launchOrFocus("Signal") end)
 hs.hotkey.bind(hyper, "s", function() hs.application.launchOrFocus("Spotify") end)
