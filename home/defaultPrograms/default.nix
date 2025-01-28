@@ -13,10 +13,5 @@
     enableZshIntegration = true;
   };
 
-  programs.alacritty = {
-    enable = true;
-    package = pkgs.alacritty;
-  };
-
-  xdg.configFile."alacritty/alacritty.toml".source = ./alacritty.toml;
+  xdg.configFile."ghostty/config".source = ./ghostty;
 }

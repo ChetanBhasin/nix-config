@@ -60,6 +60,7 @@ with lib; {
         mason-nvim
         mason-lspconfig-nvim
         legendary-nvim
+        nvim-cmp
         cmp-nvim-lsp
         cmp-vsnip
         cmp-nvim-lua

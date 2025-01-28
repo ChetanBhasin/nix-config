@@ -1,0 +1,11 @@
+theme = catppuccin-mocha
+
+keybind = ctrl+shift+h=goto_split:left
+keybind = ctrl+shift+l=goto_split:right
+
+font-family = "Hack"
+cursor-style = "block"
+window-theme = "auto"
+
+window-width=150
+window-height=100
