@@ -24,7 +24,7 @@ with lib; {
           stylua
           ripgrep
           gzip
-          nerdfonts
+          nerd-fonts.hack
         ] ++ (with nodePackages; [
           dockerfile-language-server-nodejs
           typescript-language-server
