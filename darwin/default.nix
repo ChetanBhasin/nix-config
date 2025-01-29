@@ -1,7 +1,8 @@
 { config, pkgs, lib, ... }:
 with lib;
 let cfg = config.darwin-config-manager;
-in {
+in
+{
   options.darwin-config-manager = {
     enableSudoTouch = lib.mkEnableOption "sudo touch id";
     enableExtras = lib.mkEnableOption "enable extra macOS applications";
@@ -59,41 +60,42 @@ in {
         "arc"
         "utm"
       ] ++ lib.optionals cfg.enableProf [ "thunderbird" ]
-        ++ lib.optionals cfg.enableExtras [
-          "ticktick"
-          "yubico-authenticator"
-          "whatsapp@beta"
-          "tradingview"
-          "notion-calendar"
-          "cryptomator"
-          "tailscale"
-          "tailscale"
-          "telegram"
-          "signal"
-          "remarkable"
-          "protonvpn"
-          "proton-drive"
-          "proton-pass"
-          "figma"
-          "discord"
-          "spotify"
-          "deepl"
-          "caffeine"
-          "raycast"
-          "monitorcontrol"
-          "shureplus-motiv"
-          "insta360-studio"
-          "screen-studio"
-          "proton-mail"
-          "macfuse"
-          "orbstack"
-          "notion"
-          "zoom"
-          "oracle-jdk"
-          "ollama"
-          "cursor"
-          "chatgpt"
-        ];
+      ++ lib.optionals cfg.enableExtras [
+        "ticktick"
+        "protonmail-bridge"
+        "yubico-authenticator"
+        "whatsapp@beta"
+        "tradingview"
+        "notion-calendar"
+        "cryptomator"
+        "tailscale"
+        "tailscale"
+        "telegram"
+        "signal"
+        "remarkable"
+        "protonvpn"
+        "proton-drive"
+        "proton-pass"
+        "figma"
+        "discord"
+        "spotify"
+        "deepl"
+        "caffeine"
+        "raycast"
+        "monitorcontrol"
+        "shureplus-motiv"
+        "insta360-studio"
+        "screen-studio"
+        "proton-mail"
+        "macfuse"
+        "orbstack"
+        "notion"
+        "zoom"
+        "oracle-jdk"
+        "ollama"
+        "cursor"
+        "chatgpt"
+      ];
     };
 
     # Use Touch ID for sudo
