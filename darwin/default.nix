@@ -59,6 +59,7 @@ in
         "slack"
         "arc"
         "utm"
+        "logi-options-plug"
       ] ++ lib.optionals cfg.enableProf [ "thunderbird" ]
       ++ lib.optionals cfg.enableExtras [
         "ticktick"
