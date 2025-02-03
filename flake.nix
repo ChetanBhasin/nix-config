@@ -70,8 +70,7 @@
             };
           }
         ];
-    in
-    {
+    in {
       darwinConfigurations = {
         hugh = darwin.lib.darwinSystem {
           system = "aarch64-darwin";

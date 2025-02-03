@@ -30,6 +30,7 @@ in
         gnuplot
         graphviz
         # CLI Packages
+        poetry
         sops
         awscli2
         jujutsu
