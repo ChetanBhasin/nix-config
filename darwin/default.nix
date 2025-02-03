@@ -59,11 +59,11 @@ in
         "slack"
         "arc"
         "utm"
-        "logi-options-plug"
+        "logi-options+"
       ] ++ lib.optionals cfg.enableProf [ "thunderbird" ]
       ++ lib.optionals cfg.enableExtras [
         "ticktick"
-        "protonmail-bridge"
+        "proton-mail-bridge"
         "yubico-authenticator"
         "whatsapp@beta"
         "tradingview"
