@@ -1,10 +1,10 @@
 { config, pkgs, ... }: {
   programs.vscode = {
     enable = true;
-    enableExtensionUpdateCheck = true;
-    enableUpdateCheck = true;
     mutableExtensionsDir = true;
-    extensions = with pkgs.vscode-extensions;
+    profiles.default.enableExtensionUpdateCheck = true;
+    profiles.default.enableUpdateCheck = true;
+    profiles.default.extensions = with pkgs.vscode-extensions;
       [
         rust-lang.rust-analyzer
         ms-azuretools.vscode-docker
