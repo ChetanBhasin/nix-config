@@ -57,7 +57,7 @@ in
         "vlc"
         "obsidian"
         "slack"
-        "arc"
+        "zen-browser"
         "utm"
         "logi-options+"
       ] ++ lib.optionals cfg.enableProf [ "thunderbird" ]
