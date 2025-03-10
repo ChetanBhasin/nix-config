@@ -19,7 +19,6 @@ in
 
   config = {
 
-    services.nix-daemon.enable = true;
     programs.nix-index.enable = true;
 
     nix = {
@@ -100,7 +99,7 @@ in
     };
 
     # Use Touch ID for sudo
-    security.pam.enableSudoTouchIdAuth = cfg.enableSudoTouch;
+    security.pam.services.sudo_local.touchIdAuth = cfg.enableSudoTouch;
 
     # Used for backwards compatibility, please read the changelog before changing.
     # $ darwin-rebuild changelog
