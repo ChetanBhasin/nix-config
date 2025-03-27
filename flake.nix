@@ -14,6 +14,8 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    colmena.url = "github:zhaofengli/colmena";
+
     # Other sources
     flake-utils = { url = "github:numtide/flake-utils"; };
     devshell = {
@@ -70,7 +72,8 @@
             };
           }
         ];
-    in {
+    in
+    {
       darwinConfigurations = {
         hugh = darwin.lib.darwinSystem {
           system = "aarch64-darwin";
@@ -89,6 +92,7 @@
           specialArgs = { inherit inputs nixpkgs; };
         };
       };
+      #colmenaHive = inputs.colmena.lib.makeHive self.outputs.colmena;
       colmena = {
         meta = {
           nixpkgs = import nixpkgs {
@@ -105,7 +109,7 @@
             allowLocalDeployment = true;
             buildOnTarget = true;
           };
-          imports = [ inputs.snm.nixosModule ];
+          imports = [ ];
         };
 
         defaults = { pkgs, name, ... }: {
@@ -138,7 +142,6 @@
             }
           ];
           networking.hostName = "${name}";
-          trusted-public-keys = [ ];
           users.users.root.openssh.authorizedKeys.keys = [
             # chetan's mac key
             "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC8y+WOiiqxKGRQHGdtRGL2R4Ptqs7uEXX89WwvUQTc9A2zTFjGNcQvDCP6+qw6FQgDCaLdNozojfPQxo/VqMiWf1KXvBOPMONc+AUURhPxw8lD1FSc5AsLAw68BrxnFLbYrKmJT6qr3Ap/D6NGNlJUN3mR/e8Bj2wpKNSidmn9aDBxuGLkBmYJ8K8Wdalg47WwQ7wvzxCn4MFjM8CINyaI3p0mouZdCeCd/JcJgeLqN1JGuHCdgwzS9FgAWwQ0s/zb33icxS3qlHYLOch8YpD1wCceHJEv8dRQxwoEbdho9VwUzZGE8y2YPLxNLShSjUEPK5rLbfz4kUrWZCEX0LHhwyBKW0u8O7RArCKVDjJkiVEWoIrTmYx3CxppYnuyKPe85vUwqQzafN1EVvtfwQcJHBknG/9Fo5sU+juuTMIbFHNwFjBH4MzOnIRBAV2lGy4YsGZwE/+HVB9kFqZf3KrBeRSZsNMUxC0AXapOHKimHyUyHS/bJUH3onqPV1cD8/k= chetan@Chetans-Air"
