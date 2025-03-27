@@ -27,7 +27,5 @@
     authKeyFile = "/run/keys/tailscale.auth";
   };
 
-  environment.systemPackages = [ pkgs.nextcloud28 ];
-
   system.stateVersion = "23.05";
 }
