@@ -149,7 +149,6 @@ with lib; {
             nim
             ninja
             nix
-            norg
             ocaml
             ocaml_interface
             ocamllex

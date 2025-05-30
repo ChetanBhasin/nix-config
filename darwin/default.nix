@@ -3,6 +3,7 @@ with lib;
 let cfg = config.darwin-config-manager;
 in
 {
+
   options.darwin-config-manager = {
     enableSudoTouch = lib.mkEnableOption "sudo touch id";
     enableExtras = lib.mkEnableOption "enable extra macOS applications";
@@ -38,6 +39,7 @@ in
 
     homebrew = {
       enable = true;
+      user = "chetan";
       onActivation.autoUpdate = true;
       onActivation = { cleanup = "uninstall"; };
       brews = [ "cloudflared" ]
@@ -51,21 +53,22 @@ in
         "fork"
         "hammerspoon"
         "jetbrains-toolbox"
-        "postico"
         "open-in-code"
         "vlc"
         "obsidian"
         "slack"
-        "zen-browser"
+        "zen"
         "utm"
         "logi-options+"
       ] ++ lib.optionals cfg.enableProf [ "thunderbird" ]
       ++ lib.optionals cfg.enableExtras [
+        "netdownloadhelpercoapp"
+        "cloudflare-warp"
+        "balenaetcher"
         "ticktick"
         "proton-mail-bridge"
         "yubico-authenticator"
         "whatsapp@beta"
-        "tradingview"
         "notion-calendar"
         "cryptomator"
         "tailscale"
@@ -79,9 +82,7 @@ in
         "figma"
         "discord"
         "spotify"
-        "deepl"
         "caffeine"
-        "raycast"
         "monitorcontrol"
         "shureplus-motiv"
         "insta360-studio"
