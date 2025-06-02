@@ -20,7 +20,9 @@
         "$PKG_CONFIG_PATH:${pkgs.rdkafka}/lib/pkgconfig:${pkgs.libiconv}/lib/pkgconfig";
     };
 
-    initExtra = ''
+    initContent = ''
+        export SDKROOT="$(xcrun --sdk macosx --show-sdk-path)"
+       export MACOSX_DEPLOYMENT_TARGET="$(sw_vers -productVersion | cut -d. -f1-2)"
       ${builtins.readFile ./sources.sh}
     '';
 

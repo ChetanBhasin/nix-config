@@ -13,20 +13,16 @@ in
   imports = [ ./defaultPrograms ./vscode ./zsh ./neovim ./tmux ./darwin ];
 
   config = {
+
     home.packages = with pkgs;
       [
         #System packages
         # Make touchID work from inside tmux
 
         # Library packages
-        openssl
-        clang
-        libcxx
-        lld
         zsh-completions
         nushell
         carapace
-        rdkafka
         gnuplot
         graphviz
         poetry
@@ -62,9 +58,7 @@ in
         python3Full
         nixfmt-classic
         protobuf
-        zlib
         sccache
-        libiconv
         direnv
         luajit
         terraform
@@ -72,6 +66,9 @@ in
         rustup
         helmfile
         kubernetes-helm
+        autoconf
+        libtool
+
       ] ++ lib.optionals cfg.enableExtras [
         wasm-pack
         colmena
@@ -86,10 +83,10 @@ in
         protobuf
         readline
       ] ++ lib.optionals pkgs.stdenv.isDarwin [
-        darwin.apple_sdk.frameworks.Security
-        darwin.apple_sdk.frameworks.CoreFoundation
-        darwin.apple_sdk.frameworks.CoreServices
-        darwin.apple_sdk.frameworks.SystemConfiguration
+        #darwin.apple_sdk.frameworks.Security
+        #darwin.apple_sdk.frameworks.CoreFoundation
+        #darwin.apple_sdk.frameworks.CoreServices
+        #darwin.apple_sdk.frameworks.SystemConfiguration
         pam-reattach
       ];
 

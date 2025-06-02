@@ -22,14 +22,35 @@ in
 
     programs.nix-index.enable = true;
 
+    environment.systemPackages = with pkgs; [
+      autoconf
+      automake
+      libtool
+      pkg-config
+      cmake
+      gnumake
+      openssl
+      amazon-ecr-credential-helper
+      rdkafka
+      zlib
+      libiconv
+      protox
+      cctools # keep ld-classic and ar
+    ];
+
+    environment.variables = {
+      CC_aarch64_apple_darwin = "/usr/bin/clang";
+      CXX_aarch64_apple_darwin = "/usr/bin/clang++";
+      AR_aarch64_apple_darwin = "/usr/bin/ar";
+      SDKROOT = "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk";
+      MACOSX_DEPLOYMENT_TARGET = "15.5";
+    };
+
     nix = {
       package = pkgs.nixStable;
       # Add cache for nix-community, used mainly for neovim nightly
       settings = {
         substituters = [ "https://nix-community.cachix.org" ];
-        trusted-public-keys = [
-          "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
-        ];
       };
       # Enable Flakes
       extraOptions = "experimental-features = nix-command flakes";
