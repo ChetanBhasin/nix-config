@@ -29,7 +29,6 @@ in
         rdkafka
         gnuplot
         graphviz
-        # CLI Packages
         poetry
         sops
         awscli2
@@ -83,10 +82,8 @@ in
         ngrok
         argocd
       ] ++ lib.optionals cfg.enableProf [
-        tilt
         grpc
         protobuf
-        vault
         readline
       ] ++ lib.optionals pkgs.stdenv.isDarwin [
         darwin.apple_sdk.frameworks.Security
