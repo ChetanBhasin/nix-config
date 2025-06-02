@@ -13,7 +13,7 @@ hs.hotkey.bind(hyper, "g", function() hs.application.launchOrFocus("Discord") en
 hs.hotkey.bind(hyper, "c", function() hs.application.launchOrFocus("Cursor") end)
 hs.hotkey.bind(hyper, "x", function() hs.application.launchOrFocus("Xcode") end)
 hs.hotkey.bind(hyper, "l", function() hs.application.launchOrFocus("Slack") end)
-hs.hotkey.bind(hyper, "z", function() hs.application.launchOrFocus("Zoom") end)
+hs.hotkey.bind(hyper, "z", function() hs.application.launchOrFocus("zoom.us") end)
 hs.hotkey.bind(hyper, "n", function() hs.application.launchOrFocus("Obsidian") end)
 hs.hotkey.bind(hyper, "h", function() hs.application.launchOrFocus("IBKR Desktop") end)
 hs.hotkey.bind(hyper, "v", function() hs.application.launchOrFocus("ProtonVPN") end)

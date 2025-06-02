@@ -4,6 +4,6 @@
     includeFonts = true;
     isDarwin = true;
     enableExtras = true;
-    enableProf = false;
+    enableProf = true;
   };
 }
