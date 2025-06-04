@@ -176,3 +176,5 @@ git-ammend-old() (
 
 # Let's add installed Rust and cargo path here
 export PATH="$PATH:$HOME/.cargo/bin"
+# Let's add NPM global path
+export PATH="$PATH:$HOME/.local/lib/bin"
