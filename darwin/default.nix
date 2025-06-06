@@ -68,6 +68,7 @@ in
         ++ lib.optionals cfg.enableExtras [ "flyctl" "nodenv" "docker" ];
       casks = [
         "1password"
+        "lens"
         "ghostty"
         "db-browser-for-sqlite"
         "firefox"
