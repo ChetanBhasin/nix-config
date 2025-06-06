@@ -19,6 +19,10 @@ in
         #System packages
         # Make touchID work from inside tmux
 
+        # CLI Packages
+        hl-log-viewer
+        goose-cli
+
         # Library packages
         zsh-completions
         nushell
