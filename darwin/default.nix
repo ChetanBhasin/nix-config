@@ -36,6 +36,9 @@ in
       libiconv
       protox
       cctools # keep ld-classic and ar
+      # for pdf rendering
+      poppler
+      poppler-utils
     ];
 
     environment.variables = {
@@ -68,6 +71,7 @@ in
         ++ lib.optionals cfg.enableExtras [ "flyctl" "nodenv" "docker" ];
       casks = [
         "1password"
+        "granola"
         "lens"
         "ghostty"
         "db-browser-for-sqlite"
