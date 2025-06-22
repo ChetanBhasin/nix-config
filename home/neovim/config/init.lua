@@ -26,6 +26,7 @@ require("custom.plugins.fterm")
 require("custom.plugins.fidget")
 require("custom.plugins.lualine")
 require("custom.plugins.dressing")
+require("custom.plugins.claude")
 
 -- Built-in Plugin Setup
 require('Comment').setup()
