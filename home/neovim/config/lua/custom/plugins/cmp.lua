@@ -19,22 +19,26 @@ cmp.setup({
     ['<Tab>'] = cmp.mapping.select_next_item(),
     ['<C-S-f>'] = cmp.mapping.scroll_docs(-4),
     ['<C-f>'] = cmp.mapping.scroll_docs(4),
-    ['<C-Space>'] = cmp.mapping.complete(),
+    ['<C-y>'] = cmp.mapping.complete(),
     ['<Esc>'] = cmp.mapping.close(),
     ['<CR>'] = cmp.mapping.confirm({
       behavior = cmp.ConfirmBehavior.Insert,
       select = true,
     })
   },
-  -- Installed sources:
+  -- Completion sources (aligned with Nix configuration)
   sources = {
-    { name = 'path' },                                       -- file paths
-    { name = 'nvim_lsp',               keyword_length = 3 }, -- from language server
-    { name = 'nvim_lsp_signature_help' },                    -- display function signatures with current parameter emphasized
-    { name = 'nvim_lua',               keyword_length = 2 }, -- complete neovim's Lua runtime API such vim.lsp.*
-    { name = 'buffer',                 keyword_length = 2 }, -- source current buffer
-    { name = 'vsnip',                  keyword_length = 2 }, -- nvim-cmp source for vim-vsnip
-    { name = 'calc' },                                       -- source for math calculation
+    { name = 'nvim_lsp',   keyword_length = 3 }, -- from language server
+    { name = 'nvim_lua',   keyword_length = 2 }, -- complete neovim's Lua runtime API such vim.lsp.*
+    { name = 'vsnip',      keyword_length = 2 }, -- nvim-cmp source for vim-vsnip
+    { name = 'treesitter', keyword_length = 2 }, -- treesitter completions
+    { name = 'buffer',     keyword_length = 2 }, -- source current buffer
+    { name = 'path' },                           -- file path completions
+    { name = 'git' },                            -- git completions
+    { name = 'tmux' },                           -- tmux completions
+    { name = 'zsh' },                            -- zsh completions
+    { name = 'clippy' },                         -- rust clippy completions
+    { name = 'spell' },                          -- spell check completions
   },
   window = {
     completion = cmp.config.window.bordered(),
@@ -45,9 +49,16 @@ cmp.setup({
     format = function(entry, item)
       local menu_icon = {
         nvim_lsp = 'λ',
+        nvim_lua = '',
         vsnip = '⋗',
+        treesitter = '',
         buffer = 'Ω',
         path = '🖫',
+        git = '',
+        tmux = '',
+        zsh = '',
+        clippy = '📎',
+        spell = '暈',
       }
       item.menu = menu_icon[entry.source.name]
       return item

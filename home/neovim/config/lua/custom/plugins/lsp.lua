@@ -2,61 +2,163 @@ local lspconfig = require('lspconfig')
 
 local lsp_capabilities = require('cmp_nvim_lsp').default_capabilities()
 
+-- Enhanced on_attach function
+local on_attach = function(client, bufnr)
+    -- All keybindings are centralized in keymaps.lua
+    -- This function only handles LSP-specific setup
+end
+
+-- TypeScript/JavaScript setup
 lspconfig.tsserver.setup({
     capabilities = lsp_capabilities,
+    on_attach = on_attach,
+    settings = {
+        typescript = {
+            inlayHints = {
+                includeInlayParameterNameHints = 'all',
+                includeInlayParameterNameHintsWhenArgumentMatchesName = false,
+                includeInlayFunctionParameterTypeHints = true,
+                includeInlayVariableTypeHints = true,
+                includeInlayVariableTypeHintsWhenTypeMatchesName = false,
+                includeInlayPropertyDeclarationTypeHints = true,
+                includeInlayFunctionLikeReturnTypeHints = true,
+                includeInlayEnumMemberValueHints = true,
+            }
+        },
+        javascript = {
+            inlayHints = {
+                includeInlayParameterNameHints = 'all',
+                includeInlayParameterNameHintsWhenArgumentMatchesName = false,
+                includeInlayFunctionParameterTypeHints = true,
+                includeInlayVariableTypeHints = true,
+                includeInlayVariableTypeHintsWhenTypeMatchesName = false,
+                includeInlayPropertyDeclarationTypeHints = true,
+                includeInlayFunctionLikeReturnTypeHints = true,
+                includeInlayEnumMemberValueHints = true,
+            }
+        }
+    }
 })
+
+-- Python setup with type hints
 lspconfig.pyright.setup({
     capabilities = lsp_capabilities,
+    on_attach = on_attach,
 })
-lspconfig.rnix.setup({
+
+-- Nix
+lspconfig.nil_ls.setup({
     capabilities = lsp_capabilities,
+    on_attach = on_attach,
 })
+
+-- YAML
 lspconfig.yamlls.setup({
     capabilities = lsp_capabilities,
+    on_attach = on_attach,
 })
+
+-- Docker
 lspconfig.dockerls.setup({
     capabilities = lsp_capabilities,
+    on_attach = on_attach,
 })
+
+-- Lua with enhanced settings
 lspconfig.lua_ls.setup({
     capabilities = lsp_capabilities,
+    on_attach = on_attach,
+    settings = {
+        Lua = {
+            hint = {
+                enable = true,
+                setType = false,
+                paramType = true,
+                paramName = 'Disable',
+                semicolon = 'Disable',
+                arrayIndex = 'Disable',
+            },
+        },
+    },
 })
+
+-- Bash
 lspconfig.bashls.setup({
     capabilities = lsp_capabilities,
+    on_attach = on_attach,
 })
+
+-- Gleam
 lspconfig.gleam.setup({
     capabilities = lsp_capabilities,
+    on_attach = on_attach,
 })
-lspconfig.rust_analyzer.setup {
+
+-- Go language server with inlay hints
+lspconfig.gopls.setup({
     capabilities = lsp_capabilities,
-}
-
--- LSP Settings
-vim.api.nvim_create_autocmd('LspAttach', {
-    desc = 'LSP actions',
-    callback = function()
-        local bufmap = function(mode, lhs, rhs)
-            local opts = { buffer = true }
-            vim.keymap.set(mode, lhs, rhs, opts)
-        end
-    end
+    on_attach = on_attach,
+    settings = {
+        gopls = {
+            hints = {
+                assignVariableTypes = true,
+                compositeLiteralFields = true,
+                compositeLiteralTypes = true,
+                constantValues = true,
+                functionTypeParameters = true,
+                parameterNames = true,
+                rangeVariableTypes = true,
+            },
+        },
+    },
 })
 
---Set completeopt to have a better completion experience
--- :help completeopt
--- menuone: popup even when there's only one match
--- noinsert: Do not insert text until a selection is made
--- noselect: Do not select, force to select one from the menu
--- shortness: avoid showing extra messages when using completion
--- updatetime: set updatetime for CursorHold
+-- Rust setup is handled by rustaceanvim (see rust.lua)
+
+-- LSP Settings - Basic completion and diagnostic configuration
 vim.opt.completeopt = { 'menuone', 'noselect', 'noinsert' }
 vim.opt.shortmess = vim.opt.shortmess + { c = true }
-vim.api.nvim_set_option('updatetime', 300)
+vim.opt.updatetime = 300
 
 -- Fixed column for diagnostics to appear
--- Show autodiagnostic popup on cursor hover_range
--- Goto previous / next diagnostic warning / error
--- Show inlay_hints more frequently
 vim.cmd([[
     set signcolumn=yes
-    autocmd CursorHold * lua vim.diagnostic.open_float(nil, { focusable = false })
 ]])
+
+-- Show diagnostic popup on cursor hold
+vim.api.nvim_create_autocmd("CursorHold", {
+    callback = function()
+        vim.diagnostic.open_float(nil, {
+            focusable = false,
+            close_events = { "BufLeave", "CursorMoved", "InsertEnter", "FocusLost" },
+            border = 'rounded',
+            source = 'always',
+            prefix = ' ',
+            scope = 'cursor',
+        })
+    end,
+})
+
+-- Configure inlay hints appearance
+vim.api.nvim_set_hl(0, 'LspInlayHint', {
+    fg = '#6c7086',
+    bg = 'NONE',
+    italic = true
+})
+
+-- Configure LSP hover window
+vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, {
+    border = "rounded",
+    focusable = true,
+    close_events = { "CursorMoved", "BufLeave", "InsertEnter" },
+})
+
+-- Single, optimal inlay hints setup
+vim.api.nvim_create_autocmd("LspAttach", {
+    callback = function(args)
+        local client = vim.lsp.get_client_by_id(args.data.client_id)
+        if client and client.supports_method('textDocument/inlayHint') then
+            vim.lsp.inlay_hint.enable(true, { bufnr = args.buf })
+        end
+    end,
+})

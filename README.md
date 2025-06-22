@@ -2,6 +2,10 @@
 
 This repository includes the configuration for the commonly used systems that I use including my personal laptop and a couple of other devices.
 
+## Documentation
+
+📖 **[IDE Setup Guide](docs/ide.md)** - Comprehensive guide to the powerful Neovim IDE configuration with language servers, type annotations, keyboard shortcuts, and development workflows.
+
 ## Installation Instructions
 
 The idea is to be able to install the entire system configuration from one place. Please follow the given instructions for setting up the system and note that you need to perform certain steps for MacOS.

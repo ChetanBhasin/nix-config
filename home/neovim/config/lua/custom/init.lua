@@ -1,0 +1,6 @@
+-- ═══════════════════════════════════════════════════════════════════════════════
+-- 🎯 CUSTOM CONFIGURATION MODULE
+-- ═══════════════════════════════════════════════════════════════════════════════
+-- This file is reserved for future custom configuration that doesn't fit
+-- in the main plugin loading sequence. Currently empty as all plugin
+-- loading has been centralized in the main init.lua file.
