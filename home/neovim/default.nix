@@ -38,7 +38,6 @@ with lib; {
         plenary-nvim
         vim-cool
         comment-nvim
-        barbecue-nvim
         vim-smoothie
         vim-closer
         telescope-nvim
@@ -50,20 +49,21 @@ with lib; {
         lualine-nvim
         dressing-nvim
         fidget-nvim
-        comment-nvim
         catppuccin-nvim
         FTerm-nvim
         undotree
-        rust-tools-nvim
+        # Modern Rust plugin (successor to rust-tools.nvim)
+        rustaceanvim
         nvim-lspconfig
         vim-vsnip
         mason-nvim
         mason-lspconfig-nvim
-        legendary-nvim
         nvim-cmp
         cmp-nvim-lsp
         cmp-vsnip
         cmp-nvim-lua
+        cmp-buffer
+        cmp-path
         cmp-zsh
         cmp-git
         cmp-tmux

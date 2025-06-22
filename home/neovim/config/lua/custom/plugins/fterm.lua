@@ -6,4 +6,4 @@ require 'FTerm'.setup({
     },
 })
 
-vim.keymap.set("n", "<c-t>", require("FTerm").toggle)
+-- Keybinding is now centralized in keymaps.lua

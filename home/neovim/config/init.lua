@@ -1,44 +1,27 @@
--- Floating terminal
-require("custom.plugins.fterm")
--- Set options for Telescope
-require("custom.plugins.telescope")
--- Set options for Treesitter
-require("custom.plugins.treesitter")
+-- ═══════════════════════════════════════════════════════════════════════════════
+-- 🚀 NEOVIM CONFIGURATION LOADER
+-- ═══════════════════════════════════════════════════════════════════════════════
 
--- Setup Harpoon
-require("custom.plugins.harpoon").setup()
-
--- Setup Mason for language server installations
-require("custom.plugins.mason")
--- Setup nvim-tree
-require("custom.plugins.nvimtree")
--- Set LSP configuration
-require("custom.plugins.lsp")
-
--- Setup Fidget
-require("custom.plugins.fidget")
-
--- Setup Lualine
-require("custom.plugins.lualine")
-
--- Import plugin configurations
-require("custom.plugins.dressing")
-
--- Setup cmp
-require("custom.plugins.cmp")
-
--- Setup barbecue
-require("barbecue").setup()
-
--- Setup nvim-tree
-require("nvim-tree").setup()
-
--- Setup comments
-require('Comment').setup()
-
--- Setup colors
+-- Core Configuration
 require("custom.colors")
 DefineColors("catppuccin-mocha")
 
--- Remap keys
+-- Plugin Configurations (in logical loading order)
+require("custom.plugins.telescope")
+require("custom.plugins.treesitter")
+require("custom.plugins.mason")
+require("custom.plugins.lsp")
+require("custom.plugins.cmp")
+require("custom.plugins.rust")
+require("custom.plugins.nvimtree")
+require("custom.plugins.harpoon").setup()
+require("custom.plugins.fterm")
+require("custom.plugins.fidget")
+require("custom.plugins.lualine")
+require("custom.plugins.dressing")
+
+-- Built-in Plugin Setup
+require('Comment').setup()
+
+-- Keybindings (load last to ensure all plugins are available)
 require("custom.remap")

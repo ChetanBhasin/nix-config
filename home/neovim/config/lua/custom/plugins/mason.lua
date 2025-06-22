@@ -8,7 +8,36 @@ require("mason").setup({
         },
     }
 })
-require("mason-lspconfig").setup()
+require("mason-lspconfig").setup({
+    -- Enable automatic installation of essential language servers
+    automatic_installation = true,
+    ensure_installed = {
+        -- Core language servers
+        "rust_analyzer",              -- Rust
+        "typescript-language-server", -- TypeScript/JavaScript
+        "pyright",                    -- Python
+        "kotlin_language_server",     -- Kotlin
+        "nil_ls",                     -- Nix
+        "jsonls",                     -- JSON
+        "yamlls",                     -- YAML
+        "lua_ls",                     -- Lua
+        "bashls",                     -- Bash
+        "gopls",                      -- Go
+        "dockerls",                   -- Docker
+    },
+    handlers = {
+        -- Default handler for most LSP servers
+        function(server_name)
+            -- Skip rust_analyzer since rustaceanvim handles it
+            if server_name == "rust_analyzer" then
+                return
+            end
+            require("lspconfig")[server_name].setup({
+                capabilities = require('cmp_nvim_lsp').default_capabilities(),
+            })
+        end,
+    },
+})
 
 
 -- LSP Diagnostics Options Setup
@@ -41,5 +70,4 @@ vim.diagnostic.config({
 
 vim.cmd([[
   set signcolumn=yes
-  autocmd CursorHold * lua vim.diagnostic.open_float(nil, { focusable = false })
 ]])
