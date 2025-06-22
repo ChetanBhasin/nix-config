@@ -61,6 +61,9 @@ with lib; {
         lspkind-nvim
         # Modern Rust plugin (successor to rust-tools.nvim)
         rustaceanvim
+        # Claude AI integration
+        claude-code-nvim
+        snacks-nvim
         nvim-lspconfig
         vim-vsnip
         mason-nvim

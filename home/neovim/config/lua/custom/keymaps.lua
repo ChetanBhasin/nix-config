@@ -61,9 +61,9 @@ keymap("n", "<leader>ew", ":e %%<CR>", { desc = "Edit file in current directory"
 -- ┌─────────────────────────────────────────────────────────────────────────────┐
 -- │ BUFFER MANAGEMENT                                                           │
 -- └─────────────────────────────────────────────────────────────────────────────┘
-keymap("n", "<leader>ft", ":Telescope buffers<CR>", { desc = "List open buffers" })
-keymap("n", "<leader>ct", ":%bd|e#<CR>", { desc = "Close all except current buffer" })
+-- Note: <leader>ft removed as it duplicates <leader>fb (Find buffers) functionality
 
+-- Note: Buffer closing actions are handled by bufferline.lua (<leader>ba, <leader>bL, <leader>bR)
 -- Note: Bufferline keybindings are now handled in bufferline-pure.lua
 
 -- ═══════════════════════════════════════════════════════════════════════════════
@@ -104,6 +104,42 @@ legendary.keymaps({
     { "<leader>bL", ":BufferLineCloseLeft<CR>", description = "🗑️ Close buffers to the left", mode = "n" },
     { "<leader>bR", ":BufferLineCloseRight<CR>", description = "🗑️ Close buffers to the right", mode = "n" },
     { "<leader>bb", ":BufferLinePick<CR>", description = "📋 Pick buffer", mode = "n" },
+})
+
+-- Claude Code legendary integration (centralized with other keybindings)
+legendary.keymaps({
+    { "<leader>co", claude_toggle, description = "🤖 Toggle Claude (hide/show or start with picker)", mode = "n" },
+    { "<leader>cc", ":ClaudeCodeContinue<CR>", description = "🔄 Continue last Claude conversation", mode = "n" },
+    { "<leader>cr", ":ClaudeCodeResume<CR>", description = "📋 Resume Claude conversation (picker)", mode = "n" },
+    { "<leader>cv", ":ClaudeCodeVerbose<CR>", description = "🔍 Claude Code with verbose output", mode = "n" },
+    { "<leader>cq", claude_quit_session, description = "🚪 Quit Claude session (graceful termination)", mode = "n" },
+    { "<leader>cn", claude_new_session, description = "🆕 Start new Claude session (ignore existing)", mode = "n" },
+    {
+        "<leader>ch",
+        function()
+            print([[
+🤖 Claude Code Commands (Available):
+───────────────────────────────────
+:ClaudeCode         - Toggle Claude terminal
+:ClaudeCodeContinue - Continue last conversation
+:ClaudeCodeResume   - Resume conversation (picker)
+:ClaudeCodeVerbose  - Claude with verbose output
+
+🎯 Keybindings:
+──────────────
+<leader>co - Toggle Claude terminal
+<leader>cc - Continue last conversation
+<leader>cr - Resume conversation (picker)
+<leader>cv - Verbose mode
+<leader>ch - Show this help
+
+💡 Note: File selection, diff handling, etc. are handled
+by the Claude CLI itself within the terminal.
+]])
+        end,
+        description = "❓ Show Claude Code help",
+        mode = "n"
+    },
 })
 
 -- ═══════════════════════════════════════════════════════════════════════════════
@@ -152,7 +188,7 @@ keymap("n", "<F2>", vim.lsp.buf.rename, { desc = "Rename symbol" })
 keymap("n", "<leader>rn", vim.lsp.buf.rename, { desc = "Rename symbol" })
 keymap("n", "<F4>", vim.lsp.buf.code_action, { desc = "Code actions" })
 keymap("n", "<leader>ca", vim.lsp.buf.code_action, { desc = "Code actions" })
-keymap("n", "<leader>ac", vim.lsp.buf.code_action, { desc = "Code actions" })
+-- Note: <leader>ac removed as it duplicates <leader>ca functionality
 
 -- ┌─────────────────────────────────────────────────────────────────────────────┐
 -- │ FORMATTING                                                                  │
@@ -167,8 +203,7 @@ keymap("n", "<leader>fo", format, { desc = "Format code" })
 -- └─────────────────────────────────────────────────────────────────────────────┘
 keymap("n", "[d", vim.diagnostic.goto_prev, { desc = "Previous diagnostic" })
 keymap("n", "]d", vim.diagnostic.goto_next, { desc = "Next diagnostic" })
-keymap("n", "[e", vim.diagnostic.goto_prev, { desc = "Previous diagnostic" })
-keymap("n", "]e", vim.diagnostic.goto_next, { desc = "Next diagnostic" })
+-- Note: [e and ]e removed as they duplicate [d and ]d functionality
 keymap("n", "<leader>dl", vim.diagnostic.setloclist, { desc = "Diagnostics to location list" })
 keymap("n", "<leader>dq", vim.diagnostic.setqflist, { desc = "Diagnostics to quickfix list" })
 
@@ -195,6 +230,213 @@ keymap("n", "<leader>rp", function() vim.cmd.RustLsp('parentModule') end, { desc
 keymap("n", "<leader>rj", function() vim.cmd.RustLsp('joinLines') end, { desc = "Join lines" })
 keymap("n", "<leader>rs", function() vim.cmd.RustLsp('ssr') end, { desc = "Structural search replace" })
 keymap("n", "<leader>rc", function() vim.cmd.RustLsp('openCargo') end, { desc = "Open Cargo.toml" })
+
+-- ═══════════════════════════════════════════════════════════════════════════════
+-- 🤖 CLAUDE AI ASSISTANT
+-- ═══════════════════════════════════════════════════════════════════════════════
+
+-- ┌─────────────────────────────────────────────────────────────────────────────┐
+-- │ CLAUDE TERMINAL COMMANDS (CUSTOM TOGGLE IMPLEMENTATION)                    │
+-- └─────────────────────────────────────────────────────────────────────────────┘
+-- Enhanced Claude session management with background persistence
+-- Helper function to find Claude terminal buffer (running in background)
+local function find_claude_terminal_buffer()
+    for _, buf in pairs(vim.api.nvim_list_bufs()) do
+        if vim.api.nvim_buf_is_valid(buf) and vim.bo[buf].buftype == "terminal" then
+            local buf_name = vim.api.nvim_buf_get_name(buf)
+            local title_ok, title = pcall(vim.api.nvim_buf_get_var, buf, "term_title")
+
+            if string.match(buf_name:lower(), "claude") or
+                (title_ok and title and string.match(title:lower(), "claude")) then
+                return buf
+            end
+        end
+    end
+    return nil
+end
+
+-- Helper function to find window displaying a specific buffer
+local function find_window_for_buffer(target_buf)
+    for _, win in pairs(vim.api.nvim_list_wins()) do
+        if vim.api.nvim_win_get_buf(win) == target_buf then
+            return win
+        end
+    end
+    return nil
+end
+
+-- Helper function to show Claude terminal in right sidebar
+local function show_claude_terminal_in_sidebar(claude_buf)
+    -- Create window in right sidebar with proper positioning
+    vim.cmd("rightbelow vsplit")
+    local win = vim.api.nvim_get_current_win()
+
+    -- Set the buffer in the new window
+    vim.api.nvim_win_set_buf(win, claude_buf)
+
+    -- Configure window size (35% width)
+    local total_width = vim.o.columns
+    local claude_width = math.floor(total_width * 0.35)
+    vim.api.nvim_win_set_width(win, claude_width)
+
+    -- Focus the Claude terminal
+    vim.cmd("startinsert")
+end
+
+-- Enhanced toggle function: Hide/Show for existing, Resume picker for new
+function claude_toggle()
+    local claude_buf = find_claude_terminal_buffer()
+
+    if claude_buf then
+        -- Claude is running in background, toggle window visibility
+        local claude_win = find_window_for_buffer(claude_buf)
+
+        if claude_win then
+            -- Claude window is visible → Hide it (keep process running)
+            vim.api.nvim_win_close(claude_win, false)
+            vim.notify("Claude hidden (running in background)", vim.log.levels.INFO)
+        else
+            -- Claude is hidden → Show it in sidebar
+            show_claude_terminal_in_sidebar(claude_buf)
+            vim.notify("Claude shown (resumed background session)", vim.log.levels.INFO)
+        end
+    else
+        -- No Claude session exists → Start with conversation picker
+        vim.cmd("ClaudeCodeResume")
+        vim.notify("Claude started with conversation picker", vim.log.levels.INFO)
+    end
+end
+
+-- Gracefully terminate Claude session (manual)
+function claude_quit_session()
+    local claude_buf = find_claude_terminal_buffer()
+
+    if claude_buf then
+        -- Send graceful exit to Claude
+        local claude_win = find_window_for_buffer(claude_buf)
+        if claude_win then
+            -- Focus Claude terminal and send exit command
+            vim.api.nvim_set_current_win(claude_win)
+            vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<C-c>exit<CR>", true, false, true), "n", false)
+
+            -- Wait a moment then close
+            vim.defer_fn(function()
+                if vim.api.nvim_win_is_valid(claude_win) then
+                    vim.api.nvim_win_close(claude_win, false)
+                end
+            end, 1000)
+        else
+            -- Claude is hidden, just terminate the buffer
+            vim.api.nvim_buf_delete(claude_buf, { force = true })
+        end
+
+        vim.notify("Claude session terminated gracefully", vim.log.levels.INFO)
+    else
+        vim.notify("No Claude session to terminate", vim.log.levels.WARN)
+    end
+end
+
+-- Start new Claude session (ignore existing)
+function claude_new_session()
+    -- First terminate existing session if present
+    claude_quit_session()
+
+    -- Wait a moment then start fresh
+    vim.defer_fn(function()
+        vim.cmd("ClaudeCode")
+        vim.notify("New Claude session started", vim.log.levels.INFO)
+    end, 1500)
+end
+
+-- Graceful shutdown when Neovim exits
+local function gracefully_terminate_claude_on_exit()
+    local claude_buf = find_claude_terminal_buffer()
+
+    if claude_buf then
+        -- Try to send graceful exit to Claude
+        local claude_win = find_window_for_buffer(claude_buf)
+        if claude_win then
+            vim.api.nvim_set_current_win(claude_win)
+            vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<C-c>exit<CR>", true, false, true), "n", false)
+        end
+
+        -- Give Claude time to save state
+        vim.wait(500)
+    end
+end
+
+-- Set up graceful shutdown on Neovim exit
+vim.api.nvim_create_autocmd("VimLeavePre", {
+    desc = "Gracefully terminate Claude session on Neovim exit",
+    callback = gracefully_terminate_claude_on_exit,
+})
+
+-- Core Claude keybindings
+keymap("n", "<leader>co", claude_toggle, { desc = "🤖 Toggle Claude (hide/show or start with picker)" })
+keymap("n", "<leader>cc", ":ClaudeCodeContinue<CR>", { desc = "🔄 Continue last Claude conversation" })
+keymap("n", "<leader>cr", ":ClaudeCodeResume<CR>", { desc = "📋 Resume Claude conversation (picker)" })
+keymap("n", "<leader>cv", ":ClaudeCodeVerbose<CR>", { desc = "🔍 Claude Code with verbose output" })
+
+-- Enhanced session management
+keymap("n", "<leader>cq", claude_quit_session, { desc = "🚪 Quit Claude session (graceful termination)" })
+keymap("n", "<leader>cn", claude_new_session, { desc = "🆕 Start new Claude session (ignore existing)" })
+
+-- Terminal mode keybinding to toggle Claude from within
+keymap("t", "<leader>co", "<C-\\><C-n>:lua claude_toggle()<CR>", { desc = "🤖 Toggle Claude from within terminal" })
+
+-- Alternative: Simple escape from terminal mode to normal mode (then use <leader>co)
+keymap("t", "<C-q>", "<C-\\><C-n>", { desc = "Exit terminal mode to normal mode" })
+
+keymap("n", "<leader>ch", function()
+    print([[
+🤖 Claude Code - Enhanced Session Management:
+═══════════════════════════════════════════
+
+📋 Available Commands:
+─────────────────────
+:ClaudeCode         - Open new Claude terminal
+:ClaudeCodeContinue - Continue last conversation
+:ClaudeCodeResume   - Resume conversation (picker)
+:ClaudeCodeVerbose  - Claude with verbose output
+
+🎯 Enhanced Keybindings:
+───────────────────────
+<leader>co - Smart Toggle:
+           • First time: Start with conversation picker
+           • Existing:   Hide/show Claude (keeps running!)
+<leader>cc - Continue last conversation (manual)
+<leader>cr - Resume with picker (manual)
+<leader>cv - Verbose mode
+<leader>cq - Quit Claude session (graceful termination)
+<leader>cn - New session (ignore existing)
+<leader>ch - Show this help
+
+🔄 Background Persistence:
+─────────────────────────
+• Claude runs in background when hidden
+• Instant toggle response (no startup delay)
+• Context and conversation preserved
+• Graceful shutdown on Neovim exit
+
+🚪 Usage Patterns:
+─────────────────
+From normal mode:
+• <leader>co - Toggle Claude visibility
+• <leader>cq - End Claude session
+
+From terminal mode:
+• <leader>co - Toggle Claude from within
+• <C-q>      - Exit to normal mode
+
+💡 Claude CLI Commands (within terminal):
+────────────────────────────────────────
+add file.rs    - Add file to context
+add src/       - Add directory
+clear          - Clear context
+/reset         - Reset conversation
+/help          - Claude CLI help
+]])
+end, { desc = "❓ Show enhanced Claude help" })
 
 -- ═══════════════════════════════════════════════════════════════════════════════
 -- 🎛️ LEGENDARY PLUGIN INTEGRATION
@@ -274,5 +516,12 @@ KEYBINDING QUICK REFERENCE:
 
 💻 TERMINAL:
 └─ <C-t>           → Toggle floating terminal
+
+🤖 CLAUDE AI:
+├─ <leader>co      → Toggle Claude terminal
+├─ <leader>cc      → Continue last conversation
+├─ <leader>cr      → Resume conversation (picker)
+├─ <leader>cv      → Verbose mode
+└─ <leader>ch      → Show Claude help
 
 --]]

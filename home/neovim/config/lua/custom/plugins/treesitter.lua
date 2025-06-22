@@ -11,11 +11,34 @@ end
 
 -- Create autocmd to disable treesitter for problematic buffers
 vim.api.nvim_create_autocmd({ "FileType", "BufEnter" }, {
-    pattern = { "alpha", "dashboard", "NvimTree", "help", "qf", "lspinfo", "mason" },
+    pattern = { "alpha", "dashboard", "NvimTree", "help", "qf", "lspinfo", "mason", "claude" },
     callback = function()
         vim.b.ts_highlight = false
     end,
 })
+
+-- Add error handler for TreeSitter window issues
+vim.api.nvim_create_autocmd("User", {
+    pattern = "TSError",
+    callback = function()
+        vim.notify("TreeSitter error detected - disabling for current buffer", vim.log.levels.WARN)
+        vim.b.ts_highlight = false
+    end,
+})
+
+-- Global error handler for TreeSitter window issues
+local original_schedule = vim.schedule
+vim.schedule = function(fn)
+    original_schedule(function()
+        local ok, err = pcall(fn)
+        if not ok and string.match(err, "Invalid window id") then
+            -- Silently ignore invalid window ID errors from TreeSitter
+            return
+        elseif not ok then
+            error(err)
+        end
+    end)
+end
 
 treesitter.setup {
     -- Autopairs integration
@@ -39,7 +62,7 @@ treesitter.setup {
             local problematic_filetypes = {
                 "help", "alpha", "dashboard", "NvimTree", "neo-tree",
                 "Trouble", "trouble", "lazy", "mason", "notify",
-                "toggleterm", "lazyterm", "qf", "lspinfo"
+                "toggleterm", "lazyterm", "qf", "lspinfo", "claude"
             }
             local filetype = vim.bo[buf].filetype
             if vim.tbl_contains(problematic_filetypes, filetype) then
@@ -48,7 +71,7 @@ treesitter.setup {
 
             -- Check buffer type
             local buftype = vim.bo[buf].buftype
-            if buftype == "nofile" or buftype == "prompt" or buftype == "popup" then
+            if buftype == "nofile" or buftype == "prompt" or buftype == "popup" or buftype == "terminal" then
                 return true
             end
 

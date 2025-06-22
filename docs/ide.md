@@ -15,6 +15,7 @@
 - [🔍 Search & Navigation](#-search--navigation)
 - [📁 File Management](#-file-management)
 - [💻 Terminal Integration](#-terminal-integration)
+- [🤖 Claude AI Integration](#-claude-ai-integration)
 - [🎨 Customization](#-customization)
 - [🔧 Troubleshooting](#-troubleshooting)
 
@@ -27,6 +28,7 @@ This Neovim configuration transforms your editor into a **modern, feature-rich I
 - **Type annotations and inlay hints** for static languages (Rust, TypeScript, Go, etc.)
 - **Centralized, well-organized keybinding system**
 - **Advanced LSP integration** with comprehensive language support
+- **Claude AI integration** for code review, architecture advice, and learning
 - **Modern plugin ecosystem** with consistent theming
 - **Professional development workflow** tools
 
@@ -177,6 +179,17 @@ When you first open Neovim:
 | `<C-t>` | Toggle terminal | Floating terminal |
 | `<leader>th` | Toggle hints | Show/hide inlay hints (enabled by default) |
 | `<leader>f` | File explorer | Toggle file tree |
+
+### 🤖 **Claude AI Assistant**
+| Shortcut | Action | Description |
+|----------|--------|-------------|
+| `<leader>co` | **Smart Toggle** | Conversation picker first time, then hide/show |
+| `<leader>cc` | Continue | Resume last conversation (manual) |
+| `<leader>cr` | Resume | Pick from previous conversations (manual) |
+| `<leader>cv` | Verbose | Claude with detailed output |
+| `<leader>cq` | **Quit** | Gracefully terminate Claude session |
+| `<leader>cn` | **New** | Start fresh session (ignore existing) |
+| `<leader>ch` | Help | Show Claude commands |
 
 ---
 
@@ -363,6 +376,152 @@ Above functions and types, you'll see clickable links for:
 
 ---
 
+## 🤖 Claude AI Integration
+
+Your IDE includes **Claude AI integration** via the `claude-code.nvim` plugin, providing AI-powered code assistance directly within Neovim.
+
+### 🎯 **What Claude Provides**
+
+- **Code review and suggestions** with full project context
+- **Architecture advice** and design pattern recommendations  
+- **Bug detection and fixes** with explanations
+- **Code refactoring** suggestions and implementations
+- **Documentation generation** for functions and modules
+- **Learning assistance** - explanations of complex code patterns
+
+### ⌨️ **Claude Keybindings**
+
+| Shortcut | Action | Description |
+|----------|--------|-------------|
+| `<leader>co` | **Smart Toggle** | First time: conversation picker; existing: hide/show |
+| `<leader>cc` | Continue conversation | Resume last Claude conversation (manual) |
+| `<leader>cr` | Resume with picker | Choose from previous conversations (manual) |
+| `<leader>cv` | Verbose mode | Claude with detailed output |
+| `<leader>cq` | **Quit session** | Gracefully terminate Claude session |
+| `<leader>cn` | **New session** | Start fresh (ignore existing) |
+| `<leader>ch` | Show help | Display all Claude commands |
+
+### 🔄 **Background Persistence**
+
+**Claude runs in background when hidden:**
+- `<leader>co` first time → Conversation picker appears
+- `<leader>co` again → Hides Claude (keeps running in background)
+- `<leader>co` again → Shows Claude instantly (same session)
+- **Lightning fast toggles** - no startup delay!
+
+### 🚪 **Session Management**
+
+**From normal mode:**
+- `<leader>co` → Toggle Claude visibility (hide/show)
+- `<leader>cq` → End Claude session completely
+
+**From within Claude terminal:**
+- `<leader>co` → Toggle Claude from within
+- `<C-q>` → Exit to normal mode
+
+### 🔄 **How It Works**
+
+Claude integrates as a **terminal-based AI assistant**:
+
+1. **Smart Toggle**: `<leader>co` opens Claude in a right sidebar terminal
+2. **Real Toggle**: Same key closes it (unlike the original plugin)
+3. **Context Aware**: Claude automatically detects your project structure
+4. **File Integration**: Add files to context using Claude's built-in commands
+
+### 💻 **Claude CLI Commands**
+
+Once in the Claude terminal, use these commands:
+
+```bash
+# File management
+add file.rs           # Add file to Claude's context
+add src/              # Add entire directory
+add .                 # Add current project
+clear                 # Clear context
+
+# Conversation management  
+/reset               # Start fresh conversation
+/help                # Show all Claude CLI commands
+
+# Just ask questions directly!
+How can I improve this Rust code?
+Can you review my error handling?
+What's the best way to structure this module?
+```
+
+### 🎯 **Typical Workflow**
+
+1. **Code with LSP**: Use your existing LSP setup for real-time feedback
+2. **Open Claude**: `<leader>co` → Choose from conversation picker
+3. **Add context**: `add src/main.rs` to include files in conversation
+4. **Ask questions**: Type directly to Claude about your code
+5. **Hide Claude**: `<leader>co` → Claude runs in background
+6. **Continue coding**: LSP provides real-time feedback
+7. **Show Claude**: `<leader>co` → Instant return to same conversation
+8. **Apply changes**: Use your normal editing workflow
+9. **Version control**: Git handles tracking changes as usual
+
+### 🔧 **Integration with LSP**
+
+Claude **complements** your existing LSP setup:
+
+- **LSP**: Real-time syntax checking, completion, navigation
+- **Claude**: High-level code review, architecture advice, learning
+
+They work together without conflicts - LSP for immediate feedback, Claude for deeper insights.
+
+### ✨ **Example Use Cases**
+
+**Code Review:**
+```bash
+add src/lib.rs
+Can you review this code for potential improvements?
+```
+
+**Bug Hunting:**
+```bash
+add src/main.rs src/errors.rs
+I'm getting a panic here, can you help debug this?
+```
+
+**Architecture Advice:**
+```bash
+add src/
+How should I restructure this code to follow better patterns?
+```
+
+**Learning:**
+```bash
+add examples/advanced.rs
+Can you explain how this async code works?
+```
+
+### 🎨 **Configuration**
+
+Claude is configured to match your preferences:
+- **Right sidebar positioning** (35% width)
+- **No auto-start** - manual toggle only
+- **No auto-file-selection** - you control what Claude sees
+- **Persistent sessions** - conversations survive editor restarts
+
+### 💡 **Pro Tips**
+
+1. **Context Management**: Only add relevant files to keep responses focused
+2. **Specific Questions**: Ask targeted questions for better responses
+3. **Iterative Refinement**: Build on previous responses in the same session
+4. **Code Blocks**: Claude can generate code that you copy/paste into your editor
+5. **Documentation**: Ask Claude to explain unfamiliar code patterns
+
+### 🔄 **Claude vs Terminal**
+
+Don't confuse Claude terminal with the floating terminal:
+- **`<C-t>`**: Floating terminal for shell commands, git, etc.
+- **`<leader>co`**: Claude AI terminal for code assistance
+
+Both serve different purposes in your development workflow.
+
+---
+
 ## 🎨 Customization
 
 ### 🎯 **Modifying Keybindings**
@@ -452,6 +611,18 @@ inlayHints = {
 :RustLsp openCargo
 ```
 
+**5. Claude not responding**
+```bash
+# Check if Claude terminal is open
+<leader>co
+
+# Reset Claude conversation
+# In Claude terminal: /reset
+
+# Check Claude CLI status
+# In Claude terminal: /help
+```
+
 ### 🔍 **Debugging Steps**
 
 1. **Check LSP status**: `:LspInfo`
@@ -538,6 +709,27 @@ If Neovim feels slow:
    - `<F2>` for safe renaming
    - `<F4>` for code actions
    - `<leader>rs` for structural find/replace (Rust)
+
+### 🤖 **AI-Assisted Development with Claude**
+
+1. **Code Review Workflow**:
+   - Open Claude: `<leader>co`
+   - Add context: `add src/main.rs`
+   - Ask: "Can you review this code for improvements?"
+   - Apply suggested changes in your editor
+   - Continue conversation for follow-up questions
+
+2. **Learning Complex Code**:
+   - Add unfamiliar files: `add examples/advanced.rs`
+   - Ask: "Can you explain how this pattern works?"
+   - Get detailed explanations with examples
+   - Ask follow-up questions for clarification
+
+3. **Architecture Planning**:
+   - Add project structure: `add src/`
+   - Ask: "How should I refactor this for better maintainability?"
+   - Get high-level design suggestions
+   - Implement changes using LSP tools
 
 ---
 
