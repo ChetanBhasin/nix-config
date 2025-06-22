@@ -64,6 +64,8 @@ keymap("n", "<leader>ew", ":e %%<CR>", { desc = "Edit file in current directory"
 keymap("n", "<leader>ft", ":Telescope buffers<CR>", { desc = "List open buffers" })
 keymap("n", "<leader>ct", ":%bd|e#<CR>", { desc = "Close all except current buffer" })
 
+-- Note: Bufferline keybindings are now handled in bufferline-pure.lua
+
 -- ═══════════════════════════════════════════════════════════════════════════════
 -- 🔍 SEARCH & NAVIGATION
 -- ═══════════════════════════════════════════════════════════════════════════════
@@ -88,21 +90,20 @@ keymap("n", "<leader>f", ":NvimTreeToggle<CR>", { desc = "Toggle file explorer" 
 keymap("n", "<leader>nf", ":NvimTreeFindFile<CR>", { desc = "Find current file in explorer" })
 
 -- ═══════════════════════════════════════════════════════════════════════════════
--- 🏹 HARPOON NAVIGATION
+-- 📑 BUFFERLINE NAVIGATION (Replaces Harpoon)
 -- ═══════════════════════════════════════════════════════════════════════════════
-
--- Register Harpoon keybindings with Legendary for discoverability
+-- Note: Detailed keybindings are set up in bufferline-pure.lua
+-- This section is for reference and legendary integration
 
 legendary.keymaps({
-    { "<leader>ha", function() require('harpoon'):list():add() end, description = "🏹 Add file to harpoon", mode = "n" },
-    { "<leader>hd", function() require('harpoon'):list():remove() end, description = "🏹 Remove file from harpoon", mode = "n" },
-    { "<leader>hh", function() require('harpoon').ui:toggle_quick_menu(require('harpoon'):list()) end, description = "🏹 Show harpoon menu", mode = "n" },
-    { "<leader>h1", function() require('harpoon'):list():select(1) end, description = "🏹 Go to harpoon file 1", mode = "n" },
-    { "<leader>h2", function() require('harpoon'):list():select(2) end, description = "🏹 Go to harpoon file 2", mode = "n" },
-    { "<leader>h3", function() require('harpoon'):list():select(3) end, description = "🏹 Go to harpoon file 3", mode = "n" },
-    { "<leader>h4", function() require('harpoon'):list():select(4) end, description = "🏹 Go to harpoon file 4", mode = "n" },
-    { "<C-S-P>", function() require('harpoon'):list():prev() end, description = "🏹 Previous harpoon file", mode = "n" },
-    { "<C-S-N>", function() require('harpoon'):list():next() end, description = "🏹 Next harpoon file", mode = "n" },
+    { "<leader>ha", ":BufferLineTogglePin<CR>", description = "📌 Pin buffer (replaces harpoon add)", mode = "n" },
+    { "<leader>hh", ":BufferLinePick<CR>", description = "📋 Pick buffer (replaces harpoon menu)", mode = "n" },
+    { "<S-h>", ":BufferLineCyclePrev<CR>", description = "📑 Previous buffer", mode = "n" },
+    { "<S-l>", ":BufferLineCycleNext<CR>", description = "📑 Next buffer", mode = "n" },
+    { "<leader>ba", ":BufferLineCloseOthers<CR>", description = "🗑️ Close all other buffers", mode = "n" },
+    { "<leader>bL", ":BufferLineCloseLeft<CR>", description = "🗑️ Close buffers to the left", mode = "n" },
+    { "<leader>bR", ":BufferLineCloseRight<CR>", description = "🗑️ Close buffers to the right", mode = "n" },
+    { "<leader>bb", ":BufferLinePick<CR>", description = "📋 Pick buffer", mode = "n" },
 })
 
 -- ═══════════════════════════════════════════════════════════════════════════════
@@ -242,11 +243,16 @@ KEYBINDING QUICK REFERENCE:
 ├─ <leader>f       → Toggle file explorer
 └─ <leader>ft      → List buffers
 
-🏹 HARPOON:
-├─ <leader>ha      → Add to harpoon
-├─ <leader>hh      → Show harpoon menu
-├─ <leader>h1-4    → Go to harpoon file 1-4
-└─ <C-S-P/N>       → Previous/Next harpoon
+📑 BUFFERLINE (Replaces Harpoon):
+├─ <S-h/l>         → Previous/Next buffer
+├─ <leader>ha      → Pin buffer (was harpoon add)
+├─ <leader>hh      → Pick buffer (was harpoon menu)
+├─ <leader>bp      → Pin/unpin buffer
+├─ <leader>bb      → Pick buffer (alternative)
+├─ <leader>ba      → Close all other buffers
+├─ <leader>bL      → Close buffers to the left
+├─ <leader>bR      → Close buffers to the right
+└─ Click tabs      → Navigate & close
 
 🧠 LSP:
 ├─ gd/gD           → Go to definition/declaration

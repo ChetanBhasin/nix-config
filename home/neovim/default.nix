@@ -45,8 +45,8 @@ with lib; {
         legendary-nvim
         nvim-tree-lua
         nvim-web-devicons
-        harpoon2
         lualine-nvim
+        bufferline-nvim
         dressing-nvim
         fidget-nvim
         catppuccin-nvim
