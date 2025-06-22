@@ -13,23 +13,26 @@ require("mason-lspconfig").setup({
     automatic_installation = true,
     ensure_installed = {
         -- Core language servers
-        "rust_analyzer",              -- Rust
-        "typescript-language-server", -- TypeScript/JavaScript
-        "pyright",                    -- Python
-        "kotlin_language_server",     -- Kotlin
-        "nil_ls",                     -- Nix
-        "jsonls",                     -- JSON
-        "yamlls",                     -- YAML
-        "lua_ls",                     -- Lua
-        "bashls",                     -- Bash
-        "gopls",                      -- Go
-        "dockerls",                   -- Docker
+        -- rust_analyzer is handled by rustaceanvim (not Mason)
+        "ts_ls",                  -- TypeScript/JavaScript
+        "pyright",                -- Python
+        "kotlin_language_server", -- Kotlin
+        -- nixd is installed via Nix (not available in Mason)
+        "jsonls",                 -- JSON
+        "yamlls",                 -- YAML
+        "lua_ls",                 -- Lua
+        "bashls",                 -- Bash
+        "gopls",                  -- Go
+        "dockerls",               -- Docker
     },
     handlers = {
         -- Default handler for most LSP servers
         function(server_name)
-            -- Skip rust_analyzer since rustaceanvim handles it
-            if server_name == "rust_analyzer" then
+            -- Skip servers that are handled elsewhere
+            if server_name == "rust_analyzer" then -- handled by rustaceanvim
+                return
+            end
+            if server_name == "nixd" then -- installed via Nix, configured manually
                 return
             end
             require("lspconfig")[server_name].setup({

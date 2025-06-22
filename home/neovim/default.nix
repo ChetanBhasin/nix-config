@@ -16,7 +16,7 @@ with lib; {
           terraform-lsp
           deadnix
           statix
-          nil
+          nixd
           taplo-cli
           yamllint
           go
@@ -52,6 +52,13 @@ with lib; {
         catppuccin-nvim
         FTerm-nvim
         undotree
+        # Visual enhancement plugins
+        alpha-nvim
+        indent-blankline-nvim
+        nvim-notify
+        rainbow-delimiters-nvim
+        nvim-colorizer-lua
+        lspkind-nvim
         # Modern Rust plugin (successor to rust-tools.nvim)
         rustaceanvim
         nvim-lspconfig

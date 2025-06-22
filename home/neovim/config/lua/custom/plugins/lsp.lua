@@ -9,7 +9,7 @@ local on_attach = function(client, bufnr)
 end
 
 -- TypeScript/JavaScript setup
-lspconfig.tsserver.setup({
+lspconfig.ts_ls.setup({
     capabilities = lsp_capabilities,
     on_attach = on_attach,
     settings = {
@@ -46,14 +46,46 @@ lspconfig.pyright.setup({
     on_attach = on_attach,
 })
 
--- Nix
-lspconfig.nil_ls.setup({
+-- Nix with nixd (better than nil_ls)
+lspconfig.nixd.setup({
+    capabilities = lsp_capabilities,
+    on_attach = on_attach,
+    settings = {
+        nixd = {
+            nixpkgs = {
+                expr = "import <nixpkgs> { }",
+            },
+            formatting = {
+                command = { "alejandra" }, -- or nixfmt, nixpkgs-fmt
+            },
+            options = {
+                nixos = {
+                    expr =
+                    '(builtins.getFlake ("git+file://" + toString ./.)).nixosConfigurations.${builtins.readFile /etc/hostname}.options',
+                },
+                home_manager = {
+                    expr =
+                    '(builtins.getFlake ("git+file://" + toString ./.)).homeConfigurations."${builtins.getEnv "USER"}".options',
+                },
+            },
+        },
+    },
+})
+
+-- JSON
+lspconfig.jsonls.setup({
     capabilities = lsp_capabilities,
     on_attach = on_attach,
 })
 
 -- YAML
 lspconfig.yamlls.setup({
+    capabilities = lsp_capabilities,
+    on_attach = on_attach,
+})
+
+-- Kotlin
+lspconfig.kotlin_language_server.setup({
     capabilities = lsp_capabilities,
     on_attach = on_attach,
 })
@@ -88,11 +120,13 @@ lspconfig.bashls.setup({
     on_attach = on_attach,
 })
 
--- Gleam
-lspconfig.gleam.setup({
-    capabilities = lsp_capabilities,
-    on_attach = on_attach,
-})
+-- Gleam (if available)
+if vim.fn.executable('gleam') == 1 then
+    lspconfig.gleam.setup({
+        capabilities = lsp_capabilities,
+        on_attach = on_attach,
+    })
+end
 
 -- Go language server with inlay hints
 lspconfig.gopls.setup({
