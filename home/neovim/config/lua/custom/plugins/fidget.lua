@@ -45,6 +45,7 @@ fidget.setup {
           function(group) return tostring(group) end,
       overrides = { -- Override options from the default notification config
         rust_analyzer = { name = "rust-analyzer", skip = false },
+        ["rust-analyzer"] = { name = "rust-analyzer", skip = false },
       },
     },
 

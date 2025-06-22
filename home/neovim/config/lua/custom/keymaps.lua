@@ -21,12 +21,15 @@ local function keymap(mode, lhs, rhs, opts)
     vim.keymap.set(mode, lhs, rhs, options)
 end
 
+-- Load legendary for keybinding discovery
+local legendary = require("legendary")
+
 -- Format function with LSP filtering
 local format = function()
     vim.lsp.buf.format({
         filter = function(filter_client)
-            -- Remove tsserver from LSPs available for formatting
-            return filter_client.name ~= "tsserver"
+            -- Remove ts_ls from LSPs available for formatting
+            return filter_client.name ~= "ts_ls"
         end,
     })
 end
@@ -88,16 +91,19 @@ keymap("n", "<leader>nf", ":NvimTreeFindFile<CR>", { desc = "Find current file i
 -- 🏹 HARPOON NAVIGATION
 -- ═══════════════════════════════════════════════════════════════════════════════
 
-keymap("n", "<leader>ha", function() require('harpoon'):list():add() end, { desc = "Add file to harpoon" })
-keymap("n", "<leader>hd", function() require('harpoon'):list():remove() end, { desc = "Remove file from harpoon" })
-keymap("n", "<leader>hh", function() require('harpoon').ui:toggle_quick_menu(require('harpoon'):list()) end,
-    { desc = "Show harpoon menu" })
-keymap("n", "<leader>h1", function() require('harpoon'):list():select(1) end, { desc = "Go to harpoon file 1" })
-keymap("n", "<leader>h2", function() require('harpoon'):list():select(2) end, { desc = "Go to harpoon file 2" })
-keymap("n", "<leader>h3", function() require('harpoon'):list():select(3) end, { desc = "Go to harpoon file 3" })
-keymap("n", "<leader>h4", function() require('harpoon'):list():select(4) end, { desc = "Go to harpoon file 4" })
-keymap("n", "<C-S-P>", function() require('harpoon'):list():prev() end, { desc = "Previous harpoon file" })
-keymap("n", "<C-S-N>", function() require('harpoon'):list():next() end, { desc = "Next harpoon file" })
+-- Register Harpoon keybindings with Legendary for discoverability
+
+legendary.keymaps({
+    { "<leader>ha", function() require('harpoon'):list():add() end, description = "🏹 Add file to harpoon", mode = "n" },
+    { "<leader>hd", function() require('harpoon'):list():remove() end, description = "🏹 Remove file from harpoon", mode = "n" },
+    { "<leader>hh", function() require('harpoon').ui:toggle_quick_menu(require('harpoon'):list()) end, description = "🏹 Show harpoon menu", mode = "n" },
+    { "<leader>h1", function() require('harpoon'):list():select(1) end, description = "🏹 Go to harpoon file 1", mode = "n" },
+    { "<leader>h2", function() require('harpoon'):list():select(2) end, description = "🏹 Go to harpoon file 2", mode = "n" },
+    { "<leader>h3", function() require('harpoon'):list():select(3) end, description = "🏹 Go to harpoon file 3", mode = "n" },
+    { "<leader>h4", function() require('harpoon'):list():select(4) end, description = "🏹 Go to harpoon file 4", mode = "n" },
+    { "<C-S-P>", function() require('harpoon'):list():prev() end, description = "🏹 Previous harpoon file", mode = "n" },
+    { "<C-S-N>", function() require('harpoon'):list():next() end, description = "🏹 Next harpoon file", mode = "n" },
+})
 
 -- ═══════════════════════════════════════════════════════════════════════════════
 -- 💻 TERMINAL
@@ -193,7 +199,6 @@ keymap("n", "<leader>rc", function() vim.cmd.RustLsp('openCargo') end, { desc = 
 -- 🎛️ LEGENDARY PLUGIN INTEGRATION
 -- ═══════════════════════════════════════════════════════════════════════════════
 
-local legendary = require("legendary")
 local filters = require("legendary.filters")
 
 -- Show legendary menu for discovering keybindings

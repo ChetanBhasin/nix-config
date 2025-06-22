@@ -1,5 +1,6 @@
 -- Completion Plugin Setup
 local cmp = require 'cmp'
+local lspkind = require('lspkind')
 cmp.setup({
   -- Enable LSP snippets
   snippet = {
@@ -41,27 +42,38 @@ cmp.setup({
     { name = 'spell' },                          -- spell check completions
   },
   window = {
-    completion = cmp.config.window.bordered(),
-    documentation = cmp.config.window.bordered(),
+    completion = cmp.config.window.bordered({
+      border = "rounded",
+      winhighlight = "Normal:Pmenu,FloatBorder:PmenuBorder,CursorLine:PmenuSel,Search:None",
+    }),
+    documentation = cmp.config.window.bordered({
+      border = "rounded",
+      winhighlight = "Normal:Pmenu,FloatBorder:PmenuBorder",
+    }),
   },
   formatting = {
-    fields = { 'menu', 'abbr', 'kind' },
-    format = function(entry, item)
-      local menu_icon = {
-        nvim_lsp = 'λ',
-        nvim_lua = '',
-        vsnip = '⋗',
-        treesitter = '',
-        buffer = 'Ω',
-        path = '🖫',
-        git = '',
-        tmux = '',
-        zsh = '',
-        clippy = '📎',
-        spell = '暈',
-      }
-      item.menu = menu_icon[entry.source.name]
-      return item
-    end,
+    fields = { 'kind', 'abbr', 'menu' },
+    format = lspkind.cmp_format({
+      mode = 'symbol_text',
+      maxwidth = 50,
+      ellipsis_char = '...',
+      before = function(entry, vim_item)
+        local menu_icon = {
+          nvim_lsp = '[LSP]',
+          nvim_lua = '[Lua]',
+          vsnip = '[Snippet]',
+          treesitter = '[TS]',
+          buffer = '[Buffer]',
+          path = '[Path]',
+          git = '[Git]',
+          tmux = '[Tmux]',
+          zsh = '[Zsh]',
+          clippy = '[Clippy]',
+          spell = '[Spell]',
+        }
+        vim_item.menu = menu_icon[entry.source.name] or '[Unknown]'
+        return vim_item
+      end,
+    }),
   },
 })

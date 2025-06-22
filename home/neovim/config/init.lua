@@ -6,6 +6,13 @@
 require("custom.colors")
 DefineColors("catppuccin-mocha")
 
+-- Visual Enhancement Plugins (load early for better experience)
+require("custom.plugins.alpha")
+require("custom.plugins.notify")
+require("custom.plugins.indent-blankline")
+require("custom.plugins.rainbow-delimiters")
+require("custom.plugins.colorizer")
+
 -- Plugin Configurations (in logical loading order)
 require("custom.plugins.telescope")
 require("custom.plugins.treesitter")
