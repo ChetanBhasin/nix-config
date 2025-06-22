@@ -22,7 +22,6 @@ in
         # CLI Packages
         hl-log-viewer
         goose-cli
-        claude-code
 
         # Library packages
         zsh-completions
