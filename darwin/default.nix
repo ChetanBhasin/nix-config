@@ -24,6 +24,9 @@ in
 
     environment.systemPackages = with pkgs; [
       autoconf
+      uv
+      bun
+      claude-code
       automake
       libtool
       pkg-config
@@ -71,6 +74,8 @@ in
         ++ lib.optionals cfg.enableExtras [ "flyctl" "nodenv" "docker" ];
       casks = [
         "1password"
+        "arc"
+        "postico"
         "granola"
         "lens"
         "ghostty"
