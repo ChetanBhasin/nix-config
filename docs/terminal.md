@@ -1,6 +1,24 @@
-# 🚀 Terminal Configuration Guide
+# Terminal Configuration Guide
 
-**A comprehensive guide to the modern terminal setup with Zsh, FZF, and Ghostty for productive development workflows.**
+This guide covers the comprehensive terminal setup including Zsh, Ghostty, and tmux configurations optimized for development workflows.
+
+## 🚀 **Key Improvements Summary**
+
+### ✅ **What We've Achieved**
+1. **🎯 Command Palette System** - Legendary-style interface for tmux operations
+2. **🔍 FZF Integration** - Fuzzy finding throughout the terminal stack
+3. **🔧 Modern Plugin Ecosystem** - Updated to latest, maintained plugins
+4. **💾 Session Persistence** - Automatic save/restore with smart management
+5. **🎨 Beautiful Status Line** - Informative, themed status with system info
+6. **⌨️ Conflict-Free Keybindings** - No more Ctrl+L conflicts, intuitive patterns
+7. **🐚 Proper Shell Integration** - Nix-managed shell paths and environment
+
+### 🎯 **Quick Start**
+- **Command Palette**: `C-Space Space` - Your central hub for all operations
+- **FZF Menu**: `C-Space f` - Fuzzy find sessions, windows, files, processes
+- **Project Switcher**: `C-Space P` - Jump between your ~/Projects instantly
+- **Session Switcher**: `C-Space s` - FZF-powered session navigation
+- **Help System**: `C-Space F1` - Built-in documentation
 
 ---
 
@@ -17,6 +35,7 @@
 - [🔧 Troubleshooting](#-troubleshooting)
 - [⚡ Performance Tips](#-performance-tips)
 - [🎓 Advanced Usage](#-advanced-usage)
+- [🖥️ Tmux Configuration](#️-tmux-configuration)
 
 ---
 
@@ -869,18 +888,93 @@ export FZF_DEFAULT_OPTS="$FZF_DEFAULT_OPTS
 - **File navigation**: Consistent fuzzy finding experience
 - **Git integration**: Same git functions work in terminal and editor
 
-### 🖥️ **Tmux Integration**
-```bash
-# FZF session switcher for tmux
-fzf_tmux_sessions() {
-  tmux list-sessions | fzf | cut -d: -f1 | xargs tmux attach-session -t
-}
+### 🖥️ **Tmux Configuration**
 
-# FZF window switcher
-fzf_tmux_windows() {
-  tmux list-windows | fzf | cut -d: -f1 | xargs tmux select-window -t
-}
+#### 🎯 **Command Palette System**
+Like Legendary in Neovim or VS Code's Command Palette:
+
+**Primary Command Palette:**
+- `Ctrl+g Space` - Opens the main command palette
+- Organized by categories: Sessions, Windows, Panes, Utilities
+- Visual documentation for all commands
+
+**FZF Integration Menu:**
+- `Ctrl+g f` - Opens FZF-powered menu
+- Switch sessions, find windows, manage processes
+- File browsing with preview
+- URL extraction and opening
+
+#### 🔧 **Enhanced Keybindings**
+
+**Prefix Key:** `C-Space` (ergonomic, no conflicts with shell/terminal/neovim)
+
+**Session Management:**
+```bash
+C-Space s    # Switch session (FZF)
+C-Space S    # New session
+C-Space R    # Rename session
+C-Space X    # Kill session
+Alt+1-5      # Quick session switching
 ```
+
+**Window Management:**
+```bash
+C-Space c    # New window
+C-Space n/p  # Next/Previous window
+C-Space w    # Choose window
+Alt+h/l      # Navigate windows
+```
+
+**Pane Management:**
+```bash
+C-Space |    # Split vertical
+C-Space -    # Split horizontal
+C-Space h/j/k/l  # Navigate panes (vim-style)
+C-Space H/J/K/L  # Resize panes
+C-Space z    # Zoom pane
+```
+
+#### 📋 **Advanced Copy & Clipboard**
+- Vi-style copy mode bindings
+- System clipboard integration
+- Smart text selection with Extrakto
+- Mouse support for copy/paste
+
+#### 🔍 **Search & Navigation**
+```bash
+C-Space /    # Search backward
+C-Space ?    # Search forward
+C-Space [    # Enter copy mode
+```
+
+#### 🚀 **Productivity Features**
+
+**Project Integration:**
+- `C-Space P` - Project switcher (integrates with ~/Projects)
+- Automatic session naming based on project directories
+
+**Development Helpers:**
+- `C-Space g` - Git status popup
+- `C-Space !` - Quick command execution
+- Smart URL detection and opening
+
+**System Integration:**
+- Battery status in status line
+- CPU usage monitoring
+- Activity indicators
+
+#### 🎨 **Beautiful Status Line**
+- Catppuccin theme (Macchiato flavor)
+- Battery status with icons
+- Date/time display
+- Session and window information
+- Prefix key highlighting
+
+#### 💾 **Session Persistence**
+- Automatic session saving every 15 minutes
+- Restore sessions on system restart
+- Capture pane contents and shell history
+- Boot-time session restoration
 
 ### 🐳 **Docker Integration**
 ```bash

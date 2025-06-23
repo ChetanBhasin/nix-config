@@ -74,6 +74,8 @@ in
         ++ lib.optionals cfg.enableExtras [ "flyctl" "nodenv" "docker" ];
       casks = [
         "1password"
+        "tailscale-app"
+        "ollama-app"
         "arc"
         "postico"
         "granola"
@@ -102,8 +104,6 @@ in
         "whatsapp@beta"
         "notion-calendar"
         "cryptomator"
-        "tailscale"
-        "tailscale"
         "telegram"
         "signal"
         "remarkable"
@@ -124,7 +124,6 @@ in
         "notion"
         "zoom"
         "oracle-jdk"
-        "ollama"
         "cursor"
         "chatgpt"
       ];

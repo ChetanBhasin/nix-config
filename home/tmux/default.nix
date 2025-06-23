@@ -13,20 +13,50 @@ let
 in {
   programs.tmux = {
     enable = true;
-    clock24 = false;
-    plugins = with pkgs.tmuxPlugins; [
-      sensible
-      nord
-      pain-control
-      vim-tmux-navigator
-      resurrect
-      catppuccin
-    ];
+    clock24 = true;
     keyMode = "vi";
     mouse = true;
-    tmuxp.enable = true;
+
+    # Use C-Space as prefix (ergonomic, no conflicts with shell/terminal/neovim)
+    prefix = "C-Space";
+
+    # Essential modern plugins
+    plugins = with pkgs.tmuxPlugins; [
+      # Core functionality
+      sensible
+      pain-control
+      vim-tmux-navigator
+
+      # Session management and persistence
+      resurrect
+      continuum
+      session-wizard # Available in nixpkgs
+
+      # Enhanced user experience with FZF
+      tmux-fzf # Available in nixpkgs
+      extrakto # Smart text extraction with fzf
+      fzf-tmux-url # Quick URL opening with fzf
+
+      # Visual feedback and status
+      prefix-highlight # Visual feedback for prefix key
+      battery # Battery status
+      cpu # CPU information
+
+      # Clipboard integration
+      yank
+
+      # Theme
+      catppuccin
+    ];
+
+    # Shell integration - use system zsh which is in /etc/shells
+    shell = "/bin/zsh";
+
     extraConfig = ''
       ${builtins.readFile ./tmux.conf}
     '';
   };
+
+  # Install required dependencies for FZF integration
+  home.packages = with pkgs; [ fzf ripgrep fd bat jq ];
 }
