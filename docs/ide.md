@@ -735,4 +735,4 @@ If Neovim feels slow:
 
 **🎉 Enjoy your powerful Neovim IDE! This configuration provides a modern, efficient development environment with professional-grade features for any project.**
 
-> **💡 Pro Tip**: The more you use the keybindings, the more natural they become. Start with the basic navigation shortcuts and gradually incorporate the advanced features into your workflow. 
+> **💡 Pro Tip**: The more you use the keybindings, the more natural they become. Start with the basic navigation shortcuts and gradually incorporate the advanced features into your workflow.
