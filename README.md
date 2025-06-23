@@ -1,54 +1,81 @@
 # Chetan's Nix Configuration
 
-This repository includes the configuration for the commonly used systems that I use including my personal laptop and a couple of other devices.
+[![Built with Nix](https://img.shields.io/badge/Built_With-Nix-5277C3.svg?logo=nixos&labelColor=73C3D5)](https://nixos.org)
+[![macOS](https://img.shields.io/badge/macOS-Monterey+-000000?logo=apple)](https://www.apple.com/macos)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-## Documentation
+A comprehensive Nix configuration for reproducible development environments across macOS and Linux systems. This repository includes configurations for commonly used systems including personal laptops and server setups.
 
-📖 **[IDE Setup Guide](docs/ide.md)** - Comprehensive guide to the powerful Neovim IDE configuration with language servers, type annotations, keyboard shortcuts, and development workflows.
+## 📋 Table of Contents
 
-🚀 **[Terminal Configuration Guide](docs/terminal.md)** - Complete guide to the modern terminal setup with Zsh, FZF, and Ghostty for enhanced productivity and development workflows.
+- [Chetan's Nix Configuration](#chetans-nix-configuration)
+  - [📋 Table of Contents](#-table-of-contents)
+  - [✨ Features](#-features)
+  - [🚀 Quick Start](#-quick-start)
+  - [📖 Documentation](#-documentation)
+    - [Development](#development)
+  - [📜 License](#-license)
+  - [🙏 Credits](#-credits)
 
-## Installation Instructions
+## ✨ Features
 
-The idea is to be able to install the entire system configuration from one place. Please follow the given instructions for setting up the system and note that you need to perform certain steps for MacOS.
+- 🚀 **Modern Terminal Setup**: Zsh + FZF + Ghostty with enhanced productivity workflows
+- 🧠 **Powerful IDE**: Neovim with LSP, type annotations, smart navigation, and Claude AI integration
+- 🎯 **Tmux Configuration**: C-Space prefix, command palette, session management, and persistence
+- 📦 **Package Management**: Nix + Home Manager for reproducible environments
+- 🔧 **Cross-Platform**: macOS (Darwin) and Linux (NixOS) support
+- 🎨 **Consistent Theming**: Catppuccin theme across all applications
+- ⚡ **Performance Optimized**: Fast startup times and efficient resource usage
+- 🔐 **Security Focused**: Proper SSH configurations and secure defaults
 
-### Installing MacOS Dependencies
 
-The first thing we need to do is install the command line tools for MacOS. These include basic configuration that Mac does not include.
+## 🚀 Quick Start
+
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/your-username/nix-config.git
+   cd nix-config
+   ```
+
+2. **Choose your installation method**:
+   - For macOS: [macOS Installation](#macos-installation)
+   - For Linux: [Linux Installation](#linux-installation)
+
+3. **Apply configuration**:
+   ```bash
+   make apply-darwin host=hugh  # Replace 'hugh' with your preferred host
+   ```
+
+4. **Enjoy your new environment!** 🎉
+
+## 📖 Documentation
+
+📖 **[IDE Setup Guide](docs/ide.md)** - Comprehensive guide to the powerful Neovim IDE configuration with language servers, type annotations, keyboard shortcuts, Claude AI integration, and development workflows.
+
+🚀 **[Terminal Configuration Guide](docs/terminal.md)** - Complete guide to the modern terminal setup with Zsh, FZF, tmux, and Ghostty for enhanced productivity and development workflows.
+
+### Development
 
 ```bash
-xcode-select --install
+# Test configuration without applying
+nix build .#darwinConfigurations.hugh.system
+
+# Check flake
+nix flake check
+
+# Update inputs
+nix flake update
 ```
 
-Now we will install Homebrew, which is used for many packages that aren't available on Nix for MacOS.
+## 📜 License
 
-```bash
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-```
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-### Installing Nix (MacOS/Linux/ not tested for WSL but could work)
+## 🙏 Credits
 
-Since we're using Nix to manage everything, we need to install Nix itself. I recommend NOT using the official installer and using the one from provided [here](https://github.com/DeterminateSystems/nix-installer). The following command will install it for you:
+Special thanks to:
 
-```bash
-curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install
-```
-
-
-### Installing Profile (MacOS/Linux, not tested for WSL but could work)
-
-Clone this repository and you can use `make` to install a profile. Just pick a host that you would like to install and Nix will do the rest. For example, to install the `hugh` _profile_, you could run the following command.
-
-```bash
-make apply-darwin host=hugh
-```
-
-Hugh is configured for Darwin (i.e., MacOS). The above given `make` target will work on MacOS systems. For a NixOS system like `bill`, one could run:
-
-```bash
-make apply-nix host=bill
-```
-
-# Credits
-
-Thanks for [Frank](https://github.com/fmoda3/nix-configs) for sharing his Nix configuration, from which I learned a lot.
+- **[Frank](https://github.com/fmoda3/nix-configs)** for sharing his Nix configuration, which served as an excellent learning resource
+- **The Nix Community** for maintaining an incredible ecosystem
+- **Plugin Authors** for creating the amazing tools that make this configuration possible
+- **Contributors** who help improve this configuration
