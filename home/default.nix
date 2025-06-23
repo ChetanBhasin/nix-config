@@ -1,8 +1,7 @@
 { config, pkgs, lib, ... }:
 with lib;
 let cfg = config.home-config-manager;
-in
-{
+in {
   options.home-config-manager = {
     includeFonts = lib.mkEnableOption "fonts";
     isDarwin = lib.mkEnableOption "include darwin configuration";
@@ -73,6 +72,14 @@ in
         autoconf
         libtool
 
+        # Enhanced CLI tools for better terminal experience
+        ripgrep # Better grep (rg)
+        dust # Better du
+        duf # Better df
+        procs # Better ps
+        tokei # Code statistics
+        hyperfine # Benchmarking tool
+
       ] ++ lib.optionals cfg.enableExtras [
         wasm-pack
         colmena
@@ -82,11 +89,8 @@ in
         erlang
         ngrok
         argocd
-      ] ++ lib.optionals cfg.enableProf [
-        grpc
-        protobuf
-        readline
-      ] ++ lib.optionals pkgs.stdenv.isDarwin [
+      ] ++ lib.optionals cfg.enableProf [ grpc protobuf readline ]
+      ++ lib.optionals pkgs.stdenv.isDarwin [
         #darwin.apple_sdk.frameworks.Security
         #darwin.apple_sdk.frameworks.CoreFoundation
         #darwin.apple_sdk.frameworks.CoreServices
