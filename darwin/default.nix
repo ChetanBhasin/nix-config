@@ -27,7 +27,9 @@ in {
     # Darwin-specific system packages only (shared packages are in ../systemPackages)
     environment.systemPackages = with pkgs;
       [
-        # Darwin-specific packages that don't exist on Linux or are macOS-specific
+        darwin.apple_sdk.frameworks.SystemConfiguration
+        darwin.apple_sdk.frameworks.CoreFoundation
+        darwin.cctools
       ];
 
     environment.variables = {
