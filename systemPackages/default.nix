@@ -10,6 +10,7 @@
     gnumake
     gcc
     openssl
+    iconv
 
     # Container and Infrastructure Tools
     docker

@@ -34,7 +34,9 @@
         with inputs; [
           # Main `nix-darwin` config
           (./. + "/hosts/${host}/configuration.nix")
-          { nix.enable = false; }
+          {
+            nix.enable = false;
+          }
           # `home-manager` module
           home-manager.darwinModules.home-manager
           {
@@ -71,8 +73,7 @@
             };
           }
         ];
-    in
-    {
+    in {
       darwinConfigurations = {
         nix.enable = false;
         hugh = darwin.lib.darwinSystem {
