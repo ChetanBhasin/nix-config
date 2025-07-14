@@ -29,11 +29,7 @@ with lib; {
           dockerfile-language-server-nodejs
           typescript-language-server
           yaml-language-server
-        ]) ++ lib.optionals pkgs.stdenv.isDarwin [
-          darwin.apple_sdk.frameworks.Security
-          darwin.apple_sdk.frameworks.CoreFoundation
-          darwin.apple_sdk.frameworks.CoreServices
-        ];
+        ]);
       plugins = with pkgs.vimPlugins; [
         plenary-nvim
         vim-cool
@@ -55,14 +51,13 @@ with lib; {
         # Visual enhancement plugins
         alpha-nvim
         indent-blankline-nvim
-        nvim-notify
         rainbow-delimiters-nvim
         nvim-colorizer-lua
         lspkind-nvim
+        # FZF integration
+        fzf-vim
         # Modern Rust plugin (successor to rust-tools.nvim)
         rustaceanvim
-        # Claude AI integration
-        claude-code-nvim
         snacks-nvim
         nvim-lspconfig
         vim-vsnip

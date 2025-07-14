@@ -48,7 +48,7 @@ require("ibl").setup {
             },
         },
         exclude = {
-            language = { "help", "alpha", "dashboard", "neo-tree", "Trouble", "trouble", "lazy", "mason", "notify", "toggleterm", "lazyterm" },
+            language = { "help", "alpha", "dashboard", "neo-tree", "Trouble", "trouble", "lazy", "mason", "toggleterm", "lazyterm" },
             node_type = {
                 ["*"] = { "source_file", "program" },
                 lua = { "chunk" },
@@ -66,7 +66,6 @@ require("ibl").setup {
             "trouble",
             "lazy",
             "mason",
-            "notify",
             "toggleterm",
             "lazyterm",
         },

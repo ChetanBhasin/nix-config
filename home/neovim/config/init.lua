@@ -8,7 +8,7 @@ DefineColors("catppuccin-mocha")
 
 -- Visual Enhancement Plugins (load early for better experience)
 require("custom.plugins.alpha")
-require("custom.plugins.notify")
+require("custom.plugins.snacks")
 require("custom.plugins.indent-blankline")
 require("custom.plugins.rainbow-delimiters")
 require("custom.plugins.colorizer")
@@ -26,7 +26,6 @@ require("custom.plugins.fterm")
 require("custom.plugins.fidget")
 require("custom.plugins.lualine")
 require("custom.plugins.dressing")
-require("custom.plugins.claude")
 
 -- Built-in Plugin Setup
 require('Comment').setup()

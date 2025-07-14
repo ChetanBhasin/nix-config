@@ -15,87 +15,84 @@ in {
 
     home.packages = with pkgs;
       [
-        #System packages
-        # Make touchID work from inside tmux
-
-        # CLI Packages
+        # User-specific CLI tools
         hl-log-viewer
         goose-cli
 
-        # Library packages
+        # User shell and terminal utilities
         zsh-completions
-        nushell
         carapace
-        gnuplot
-        graphviz
-        poetry
-        sops
-        awscli2
-        jujutsu
-        sqlx-cli
-        yq
-        cmake
-        cachix
         tmux
-        kubectl
-        gawk
-        gettext
-        htop
-        kubectx
-        jq
-        deno
-        pipx
-        gitoxide
-        tree
-        bat
-        htop
-        eza
-        fd
-        gnupg
-        virtualenv
-        wget
-        pkg-config
-        git-lfs
-        curl
-        fzf
-        python3Full
-        nixfmt-classic
-        protobuf
-        sccache
-        direnv
-        luajit
-        terraform
-        starship
-        rustup
-        helmfile
-        kubernetes-helm
-        autoconf
-        libtool
 
-        # Enhanced CLI tools for better terminal experience
-        ripgrep # Better grep (rg)
+        # Enhanced CLI Tools (user-specific)
+        ripgrep # Better grep
+        bat # Better cat
+        eza # Better ls
+        fd # Better find
         dust # Better du
         duf # Better df
         procs # Better ps
+        fzf # Fuzzy finder
+
+        # Development Utilities (user-specific)
+        nixfmt-classic
         tokei # Code statistics
-        hyperfine # Benchmarking tool
+        hyperfine # Benchmarking
+        sccache # Compilation cache
+
+        # Python ecosystem (user-specific)
+        poetry
+        pipx
+        virtualenv
+
+        # File Format and Data Processing (user-specific)
+        sops
+        poppler-utils
+
+        # Compression and Archive Tools (user-specific)
+        zlib
+        gzip
+
+        # Version Control and Project Management (user-specific)
+        jujutsu
+        gitoxide
+
+        # System Utilities (user-specific)
+        cachix
+        direnv
+
+        # Other development tools (user-specific)
+        gnuplot
+        graphviz
+        awscli2
+        gawk
+        gettext
+        gnupg
+        luajit
+        starship
+        wasm-pack
+        readline
+
+        # File format utilities (user-specific)
+        sqlx-cli
 
       ] ++ lib.optionals cfg.enableExtras [
-        wasm-pack
-        colmena
+        # Extra packages when enableExtras is true
         elixir
         gleam
         rebar3
         erlang
         ngrok
-        argocd
-      ] ++ lib.optionals cfg.enableProf [ grpc protobuf readline ]
-      ++ lib.optionals pkgs.stdenv.isDarwin [
-        #darwin.apple_sdk.frameworks.Security
-        #darwin.apple_sdk.frameworks.CoreFoundation
-        #darwin.apple_sdk.frameworks.CoreServices
-        #darwin.apple_sdk.frameworks.SystemConfiguration
+        flyctl
+        nodenv
+      ] ++ lib.optionals pkgs.stdenv.isDarwin [
+        # Darwin-specific packages that need special handling
         pam-reattach
+        libiconv
+        cctools # for ld-classic and ar
+      ] ++ lib.optionals pkgs.stdenv.isLinux [
+        # Linux-specific packages
+        systemd
       ];
 
     home.stateVersion = "23.05";
