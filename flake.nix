@@ -14,8 +14,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    colmena.url = "github:zhaofengli/colmena";
-
     # Other sources
     flake-utils = { url = "github:numtide/flake-utils"; };
     devshell = {
@@ -57,7 +55,7 @@
           home-manager.nixosModules.home-manager
           {
             nixpkgs = nixpkgsConfig;
-            users.users.${user}.shell = nixpkgs.nushell;
+            users.users.${user}.shell = pkgs.zsh;
             # `home-manager` config
             users.users.${user} = {
               home = "/home/${user}";
@@ -92,66 +90,6 @@
             host = "markus";
           };
           specialArgs = { inherit inputs nixpkgs; };
-        };
-      };
-      #colmenaHive = inputs.colmena.lib.makeHive self.outputs.colmena;
-      colmena = {
-        meta = {
-          nixpkgs = import nixpkgs {
-            system = "x86_64-linux";
-            config = { allowUnfree = true; };
-            overlays = [ ];
-          };
-        };
-
-        venus = {
-          deployment = {
-            targetHost = "venus";
-            targetUser = "chetan";
-            allowLocalDeployment = true;
-            buildOnTarget = true;
-          };
-          imports = [ ];
-        };
-
-        defaults = { pkgs, name, ... }: {
-          deployment = {
-            keys."tailscale.auth" = {
-              keyCommand = [ "sops" "--decrypt" "secrets/tailscale" ];
-              destDir = "/run/keys";
-            };
-          };
-          imports = [
-            (./. + "/bootconfig/${name}.nix")
-            (./. + "/hosts/${name}/configuration.nix")
-            # `home-manager` module
-            home-manager.nixosModules.home-manager
-            {
-              nixpkgs = nixpkgsConfig;
-              # `home-manager` config
-              users.users.chetan = {
-                home = "/home/chetan";
-                isNormalUser = true;
-                group = "chetan";
-                extraGroups = [ "wheel" ];
-              };
-              users.groups.chetan = { };
-              home-manager = {
-                useGlobalPkgs = true;
-                useUserPackages = true;
-                users.chetan = import (./. + "/hosts/venus/home.nix");
-              };
-            }
-          ];
-          networking.hostName = "${name}";
-          users.users.root.openssh.authorizedKeys.keys = [
-            # chetan's mac key
-            "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC8y+WOiiqxKGRQHGdtRGL2R4Ptqs7uEXX89WwvUQTc9A2zTFjGNcQvDCP6+qw6FQgDCaLdNozojfPQxo/VqMiWf1KXvBOPMONc+AUURhPxw8lD1FSc5AsLAw68BrxnFLbYrKmJT6qr3Ap/D6NGNlJUN3mR/e8Bj2wpKNSidmn9aDBxuGLkBmYJ8K8Wdalg47WwQ7wvzxCn4MFjM8CINyaI3p0mouZdCeCd/JcJgeLqN1JGuHCdgwzS9FgAWwQ0s/zb33icxS3qlHYLOch8YpD1wCceHJEv8dRQxwoEbdho9VwUzZGE8y2YPLxNLShSjUEPK5rLbfz4kUrWZCEX0LHhwyBKW0u8O7RArCKVDjJkiVEWoIrTmYx3CxppYnuyKPe85vUwqQzafN1EVvtfwQcJHBknG/9Fo5sU+juuTMIbFHNwFjBH4MzOnIRBAV2lGy4YsGZwE/+HVB9kFqZf3KrBeRSZsNMUxC0AXapOHKimHyUyHS/bJUH3onqPV1cD8/k= chetan@Chetans-Air"
-          ];
-          users.users.chetan.openssh.authorizedKeys.keys = [
-            # chetan's mac key
-            "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC8y+WOiiqxKGRQHGdtRGL2R4Ptqs7uEXX89WwvUQTc9A2zTFjGNcQvDCP6+qw6FQgDCaLdNozojfPQxo/VqMiWf1KXvBOPMONc+AUURhPxw8lD1FSc5AsLAw68BrxnFLbYrKmJT6qr3Ap/D6NGNlJUN3mR/e8Bj2wpKNSidmn9aDBxuGLkBmYJ8K8Wdalg47WwQ7wvzxCn4MFjM8CINyaI3p0mouZdCeCd/JcJgeLqN1JGuHCdgwzS9FgAWwQ0s/zb33icxS3qlHYLOch8YpD1wCceHJEv8dRQxwoEbdho9VwUzZGE8y2YPLxNLShSjUEPK5rLbfz4kUrWZCEX0LHhwyBKW0u8O7RArCKVDjJkiVEWoIrTmYx3CxppYnuyKPe85vUwqQzafN1EVvtfwQcJHBknG/9Fo5sU+juuTMIbFHNwFjBH4MzOnIRBAV2lGy4YsGZwE/+HVB9kFqZf3KrBeRSZsNMUxC0AXapOHKimHyUyHS/bJUH3onqPV1cD8/k= chetan@Chetans-Air"
-          ];
         };
       };
     };

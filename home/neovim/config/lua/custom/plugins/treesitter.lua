@@ -11,7 +11,7 @@ end
 
 -- Create autocmd to disable treesitter for problematic buffers
 vim.api.nvim_create_autocmd({ "FileType", "BufEnter" }, {
-    pattern = { "alpha", "dashboard", "NvimTree", "help", "qf", "lspinfo", "mason", "claude" },
+    pattern = { "alpha", "dashboard", "NvimTree", "help", "qf", "lspinfo", "mason" },
     callback = function()
         vim.b.ts_highlight = false
     end,
@@ -61,8 +61,8 @@ treesitter.setup {
             -- Check for problematic filetypes
             local problematic_filetypes = {
                 "help", "alpha", "dashboard", "NvimTree", "neo-tree",
-                "Trouble", "trouble", "lazy", "mason", "notify",
-                "toggleterm", "lazyterm", "qf", "lspinfo", "claude"
+                "Trouble", "trouble", "lazy", "mason",
+                "toggleterm", "lazyterm", "qf", "lspinfo"
             }
             local filetype = vim.bo[buf].filetype
             if vim.tbl_contains(problematic_filetypes, filetype) then
