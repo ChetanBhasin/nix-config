@@ -26,19 +26,7 @@ vim.api.nvim_create_autocmd("User", {
     end,
 })
 
--- Global error handler for TreeSitter window issues
-local original_schedule = vim.schedule
-vim.schedule = function(fn)
-    original_schedule(function()
-        local ok, err = pcall(fn)
-        if not ok and string.match(err, "Invalid window id") then
-            -- Silently ignore invalid window ID errors from TreeSitter
-            return
-        elseif not ok then
-            error(err)
-        end
-    end)
-end
+-- Note: Removed vim.schedule override to prevent interference with LSP operations
 
 treesitter.setup {
     -- Autopairs integration

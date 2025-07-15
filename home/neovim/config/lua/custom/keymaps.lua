@@ -27,6 +27,7 @@ local legendary = require("legendary")
 -- Format function with LSP filtering
 local format = function()
     vim.lsp.buf.format({
+        timeout_ms = 2000,  -- Add 2 second timeout
         filter = function(filter_client)
             -- Remove ts_ls from LSPs available for formatting
             return filter_client.name ~= "ts_ls"
@@ -220,7 +221,11 @@ end, { desc = "Show keybinding menu (visual mode)" })
 vim.api.nvim_create_autocmd("BufWritePre", {
     group = vim.api.nvim_create_augroup("LspFormatting", { clear = true }),
     callback = function()
-        format()
+        -- Add error handling to prevent blocking saves
+        local ok, err = pcall(format)
+        if not ok then
+            vim.notify("Formatting failed: " .. tostring(err), vim.log.levels.WARN)
+        end
     end,
 })
 
