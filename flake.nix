@@ -1,5 +1,5 @@
 {
-  description = "Chetan Bhasin's Nix configuration";
+  description = "Chetan Bhasin's Nix configuration.";
   inputs = {
     # Package sets
     nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
