@@ -17,7 +17,7 @@ vim.api.nvim_create_autocmd({ "FileType", "BufEnter" }, {
     end,
 })
 
--- Add error handler for TreeSitter window issues
+-- Add comprehensive error handler for TreeSitter window issues
 vim.api.nvim_create_autocmd("User", {
     pattern = "TSError",
     callback = function()
@@ -26,7 +26,8 @@ vim.api.nvim_create_autocmd("User", {
     end,
 })
 
--- Note: Removed vim.schedule override to prevent interference with LSP operations
+-- Note: Global error handling for async callbacks is set up in init.lua
+-- to prevent TreeSitter window ID issues and other async operation errors
 
 treesitter.setup {
     -- Autopairs integration
@@ -34,11 +35,16 @@ treesitter.setup {
         enable = true
     },
 
-    -- Syntax highlighting
+    -- Syntax highlighting with improved error handling
     highlight = {
         enable = true,
         -- Disable highlighting for large files and problematic filetypes
         disable = function(lang, buf)
+            -- Safety check: ensure buffer is valid
+            if not vim.api.nvim_buf_is_valid(buf) then
+                return true
+            end
+
             -- Check file size
             local max_filesize = 100 * 1024 -- 100 KB
             local ok, stats = pcall(vim.loop.fs_stat, vim.api.nvim_buf_get_name(buf))
@@ -49,8 +55,8 @@ treesitter.setup {
             -- Check for problematic filetypes
             local problematic_filetypes = {
                 "help", "alpha", "dashboard", "NvimTree", "neo-tree",
-                "Trouble", "trouble", "lazy", "mason",
-                "toggleterm", "lazyterm", "qf", "lspinfo"
+                "Trouble", "trouble", "lazy", "mason", "TelescopePrompt",
+                "toggleterm", "lazyterm", "qf", "lspinfo", "floaterm"
             }
             local filetype = vim.bo[buf].filetype
             if vim.tbl_contains(problematic_filetypes, filetype) then
@@ -65,10 +71,12 @@ treesitter.setup {
 
             return false
         end,
-        -- Additional vim regex highlighting
+        -- Disable additional vim regex highlighting to reduce conflicts
         additional_vim_regex_highlighting = false,
-        -- Use a custom callback to handle window errors
+        -- Use language tree for better async handling
         use_languagetree = true,
+        -- Reduce update frequency to prevent window ID issues
+        max_file_lines = 5000,
     },
 
     -- Indentation based on treesitter

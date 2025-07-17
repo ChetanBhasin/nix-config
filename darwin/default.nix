@@ -25,12 +25,11 @@ in {
     programs.nix-index.enable = true;
 
     # Darwin-specific system packages only (shared packages are in ../systemPackages)
-    environment.systemPackages = with pkgs;
-      [
-        darwin.apple_sdk.frameworks.SystemConfiguration
-        darwin.apple_sdk.frameworks.CoreFoundation
-        darwin.cctools
-      ];
+    environment.systemPackages = with pkgs; [
+      darwin.apple_sdk.frameworks.SystemConfiguration
+      darwin.apple_sdk.frameworks.CoreFoundation
+      darwin.cctools
+    ];
 
     environment.variables = {
       EDITOR = "nvim";
@@ -97,7 +96,7 @@ in {
       };
 
       dock = {
-        autohide = false;               # Keep dock visible
+        autohide = false; # Keep dock visible
         autohide-delay = 0.0;
         autohide-time-modifier = 0.2;
         expose-animation-duration = 0.1;
@@ -110,7 +109,7 @@ in {
         show-process-indicators = true;
         show-recents = false;
         showhidden = true;
-        static-only = false;            # Allow manually pinned apps
+        static-only = false; # Allow manually pinned apps
         tilesize = 44;
         wvous-bl-corner = 1;
         wvous-br-corner = 1;
@@ -187,45 +186,42 @@ in {
         "steam"
         "google-chrome"
       ] ++ lib.optionals cfg.enableProf [ "thunderbird" ]
-      ++ lib.optionals cfg.enableExtras [
-        "netdownloadhelpercoapp"
-        "cloudflare-warp"
-        "balenaetcher"
-        "ticktick"
-        "proton-mail-bridge"
-        "yubico-authenticator"
-        "whatsapp@beta"
-        "notion-calendar"
-        "cryptomator"
-        "telegram"
-        "signal"
-        "remarkable"
-        "protonvpn"
-        "proton-drive"
-        "proton-pass"
-        "figma"
-        "discord"
-        "spotify"
-        "caffeine"
-        "monitorcontrol"
-        "shureplus-motiv"
-        "insta360-studio"
-        "screen-studio"
-        "proton-mail"
-        "macfuse"
-        "orbstack"
-        "notion"
-        "zoom"
-        "oracle-jdk"
-        "cursor"
-        "chatgpt"
-      ];
+        ++ lib.optionals cfg.enableExtras [
+          "netdownloadhelpercoapp"
+          "cloudflare-warp"
+          "balenaetcher"
+          "ticktick"
+          "proton-mail-bridge"
+          "yubico-authenticator"
+          "whatsapp@beta"
+          "notion-calendar"
+          "cryptomator"
+          "telegram"
+          "signal"
+          "remarkable"
+          "protonvpn"
+          "proton-drive"
+          "proton-pass"
+          "figma"
+          "discord"
+          "spotify"
+          "caffeine"
+          "monitorcontrol"
+          "shureplus-motiv"
+          "insta360-studio"
+          "screen-studio"
+          "proton-mail"
+          "macfuse"
+          "orbstack"
+          "notion"
+          "zoom"
+          "oracle-jdk"
+          "cursor"
+          "chatgpt"
+        ];
     };
 
-    fonts.packages = with pkgs; [
-      recursive
-      nerd-fonts.jetbrains-mono
-    ];
+    fonts.packages = with pkgs; [ recursive nerd-fonts.jetbrains-mono ];
 
     system.stateVersion = 4;
   };

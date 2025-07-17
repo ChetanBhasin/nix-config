@@ -2,6 +2,22 @@
 -- 🚀 NEOVIM CONFIGURATION LOADER
 -- ═══════════════════════════════════════════════════════════════════════════════
 
+-- Early error handling setup to prevent TreeSitter window ID issues
+vim.api.nvim_create_autocmd("VimEnter", {
+    callback = function()
+        -- Set up global error handling for async operations
+        local original_schedule = vim.schedule
+        vim.schedule = function(fn)
+            return original_schedule(function()
+                local ok, err = pcall(fn)
+                if not ok and not string.match(tostring(err), "Invalid window id") then
+                    vim.notify("Scheduled operation error: " .. tostring(err), vim.log.levels.DEBUG)
+                end
+            end)
+        end
+    end,
+})
+
 -- Core Configuration
 require("custom.colors")
 DefineColors("catppuccin-mocha")

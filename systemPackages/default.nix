@@ -67,6 +67,10 @@
     jq
     yq
 
+    # Image Processing
+    leptonica
+    tesseract
+
     # Development IDE Support
     nil # Nix LSP
   ];

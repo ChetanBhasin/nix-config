@@ -24,10 +24,69 @@ end
 -- Load legendary for keybinding discovery
 local legendary = require("legendary")
 
--- Format function with LSP filtering
+-- Enhanced format function with better error handling and feedback
 local format = function()
+    -- Check if any LSP clients support formatting
+    local clients = vim.lsp.get_clients({ bufnr = 0 })
+    local formatting_clients = {}
+    
+    for _, client in pairs(clients) do
+        if client.supports_method("textDocument/formatting") and client.name ~= "ts_ls" then
+            table.insert(formatting_clients, client.name)
+        end
+    end
+    
+    if #formatting_clients == 0 then
+        vim.notify("No LSP clients support formatting for this buffer", vim.log.levels.WARN)
+        return
+    end
+    
+    -- Show formatting notification
+    vim.notify("Formatting with: " .. table.concat(formatting_clients, ", "), vim.log.levels.INFO)
+    
+    -- Perform formatting with improved error handling
+    local ok, err = pcall(function()
+        vim.lsp.buf.format({
+            timeout_ms = 3000,  -- Increased timeout to 3 seconds
+            async = false,      -- Explicit synchronous formatting for manual calls
+            filter = function(filter_client)
+                -- Remove ts_ls from LSPs available for formatting
+                return filter_client.name ~= "ts_ls"
+            end,
+        })
+    end)
+    
+    if not ok then
+        vim.notify("Formatting failed: " .. tostring(err), vim.log.levels.ERROR)
+    else
+        vim.notify("Formatting completed successfully", vim.log.levels.INFO)
+    end
+end
+
+-- Async format function for non-blocking formatting
+local format_async = function()
+    -- Check if any LSP clients support formatting
+    local clients = vim.lsp.get_clients({ bufnr = 0 })
+    local formatting_clients = {}
+    
+    for _, client in pairs(clients) do
+        if client.supports_method("textDocument/formatting") and client.name ~= "ts_ls" then
+            table.insert(formatting_clients, client.name)
+        end
+    end
+    
+    if #formatting_clients == 0 then
+        vim.notify("No LSP clients support formatting for this buffer", vim.log.levels.WARN)
+        return
+    end
+    
+    -- Show formatting notification
+    vim.notify("Formatting asynchronously with: " .. table.concat(formatting_clients, ", "), vim.log.levels.INFO)
+    
+    -- Perform async formatting
     vim.lsp.buf.format({
-        timeout_ms = 2000,  -- Add 2 second timeout
+        timeout_ms = 5000,  -- Higher timeout for async
+        async = true,       -- Non-blocking async formatting
         filter = function(filter_client)
             -- Remove ts_ls from LSPs available for formatting
             return filter_client.name ~= "ts_ls"
@@ -159,10 +218,14 @@ keymap("n", "<leader>ca", vim.lsp.buf.code_action, { desc = "Code actions" })
 -- ┌─────────────────────────────────────────────────────────────────────────────┐
 -- │ FORMATTING                                                                  │
 -- └─────────────────────────────────────────────────────────────────────────────┘
--- Note: <C-y> triggers manual completion (changed from <C-Space> to avoid conflicts)
-keymap("n", "<F3>", format, { desc = "Format code" })
-keymap("x", "<F3>", format, { desc = "Format selection" })
-keymap("n", "<leader>fo", format, { desc = "Format code" })
+-- Manual formatting (synchronous, with feedback)
+keymap("n", "<F3>", format, { desc = "Format code (sync)" })
+keymap("x", "<F3>", format, { desc = "Format selection (sync)" })
+keymap("n", "<leader>fo", format, { desc = "Format code (sync)" })
+
+-- Async formatting (non-blocking, better for large files)
+keymap("n", "<leader>fa", format_async, { desc = "Format code (async)" })
+keymap("x", "<leader>fa", format_async, { desc = "Format selection (async)" })
 
 -- ┌─────────────────────────────────────────────────────────────────────────────┐
 -- │ DIAGNOSTICS                                                                 │
@@ -214,20 +277,38 @@ keymap("v", "<C-Space>", function()
 end, { desc = "Show keybinding menu (visual mode)" })
 
 -- ═══════════════════════════════════════════════════════════════════════════════
--- 🔧 AUTO-FORMATTING ON SAVE
+-- 🔧 FORMATTING CONFIGURATION
 -- ═══════════════════════════════════════════════════════════════════════════════
 
--- Auto-format on save
+-- NOTE: Auto-formatting on save has been DISABLED to prevent Neovim hanging
+-- when closing files. Use manual formatting instead (F3, <leader>fo).
+--
+-- If you want to re-enable auto-formatting, uncomment the section below,
+-- but be aware it may cause hanging issues with slow LSP servers.
+
+--[[
+-- OPTIONAL: Auto-format on save (DISABLED by default due to hanging issues)
 vim.api.nvim_create_autocmd("BufWritePre", {
     group = vim.api.nvim_create_augroup("LspFormatting", { clear = true }),
     callback = function()
-        -- Add error handling to prevent blocking saves
-        local ok, err = pcall(format)
-        if not ok then
-            vim.notify("Formatting failed: " .. tostring(err), vim.log.levels.WARN)
+        -- Only format if explicitly enabled
+        if vim.g.auto_format_enabled then
+            local ok, err = pcall(format)
+            if not ok then
+                vim.notify("Formatting failed: " .. tostring(err), vim.log.levels.WARN)
+            end
         end
     end,
 })
+
+-- Toggle auto-formatting (disabled by default)
+vim.g.auto_format_enabled = false
+keymap("n", "<leader>tf", function()
+    vim.g.auto_format_enabled = not vim.g.auto_format_enabled
+    local status = vim.g.auto_format_enabled and "enabled" or "disabled"
+    vim.notify("Auto-formatting " .. status, vim.log.levels.INFO)
+end, { desc = "Toggle auto-formatting on save" })
+--]]
 
 -- ═══════════════════════════════════════════════════════════════════════════════
 -- 📚 KEYBINDING REFERENCE
@@ -266,7 +347,9 @@ KEYBINDING QUICK REFERENCE:
 ├─ gr/gs           → References/signature help
 ├─ K               → Hover info
 ├─ <F2>            → Rename
-├─ <F3>            → Format
+├─ <F3>            → Format (sync)
+├─ <leader>fo      → Format (sync)
+├─ <leader>fa      → Format (async, non-blocking)
 ├─ <F4>            → Code actions
 ├─ [d/]d           → Previous/Next diagnostic
 └─ <leader>th      → Toggle inlay hints (enabled by default)
