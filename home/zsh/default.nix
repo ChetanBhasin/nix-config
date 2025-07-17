@@ -25,7 +25,7 @@
       PKG_CONFIG_LIBDIR = "${pkgs.rdkafka}/lib/pkgconfig";
       LIBRARY_PATH = "LIBRARY_PATH:${pkgs.libiconv}/lib";
       PKG_CONFIG_PATH =
-        "$PKG_CONFIG_PATH:${pkgs.rdkafka}/lib/pkgconfig:${pkgs.libiconv}/lib/pkgconfig";
+        "$PKG_CONFIG_PATH:${pkgs.rdkafka}/lib/pkgconfig:${pkgs.libiconv}/lib/pkgconfig:${pkgs.leptonica}/lib/pkgconfig/:${pkgs.tesseract}/lib/pkgconfig";
       CC = if pkgs.stdenv.isDarwin then "clang" else "$CC";
       CXX = if pkgs.stdenv.isDarwin then "clang++" else "$CXX";
     };

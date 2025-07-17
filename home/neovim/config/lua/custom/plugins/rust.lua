@@ -1,4 +1,16 @@
--- Rustaceanvim configuration for enhanced Rust development
+-- ═══════════════════════════════════════════════════════════════════════════════
+-- 🦀 RUSTACEANVIM CONFIGURATION
+-- ═══════════════════════════════════════════════════════════════════════════════
+-- Optimized Rust configuration to prevent Neovim hanging issues.
+-- Several heavy features have been disabled by default for better performance.
+--
+-- TO RE-ENABLE FEATURES (if needed):
+-- - checkOnSave: Set to true and change command to 'clippy' for strict linting
+-- - cargo.allFeatures: Set to true for comprehensive feature analysis
+-- - cargo.loadOutDirsFromCheck: Set to true for better build script support
+-- - cargo.runBuildScripts: Set to true for complex build environments
+-- - procMacro.attributes: Set to true for full proc macro analysis
+-- ═══════════════════════════════════════════════════════════════════════════════
 vim.g.rustaceanvim = {
     -- Plugin configuration
     tools = {
@@ -82,25 +94,30 @@ vim.g.rustaceanvim = {
                         },
                     },
                 },
-                -- Enable clippy on save
-                checkOnSave = true,
+                -- Optimize check-on-save to reduce hanging issues
+                checkOnSave = false,  -- Disabled by default to prevent hanging
                 check = {
-                    command = 'clippy',
-                    extraArgs = { '--all', '--', '-W', 'clippy::all' },
+                    command = 'check',  -- Use 'check' instead of 'clippy' for speed
+                    extraArgs = { '--message-format=json' },
                 },
-                -- Cargo configuration
+                -- Optimized cargo configuration to reduce load times
                 cargo = {
-                    allFeatures = true,
-                    loadOutDirsFromCheck = true,
-                    runBuildScripts = true,
+                    allFeatures = false,  -- Disabled to reduce analysis time
+                    loadOutDirsFromCheck = false,  -- Disabled to prevent hanging
+                    runBuildScripts = false,  -- Disabled to prevent hanging on complex builds
+                    noDefaultFeatures = false,
                 },
-                -- Enable proc macros
+                -- Optimize proc macros to reduce analysis overhead
                 procMacro = {
                     enable = true,
+                    attributes = {
+                        enable = false,  -- Disable to reduce analysis time
+                    },
                     ignored = {
                         ['async-trait'] = { 'async_trait' },
                         ['napi-derive'] = { 'napi' },
                         ['async-recursion'] = { 'async_recursion' },
+                        ['tokio'] = { 'main', 'test' },  -- Common heavy macros
                     },
                 },
                 -- Type information on hover

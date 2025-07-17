@@ -80,7 +80,29 @@ dashboard.config.opts.noautocmd = true
 -- Setup alpha
 alpha.setup(dashboard.config)
 
--- Disable folding on alpha buffer
+-- Disable folding on alpha buffer and add TreeSitter safeguards
 vim.cmd([[
     autocmd FileType alpha setlocal nofoldenable
 ]])
+
+-- Add safety measures for alpha buffer window management
+vim.api.nvim_create_autocmd("FileType", {
+    pattern = "alpha",
+    callback = function(event)
+        -- Disable TreeSitter for alpha buffers to prevent window ID issues
+        vim.b[event.buf].ts_highlight = false
+        
+        -- Add autocmd to handle alpha buffer closing safely
+        vim.api.nvim_create_autocmd("BufLeave", {
+            buffer = event.buf,
+            callback = function()
+                -- Small delay to prevent TreeSitter callback issues
+                vim.schedule(function()
+                    if vim.api.nvim_buf_is_valid(event.buf) then
+                        vim.b[event.buf].ts_highlight = false
+                    end
+                end)
+            end,
+        })
+    end,
+})
