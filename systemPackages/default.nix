@@ -70,6 +70,7 @@
     # Image Processing
     leptonica
     tesseract
+    poppler
 
     # Development IDE Support
     nil # Nix LSP
