@@ -22,6 +22,7 @@
     argocd
     terraform
     cloudflared
+    mise
 
     # Development Languages and Runtimes
     bun
