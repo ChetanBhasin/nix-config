@@ -25,6 +25,8 @@
     cloudflared
     mise
     just
+    doppler
+    tea
 
     # Development Languages and Runtimes
     bun
