@@ -42,7 +42,6 @@
     protox
     grpc
     postgresql
-    mysql80
     redis
     httpie
 
