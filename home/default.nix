@@ -18,6 +18,11 @@ in {
         # User-specific CLI tools
         hl-log-viewer
         goose-cli
+        zed-editor
+        bazel
+        duckdb
+        gh
+        k9s
 
         # User shell and terminal utilities
         zsh-completions
