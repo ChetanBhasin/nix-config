@@ -11,6 +11,7 @@
     gcc
     openssl
     iconv
+    libiconv
 
     # Container and Infrastructure Tools
     docker
@@ -23,6 +24,7 @@
     terraform
     cloudflared
     mise
+    just
 
     # Development Languages and Runtimes
     bun

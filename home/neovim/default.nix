@@ -133,7 +133,6 @@ with lib; {
             jsonc
             jsonnet
             julia
-            just
             kconfig
             kotlin
             latex
