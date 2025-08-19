@@ -6,7 +6,6 @@
     profiles.default.enableUpdateCheck = true;
     profiles.default.extensions = with pkgs.vscode-extensions;
       [
-        rust-lang.rust-analyzer
         ms-azuretools.vscode-docker
         vscodevim.vim
         mkhl.direnv
