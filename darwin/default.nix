@@ -159,7 +159,7 @@ in {
       user = "chetan";
       onActivation.autoUpdate = true;
       onActivation = { cleanup = "uninstall"; };
-      brews = [ "cloudflared" ]
+      brews = [ "cloudflared" "codex" ]
         ++ lib.optionals cfg.enableProf [ "krb5" "docker" "rocksdb" ]
         ++ lib.optionals cfg.enableExtras [ "flyctl" "nodenv" "docker" ];
       casks = [
