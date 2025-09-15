@@ -19,7 +19,7 @@ in {
         hl-log-viewer
         goose-cli
         zed-editor
-        bazel
+        bazelisk
         duckdb
         gh
         k9s

@@ -54,6 +54,7 @@ alias enablepassword="sudo echo 'Password Entered'"
 alias update="nix-channel --update && darwin-rebuild switch && home-manager switch"
 alias cleanup="brew cleanup && brew doctor && nix-collect-garbage"
 alias cleanupdate="enablepassword && update && cleanup"
+alias bazel="bazelisk"
 
 # Enhanced Terminal Aliases
 alias ll="exa -la --git --header"
