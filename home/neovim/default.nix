@@ -58,7 +58,7 @@ with lib; {
         fzf-vim
         # Modern Rust plugin (successor to rust-tools.nvim)
         rustaceanvim
-        snacks-nvim
+        mini-nvim
         nvim-lspconfig
         vim-vsnip
         mason-nvim
