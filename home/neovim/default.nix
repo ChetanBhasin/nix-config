@@ -22,6 +22,7 @@ with lib; {
           go
           ctags
           stylua
+          ruff
           ripgrep
           gzip
           nerd-fonts.hack
@@ -59,6 +60,7 @@ with lib; {
         # Modern Rust plugin (successor to rust-tools.nvim)
         rustaceanvim
         mini-nvim
+        conform-nvim
         nvim-lspconfig
         vim-vsnip
         mason-nvim
