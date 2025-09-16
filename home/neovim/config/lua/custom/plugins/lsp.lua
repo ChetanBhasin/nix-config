@@ -41,7 +41,7 @@ lspconfig.ts_ls.setup({
 })
 
 -- Python setup with type hints
-lspconfig.pyright.setup({
+lspconfig.ruff.setup({
     capabilities = lsp_capabilities,
     on_attach = on_attach,
 })
