@@ -23,11 +23,21 @@ local function lsp_status()
         return "󰅚 No LSP"
     end
 
-    local client_names = {}
+    -- Deduplicate names and show counts if attached multiple times
+    local counts = {}
     for _, client in ipairs(clients) do
-        table.insert(client_names, client.name)
+        counts[client.name] = (counts[client.name] or 0) + 1
     end
-    return "󰒋 " .. table.concat(client_names, ", ")
+    local parts = {}
+    for name, cnt in pairs(counts) do
+        if cnt > 1 then
+            table.insert(parts, string.format("%s×%d", name, cnt))
+        else
+            table.insert(parts, name)
+        end
+    end
+    table.sort(parts)
+    return "󰒋 " .. table.concat(parts, ", ")
 end
 
 local function macro_recording()

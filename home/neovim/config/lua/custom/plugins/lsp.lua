@@ -1,4 +1,28 @@
+if vim.g._custom_lsp_setup_done then return end
+vim.g._custom_lsp_setup_done = true
+
 local lspconfig = require('lspconfig')
+local util = require('lspconfig.util')
+
+-- Guard: ensure only one client per server per root_dir
+local function unique_root(server_names, base_root)
+  local names = {}
+  if type(server_names) == 'table' then
+    for _, n in ipairs(server_names) do names[n] = true end
+  else
+    names[server_names] = true
+  end
+  return function(fname)
+    local root = base_root and base_root(fname) or nil
+    if not root then return nil end
+    for _, client in ipairs(vim.lsp.get_active_clients()) do
+      if names[client.name] and client.config and client.config.root_dir == root then
+        return nil -- another instance already managing this root
+      end
+    end
+    return root
+  end
+end
 
 local lsp_capabilities = require('cmp_nvim_lsp').default_capabilities()
 
@@ -40,10 +64,40 @@ lspconfig.ts_ls.setup({
     }
 })
 
--- Python setup with type hints
+-- Python: Ruff (linter)
+local ruff_base_root = util.root_pattern('pyproject.toml', 'ruff.toml', '.ruff.toml', '.git')
 lspconfig.ruff.setup({
     capabilities = lsp_capabilities,
+    on_attach = function(client, bufnr)
+        client.server_capabilities.hoverProvider = false
+        if on_attach then on_attach(client, bufnr) end
+    end,
+    single_file_support = false,
+    root_dir = unique_root({ 'ruff', 'ruff_lsp' }, ruff_base_root),
+})
+
+-- Python: BasedPyright (language server)
+local bp_base_root = util.root_pattern('pyproject.toml', 'pyrightconfig.json', 'poetry.lock', 'setup.py', 'setup.cfg', '.git')
+lspconfig.basedpyright.setup({
+    capabilities = lsp_capabilities,
     on_attach = on_attach,
+    single_file_support = false,
+    root_dir = unique_root({ 'basedpyright', 'pyright' }, bp_base_root),
+    settings = {
+        basedpyright = {
+            analysis = {
+                typeCheckingMode = "standard", -- "off", "basic", "standard", "strict"
+                autoSearchPaths = true,
+                useLibraryCodeForTypes = true,
+                diagnosticMode = "openFilesOnly", -- or "workspace"
+                inlayHints = {
+                    variableTypes = true,
+                    functionReturnTypes = true,
+                    callArgumentNames = true,
+                },
+            },
+        },
+    },
 })
 
 -- Nix with nixd (better than nil_ls)

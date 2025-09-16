@@ -15,7 +15,8 @@ require("mason-lspconfig").setup({
         -- Core language servers
         -- rust_analyzer is handled by rustaceanvim (not Mason)
         "ts_ls",                  -- TypeScript/JavaScript
-        "ruff",                -- Python
+        "ruff",                  -- Python linter
+        "basedpyright",          -- Python language server
         "kotlin_language_server", -- Kotlin
         -- nixd is installed via Nix (not available in Mason)
         "jsonls",                 -- JSON
@@ -35,12 +36,32 @@ require("mason-lspconfig").setup({
             if server_name == "nixd" then -- installed via Nix, configured manually
                 return
             end
+            -- Python LSPs are configured manually in lsp.lua to avoid duplicates
+            if server_name == "basedpyright" or server_name == "pyright" or server_name == "ruff" then
+                return
+            end
             require("lspconfig")[server_name].setup({
                 capabilities = require('cmp_nvim_lsp').default_capabilities(),
             })
         end,
     },
 })
+
+-- Proactively uninstall Mason's classic 'pyright' if present to avoid confusion
+-- with 'basedpyright'. This will not affect Nix-managed or lspconfig-registered
+-- servers and only removes the Mason package if it exists.
+pcall(function()
+  local registry = require("mason-registry")
+  if registry.has_package("pyright") then
+    local pkg = registry.get_package("pyright")
+    if pkg:is_installed() then
+      pkg:uninstall()
+      vim.schedule(function()
+        vim.notify("Mason: uninstalled 'pyright' to prefer 'basedpyright'", vim.log.levels.INFO)
+      end)
+    end
+  end
+end)
 
 
 -- LSP Diagnostics Options Setup
