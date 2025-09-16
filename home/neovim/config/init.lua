@@ -24,7 +24,14 @@ DefineColors("catppuccin-mocha")
 
 -- Visual Enhancement Plugins (load early for better experience)
 require("custom.plugins.alpha")
-require("custom.plugins.snacks")
+do
+  local ok, err = pcall(require, "custom.plugins.notify")
+  if not ok then
+    vim.schedule(function()
+      vim.api.nvim_echo({ { "Notify module missing; using default vim.notify", "WarningMsg" } }, false, {})
+    end)
+  end
+end
 require("custom.plugins.indent-blankline")
 require("custom.plugins.rainbow-delimiters")
 require("custom.plugins.colorizer")
