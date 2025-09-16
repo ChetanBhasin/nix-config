@@ -57,7 +57,7 @@ This Neovim configuration transforms your editor into a **modern, feature-rich I
 - **Rust**: Variable types, parameter names, return types, method chaining
 - **TypeScript/JavaScript**: All type information, parameter hints
 - **Go**: Composite types, parameter names, return types
-- **Python**: Type hints via Pyright
+- **Python**: Type hints via ruff
 - **Toggle on/off**: `<leader>th`
 
 ### 🎯 **Smart Navigation**
@@ -201,7 +201,7 @@ When you first open Neovim:
 |----------|------------|----------|
 | **Rust** | `rust-analyzer` | Full inlay hints, debugging, testing |
 | **TypeScript/JS** | `tsserver` | Parameter hints, type information |
-| **Python** | `pyright` | Type checking, imports |
+| **Python** | `ruff` | Type checking, imports |
 | **Go** | `gopls` | Comprehensive inlay hints |
 | **Lua** | `lua_ls` | Parameter types, Neovim API |
 | **Nix** | `rnix` | Syntax, basic completion |

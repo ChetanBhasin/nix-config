@@ -15,7 +15,7 @@ require("mason-lspconfig").setup({
         -- Core language servers
         -- rust_analyzer is handled by rustaceanvim (not Mason)
         "ts_ls",                  -- TypeScript/JavaScript
-        "pyright",                -- Python
+        "ruff",                -- Python
         "kotlin_language_server", -- Kotlin
         -- nixd is installed via Nix (not available in Mason)
         "jsonls",                 -- JSON
