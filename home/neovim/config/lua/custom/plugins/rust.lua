@@ -111,13 +111,7 @@ vim.g.rustaceanvim = {
                 procMacro = {
                     enable = true,
                     attributes = {
-                        enable = false,  -- Disable to reduce analysis time
-                    },
-                    ignored = {
-                        ['async-trait'] = { 'async_trait' },
-                        ['napi-derive'] = { 'napi' },
-                        ['async-recursion'] = { 'async_recursion' },
-                        ['tokio'] = { 'main', 'test' },  -- Common heavy macros
+                        enable = true,  -- Enable attribute macro expansion
                     },
                 },
                 -- Type information on hover
@@ -182,5 +176,32 @@ vim.api.nvim_create_autocmd("FileType", {
         vim.opt_local.signcolumn = "yes"
         -- Better completion experience
         vim.opt_local.completeopt = { 'menuone', 'noselect', 'noinsert' }
+    end,
+})
+
+-- Auto-format Rust files on save using rust-analyzer (rustfmt)
+vim.api.nvim_create_autocmd("BufWritePre", {
+    pattern = "*.rs",
+    callback = function(args)
+        local bufnr = args.buf
+        -- Only format with rust-analyzer to ensure rustfmt is used
+        local clients = vim.lsp.get_clients({ bufnr = bufnr })
+        local has_ra = false
+        for _, c in ipairs(clients) do
+            if c.name == "rust_analyzer" or c.name == "rust-analyzer" then
+                has_ra = c.supports_method("textDocument/formatting")
+                break
+            end
+        end
+        if has_ra then
+            vim.lsp.buf.format({
+                bufnr = bufnr,
+                async = false,
+                timeout_ms = 3000,
+                filter = function(c)
+                    return c.name == "rust_analyzer" or c.name == "rust-analyzer"
+                end,
+            })
+        end
     end,
 })
