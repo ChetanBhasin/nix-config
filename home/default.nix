@@ -18,7 +18,6 @@ in {
         # User-specific CLI tools
         hl-log-viewer
         goose-cli
-        zed-editor
         bazelisk
         duckdb
         gh

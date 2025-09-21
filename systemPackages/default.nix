@@ -32,7 +32,7 @@
     bun
     uv
     deno
-    python3Full
+    python3
     rustup
     go
     nodejs
