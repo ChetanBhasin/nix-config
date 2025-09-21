@@ -26,8 +26,7 @@ in {
 
     # Darwin-specific system packages only (shared packages are in ../systemPackages)
     environment.systemPackages = with pkgs; [
-      darwin.apple_sdk.frameworks.SystemConfiguration
-      darwin.apple_sdk.frameworks.CoreFoundation
+      apple-sdk
       darwin.cctools
     ];
 
