@@ -4,7 +4,8 @@
 
 local bufferline = require('bufferline')
 
-bufferline.setup {
+-- Build setup table first so we can optionally add highlights
+local setup_opts = {
     options = {
         mode = "buffers",
         style_preset = bufferline.style_preset.default,
@@ -95,9 +96,22 @@ bufferline.setup {
                 separator = true
             }
         },
-    },
-    highlights = require("catppuccin.groups.integrations.bufferline").get()
+    }
 }
+
+-- Catppuccin integration API changed upstream. Try to use it if available,
+-- but don't error if the function name differs or the module is absent.
+do
+    local ok, bl = pcall(require, "catppuccin.groups.integrations.bufferline")
+    if ok and bl then
+        local get_fn = bl.get or bl.highlights
+        if type(get_fn) == "function" then
+            setup_opts.highlights = get_fn()
+        end
+    end
+end
+
+bufferline.setup(setup_opts)
 
 -- Enhanced keybindings for pure bufferline workflow
 local function setup_bufferline_keymaps()
