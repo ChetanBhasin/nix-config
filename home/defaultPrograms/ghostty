@@ -1,5 +1,8 @@
 # Theme and Appearance
-theme = catppuccin-mocha
+# Ghostty uses proper-cased theme names (e.g. "Catppuccin Mocha").
+# The previous value (catppuccin-mocha) doesn't resolve and falls back
+# to defaults, so use the canonical name here.
+theme = Catppuccin Mocha
 font-family = "Hack"
 font-size = 14
 cursor-style = "block"
