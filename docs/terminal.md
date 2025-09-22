@@ -437,7 +437,7 @@ export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
 **Key settings**:
 ```ini
 # Theme and appearance
-theme = catppuccin-mocha
+theme = Catppuccin Mocha
 font-family = "Hack"
 font-size = 14
 
