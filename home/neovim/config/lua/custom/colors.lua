@@ -142,6 +142,9 @@ require("catppuccin").setup {
         }
     end,
     integrations = {
+        -- Enable bufferline integration; the bufferline module also guards
+        -- against API changes when applying highlights.
+        bufferline = true,
         cmp = true,
         gitsigns = true,
         nvimtree = true,
