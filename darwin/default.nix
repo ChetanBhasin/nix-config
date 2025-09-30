@@ -186,7 +186,6 @@ in {
       ] ++ lib.optionals cfg.enableProf [ "thunderbird" ]
         ++ lib.optionals cfg.enableExtras [
           "netdownloadhelpercoapp"
-          "cloudflare-warp"
           "balenaetcher"
           "ticktick"
           "proton-mail-bridge"
