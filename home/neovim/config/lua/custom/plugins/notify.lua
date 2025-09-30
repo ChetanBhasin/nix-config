@@ -23,11 +23,19 @@ mini_notify.setup({
   -- Content formatting
   content = {
     format = function(notif)
+      -- Handle both string and table message formats
+      local msg_text
+      if type(notif.msg) == "table" then
+        msg_text = table.concat(notif.msg, "\n")
+      else
+        msg_text = tostring(notif.msg)
+      end
+
       -- Keep messages concise; show title when present
       if notif.title and notif.title ~= "" then
-        return string.format("%s\n%s", notif.title, table.concat(notif.msg, "\n"))
+        return string.format("%s\n%s", notif.title, msg_text)
       end
-      return table.concat(notif.msg, "\n")
+      return msg_text
     end,
   },
 })
