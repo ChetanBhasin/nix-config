@@ -22,7 +22,6 @@
     helmfile
     argocd
     terraform
-    cloudflared
     mise
     just
     doppler
