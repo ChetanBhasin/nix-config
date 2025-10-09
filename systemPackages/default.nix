@@ -12,6 +12,7 @@
     openssl
     iconv
     libiconv
+    libpq
 
     # Container and Infrastructure Tools
     docker
