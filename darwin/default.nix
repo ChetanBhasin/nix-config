@@ -167,7 +167,6 @@ in {
         "ollama-app"
         "arc"
         "postico"
-        "granola"
         "lens"
         "ghostty"
         "db-browser-for-sqlite"
