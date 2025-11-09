@@ -209,7 +209,6 @@ in {
           "proton-mail"
           "macfuse"
           "orbstack"
-          "notion"
           "zoom"
           "oracle-jdk"
           "cursor"
