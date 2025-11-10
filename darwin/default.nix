@@ -25,10 +25,7 @@ in {
     programs.nix-index.enable = true;
 
     # Darwin-specific system packages only (shared packages are in ../systemPackages)
-    environment.systemPackages = with pkgs; [
-      apple-sdk
-      darwin.cctools
-    ];
+    environment.systemPackages = with pkgs; [ apple-sdk darwin.cctools ];
 
     environment.variables = {
       EDITOR = "nvim";
@@ -44,8 +41,6 @@ in {
       settings = {
         auto-optimise-store = true;
         builders-use-substitutes = true;
-        experimental-features = [ "nix-command" "flakes" ];
-        trusted-users = [ "@admin" "chetan" ];
         substituters = [
           "https://cache.nixos.org/"
           "https://nix-community.cachix.org"

@@ -31,61 +31,61 @@
     };
 
     initContent = ''
-        export CARAPACE_BRIDGES='zsh,fish,bash,inshellisense' # optional
-        zstyle ':completion:*' format $'\e[2;37mCompleting %d\e[m'
-        source <(carapace _carapace)
-        export SDKROOT="$(xcrun --sdk macosx --show-sdk-path)"
-        export MACOSX_DEPLOYMENT_TARGET="$(sw_vers -productVersion | cut -d. -f1-2)"
-        ${builtins.readFile ./sources.sh}
+      export CARAPACE_BRIDGES='zsh,fish,bash,inshellisense' # optional
+      zstyle ':completion:*' format $'\e[2;37mCompleting %d\e[m'
+      source <(carapace _carapace)
+      export SDKROOT="$(xcrun --sdk macosx --show-sdk-path)"
+      export MACOSX_DEPLOYMENT_TARGET="$(sw_vers -productVersion | cut -d. -f1-2)"
+      ${builtins.readFile ./sources.sh}
 
-        # Enhanced Git functions with FZF
-        fzf_git_log() {
-          git log --oneline --color=always | fzf --ansi --preview 'git show --color=always {1}'
-        }
+      # Enhanced Git functions with FZF
+      fzf_git_log() {
+        git log --oneline --color=always | fzf --ansi --preview 'git show --color=always {1}'
+      }
 
-        fzf_git_branch() {
-          git branch -a --color=always | grep -v '/HEAD\s' | sort | fzf --ansi --preview 'git log --oneline --graph --date=short --color=always --pretty="format:%C(auto)%cd %h%d %s" $(sed s/^..// <<< {} | cut -d" " -f1) | head -'$LINES
-        }
+      fzf_git_branch() {
+        git branch -a --color=always | grep -v '/HEAD\s' | sort | fzf --ansi --preview 'git log --oneline --graph --date=short --color=always --pretty="format:%C(auto)%cd %h%d %s" $(sed s/^..// <<< {} | cut -d" " -f1) | head -'$LINES
+      }
 
-        # Override git log and git branch with FZF versions when called without arguments
-        git() {
-          case $1 in
-            log)
-              if [[ $# -eq 1 ]]; then
-                fzf_git_log
-              else
-                command git "$@"
-              fi
-              ;;
-            branch)
-              if [[ $# -eq 1 ]]; then
-                fzf_git_branch
-              else
-                command git "$@"
-              fi
-              ;;
-            *)
+      # Override git log and git branch with FZF versions when called without arguments
+      git() {
+        case $1 in
+          log)
+            if [[ $# -eq 1 ]]; then
+              fzf_git_log
+            else
               command git "$@"
-              ;;
-          esac
-        }
+            fi
+            ;;
+          branch)
+            if [[ $# -eq 1 ]]; then
+              fzf_git_branch
+            else
+              command git "$@"
+            fi
+            ;;
+          *)
+            command git "$@"
+            ;;
+        esac
+      }
 
-        # Other utility functions
-        fzf_kill() {
-          local pid
-          pid=$(ps -ef | sed 1d | fzf -m | awk '{print $2}')
-          if [ "x$pid" != "x" ]; then
-            echo $pid | xargs kill -''${1:-9}
-          fi
-        }
+      # Other utility functions
+      fzf_kill() {
+        local pid
+        pid=$(ps -ef | sed 1d | fzf -m | awk '{print $2}')
+        if [ "x$pid" != "x" ]; then
+          echo $pid | xargs kill -''${1:-9}
+        fi
+      }
 
-        hist_search() {
-          print -z $( ([ -n "$ZSH_NAME" ] && fc -l 1 || history) | fzf +s --tac | sed 's/ *[0-9]* *//')
-        }
+      hist_search() {
+        print -z $( ([ -n "$ZSH_NAME" ] && fc -l 1 || history) | fzf +s --tac | sed 's/ *[0-9]* *//')
+      }
 
-        hist_stats() {
-          history | awk '{CMD[$2]++;count++;}END { for (a in CMD)print CMD[a] " " CMD[a]/count*100 "% " a;}' | grep -v "./" | column -c3 -s " " -t | sort -nr | nl |  head -n20
-        }
+      hist_stats() {
+        history | awk '{CMD[$2]++;count++;}END { for (a in CMD)print CMD[a] " " CMD[a]/count*100 "% " a;}' | grep -v "./" | column -c3 -s " " -t | sort -nr | nl |  head -n20
+      }
     '';
 
     plugins = [

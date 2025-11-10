@@ -23,6 +23,7 @@
     helmfile
     argocd
     terraform
+    opentofu
     mise
     just
     doppler

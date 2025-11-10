@@ -9,6 +9,8 @@
       url = "github:lnl7/nix-darwin";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    determinate.url = "https://flakehub.com/f/DeterminateSystems/determinate/3";
     home-manager = {
       url = "github:nix-community/home-manager/master";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -23,8 +25,7 @@
 
   };
 
-  outputs =
-    inputs@{ self, nixpkgs, darwin, home-manager, flake-utils, devshell, ... }:
+  outputs = inputs@{ nixpkgs, darwin, home-manager, determinate, ... }:
     let
       nixpkgsConfig = with inputs; {
         config = { allowUnfree = true; };
@@ -34,8 +35,20 @@
         with inputs; [
           # Main `nix-darwin` config
           (./. + "/hosts/${host}/configuration.nix")
+          { nix.enable = false; }
+          determinate.darwinModules.default
           {
-            nix.enable = false;
+            determinate-nix.customSettings = {
+              # Experimental features needed by Determinate’s builder (+ your usual ones)
+              experimental-features = "flakes external-builders";
+
+              # Trust your admin group so restricted settings from flakes are honored
+              trusted-users = "root @admin chetan";
+
+              # Determinate Linux builder wiring (JSON, one line)
+              external-builders = ''
+                [{"systems":["aarch64-linux","x86_64-linux"],"program":"/usr/local/bin/determinate-nixd","args":["builder"]}]'';
+            };
           }
           # `home-manager` module
           home-manager.darwinModules.home-manager
@@ -76,6 +89,9 @@
     in {
       darwinConfigurations = {
         nix.enable = false;
+        environment.etc."determinate/config.json".text =
+          builtins.toJSON { builder = { state = "enabled"; }; };
+
         hugh = darwin.lib.darwinSystem {
           system = "aarch64-darwin";
           modules = darwinModules {
