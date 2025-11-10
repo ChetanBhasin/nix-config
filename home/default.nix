@@ -22,6 +22,8 @@ in {
         duckdb
         gh
         k9s
+        bitwarden-cli
+        bws
 
         # User shell and terminal utilities
         zsh-completions
