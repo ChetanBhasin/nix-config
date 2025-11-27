@@ -17,7 +17,7 @@ with lib; {
           deadnix
           statix
           nixd
-          taplo-cli
+          taplo
           yamllint
           go
           ctags
