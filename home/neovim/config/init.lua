@@ -62,5 +62,8 @@ require("custom.plugins.which-key") -- Keybinding hints (load late to capture al
 -- Built-in Plugin Setup
 require('Comment').setup()
 
+-- Tmux Integration
+require("custom.plugins.tmux-navigator")
+
 -- Keybindings (load last to ensure all plugins are available)
 require("custom.remap")

@@ -1,64 +1,42 @@
+#!/usr/bin/env zsh
+# Platform-agnostic shell configuration
+# Platform-specific settings are in ~/.sources_platform
+
 set -o vi
 
+# Source platform-specific configuration
+[[ -f ~/.sources_platform ]] && source ~/.sources_platform
+
 # Safely source credentials if they exist
-if [[ -f ~/.creds ]]; then
-  source ~/.creds
-fi
+[[ -f ~/.creds ]] && source ~/.creds
 
+# Initialize tools
 eval "$(direnv hook zsh)"
-eval "$(nodenv init -)"
+command -v nodenv &>/dev/null && eval "$(nodenv init -)"
 
-# FZF Configuration for Enhanced UX
-export FZF_DEFAULT_OPTS="
-  --height 40%
-  --layout=reverse
-  --border
-  --inline-info
-  --color=dark
-  --color=fg:-1,bg:-1,hl:#c678dd,fg+:#ffffff,bg+:#4b5263,hl+:#d858fe
-  --color=info:#98c379,prompt:#61afef,pointer:#be5046,marker:#e5c07b,spinner:#61afef,header:#61afef
-  --bind='ctrl-/:toggle-preview'
-  --bind='ctrl-u:preview-page-up'
-  --bind='ctrl-d:preview-page-down'
-"
+# Carapace completion bridge
+export CARAPACE_BRIDGES='zsh,fish,bash,inshellisense'
+zstyle ':completion:*' format $'\e[2;37mCompleting %d\e[m'
+source <(carapace _carapace)
 
-# Enhanced FZF commands
-export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'
-export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
-export FZF_ALT_C_COMMAND='fd --type d --hidden --follow --exclude .git'
+# SOPS age key
+export SOPS_AGE_KEY_FILE="$HOME/.age/key.txt"
 
-# FZF widget options
-export FZF_CTRL_T_OPTS="
-  --preview 'bat --color=always --line-range :50 {}'
-  --bind 'ctrl-/:change-preview-window(down|hidden|)'
-"
-export FZF_CTRL_R_OPTS="
-  --preview 'echo {}'
-  --preview-window up:3:hidden:wrap
-  --bind 'ctrl-/:toggle-preview'
-  --bind 'ctrl-y:execute-silent(echo -n {2..} | pbcopy)+abort'
-  --color header:italic
-  --header 'Press CTRL-Y to copy command into clipboard'
-"
-export FZF_ALT_C_OPTS="
-  --preview 'tree -C {} | head -200'
-"
+# ===============================================
+# ALIASES
+# ===============================================
 
+# Kubernetes
 alias k="kubectl"
-alias lsl="exa -lLsSuUhHa"
-alias ls="exa"
-alias l="ls -lah"
-alias gitchange="git add . && git commit --amend --no-edit"
-alias gitrchange="gitchange && git push --force-with-lease"
-alias enablepassword="sudo echo 'Password Entered'"
-alias update="nix-channel --update && darwin-rebuild switch && home-manager switch"
-alias cleanup="brew cleanup && brew doctor && nix-collect-garbage"
-alias cleanupdate="enablepassword && update && cleanup"
-alias bazel="bazelisk"
 
-# Enhanced Terminal Aliases
-alias ll="exa -la --git --header"
-alias lt="exa --tree --level=2"
+# Enhanced ls with eza
+alias ls="eza"
+alias ll="eza -la --git --header"
+alias lt="eza --tree --level=2"
+alias lsl="eza -lLsSuUhHa"
+alias l="ls -lah"
+
+# Modern CLI tool replacements
 alias cat="bat"
 alias grep="rg"
 alias find="fd"
@@ -67,7 +45,7 @@ alias du="dust"
 alias df="duf"
 alias ps="procs"
 
-# Git aliases for productivity
+# Git shortcuts
 alias gs="git status"
 alias gd="git diff"
 alias gl="git log --oneline --graph --decorate"
@@ -75,8 +53,38 @@ alias gb="git branch"
 alias gc="git checkout"
 alias gp="git pull"
 alias gps="git push"
+alias gitchange="git add . && git commit --amend --no-edit"
+alias gitrchange="gitchange && git push --force-with-lease"
 
-# FZF-powered functions
+# Misc
+alias bazel="bazelisk"
+alias enablepassword="sudo echo 'Password Entered'"
+
+# ===============================================
+# HISTORY SUBSTRING SEARCH BINDINGS
+# ===============================================
+
+# Bind up/down arrows to history substring search
+bindkey '^[[A' history-substring-search-up
+bindkey '^[[B' history-substring-search-down
+
+# Bind k/j in vi mode for history substring search
+bindkey -M vicmd 'k' history-substring-search-up
+bindkey -M vicmd 'j' history-substring-search-down
+
+# ===============================================
+# VIM-TMUX-NAVIGATOR INTEGRATION
+# ===============================================
+
+# Smart pane switching with awareness of Vim splits
+# See: https://github.com/christoomey/vim-tmux-navigator
+is_vim="ps -o state= -o comm= -t '#{pane_tty}' \
+    | grep -iqE '^[^TXZ ]+ +(\\S+\\/)?g?(view|l?n?vim?x?|fzf)(diff)?$'"
+
+# ===============================================
+# FZF-POWERED FUNCTIONS
+# ===============================================
+
 fzf_git_log() {
   git log --oneline --color=always | fzf --ansi --preview 'git show --color=always {1}' --bind 'enter:execute(git show {1} | less -R)'
 }
@@ -93,7 +101,33 @@ fzf_env() {
   env | fzf | cut -d= -f1 | xargs -I {} sh -c 'echo "{}=${}"'
 }
 
-# History management functions
+# Override git log and git branch with FZF versions when called without arguments
+git() {
+  case $1 in
+    log)
+      if [[ $# -eq 1 ]]; then
+        fzf_git_log
+      else
+        command git "$@"
+      fi
+      ;;
+    branch)
+      if [[ $# -eq 1 ]]; then
+        fzf_git_branch
+      else
+        command git "$@"
+      fi
+      ;;
+    *)
+      command git "$@"
+      ;;
+  esac
+}
+
+# ===============================================
+# HISTORY FUNCTIONS
+# ===============================================
+
 hist_search() {
   history | fzf --tac --no-sort | sed 's/^[[:space:]]*[0-9]*[[:space:]]*//'
 }
@@ -102,31 +136,23 @@ hist_stats() {
   history | awk '{print $2}' | sort | uniq -c | sort -nr | head -20
 }
 
-export SOPS_AGE_KEY_FILE="$HOME/.age/key.txt"
-
+# ===============================================
+# NIX FUNCTIONS
+# ===============================================
 
 # Install nix packages in local default profile
-function ninstall() {
-	nix profile install "github:NixOS/nixpkgs#$1"
+ninstall() {
+  nix profile install "github:NixOS/nixpkgs#$1"
 }
 
-# Search nix packages for available packages
-function nsearch() {
-	nix search nixpkgs $1
+# Search nix packages
+nsearch() {
+  nix search nixpkgs $1
 }
 
-# Run a command in a Nix shell that includes Rust packages
-function nrr() {
-	nix-shell -p openssl libiconv pkg-config darwin.apple_sdk.frameworks.Security --run "$*"
-}
-
-
-# Run cargo with arguments in a Nix shell that includes Rust packages
-function nrc() {
-	nix-shell -p openssl libiconv pkg-config darwin.apple_sdk.frameworks.Security --run "cargo $@"
-}
-
-## Kuberentes (kubectl) functions --------------
+# ===============================================
+# KUBERNETES FUNCTIONS
+# ===============================================
 
 # Finds pods using a search term
 # Run using `podname <namespace> <search-term>
@@ -205,7 +231,7 @@ fkclogs() {
   kclogs "$@" | fblog
 }
 
-# Forwards porsts frmo a given pod by searching for a namespace
+# Forwards ports from a given pod by searching for a namespace
 # and pod name from other functions
 # Run using `kfwd <namespace-search-term> <podname-search-term> <port-to-forward>`
 kfwd() {
@@ -214,17 +240,18 @@ kfwd() {
   kubectl -n $ns port-forward $pod $3:$3
 }
 
-## End Kubernetes (kubectl) functions ---------
-
-
-# Generate kubernetes secret for the dashboard:
+# Generate kubernetes secret for the dashboard
 k8_dash_sec() {
- kubectl -n kube-system describe secret $(kubectl -n kube-system get secret | grep eks-admin | awk '{print $1}')
+  kubectl -n kube-system describe secret $(kubectl -n kube-system get secret | grep eks-admin | awk '{print $1}')
 }
 
-# Who has time to find the right extract command for the file. This does this for you
-function extract () {
-  if [ -f $1 ] ; then
+# ===============================================
+# UTILITY FUNCTIONS
+# ===============================================
+
+# Universal archive extractor
+extract() {
+  if [ -f $1 ]; then
     case $1 in
       *.tar.bz2)   tar xvjf $1    ;;
       *.tar.gz)    tar xvzf $1    ;;
@@ -245,9 +272,9 @@ function extract () {
   fi
 }
 
-# Ammend a specific git commit
+# Amend a specific git commit
 git-ammend-old() (
-  # Stash, apply to past commit, and rebase the current branch on to of the result.
+  # Stash, apply to past commit, and rebase the current branch on top of the result.
   current_branch="$(git rev-parse --abbrev-ref HEAD)"
   apply_to="$1"
   git stash
@@ -260,7 +287,12 @@ git-ammend-old() (
   git rebase --onto "$new_sha" "$apply_to"
 )
 
-# Let's add installed Rust and cargo path here
+# ===============================================
+# PATH ADDITIONS
+# ===============================================
+
+# Rust/Cargo binaries
 export PATH="$PATH:$HOME/.cargo/bin"
-# Let's add NPM global path
+
+# NPM global packages
 export PATH="$PATH:$HOME/.local/lib/bin"

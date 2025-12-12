@@ -1,7 +1,4 @@
 # Theme and Appearance
-# Ghostty uses proper-cased theme names (e.g. "Catppuccin Mocha").
-# The previous value (catppuccin-mocha) doesn't resolve and falls back
-# to defaults, so use the canonical name here.
 theme = Catppuccin Mocha
 font-family = "Hack"
 font-size = 14
@@ -25,22 +22,12 @@ confirm-close-surface = false
 copy-on-select = true
 mouse-scroll-multiplier = 3
 
-# Keybindings - Enhanced for productivity
-keybind = ctrl+shift+h=goto_split:left
-keybind = ctrl+shift+l=goto_split:right
-keybind = ctrl+shift+j=goto_split:down
-keybind = ctrl+shift+k=goto_split:up
-
-# New tab/window management
+# Tab management (splits handled by tmux)
 keybind = cmd+t=new_tab
 keybind = cmd+n=new_window
 keybind = cmd+w=close_surface
 
-# Split management
-keybind = cmd+d=new_split:right
-keybind = cmd+shift+d=new_split:down
-
-# Navigation
+# Tab navigation
 keybind = cmd+1=goto_tab:1
 keybind = cmd+2=goto_tab:2
 keybind = cmd+3=goto_tab:3

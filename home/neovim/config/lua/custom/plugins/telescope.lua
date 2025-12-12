@@ -41,17 +41,32 @@ telescope.setup({
             "%.lock",
         },
 
-        -- Mappings
+        -- Mappings (vi-mode friendly: Esc goes to normal mode, not close)
         mappings = {
             i = {
+                -- Navigation
                 ["<C-j>"] = actions.move_selection_next,
                 ["<C-k>"] = actions.move_selection_previous,
+                ["<C-n>"] = actions.move_selection_next,
+                ["<C-p>"] = actions.move_selection_previous,
+                -- Actions
                 ["<C-q>"] = actions.send_selected_to_qflist + actions.open_qflist,
-                ["<Esc>"] = actions.close,
+                ["<C-c>"] = actions.close, -- Ctrl-C to close from insert mode
                 ["<C-u>"] = false, -- Clear prompt instead of scroll
+                -- Don't map <Esc> - let it switch to normal mode for vi users
             },
             n = {
+                -- In normal mode, multiple ways to close
+                ["<Esc>"] = actions.close,
                 ["q"] = actions.close,
+                -- Navigation in normal mode
+                ["j"] = actions.move_selection_next,
+                ["k"] = actions.move_selection_previous,
+                ["gg"] = actions.move_to_top,
+                ["G"] = actions.move_to_bottom,
+                -- Preview scrolling
+                ["<C-u>"] = actions.preview_scrolling_up,
+                ["<C-d>"] = actions.preview_scrolling_down,
             },
         },
 
