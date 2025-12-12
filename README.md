@@ -48,11 +48,62 @@ A comprehensive Nix configuration for reproducible development environments acro
 
 4. **Enjoy your new environment!** 🎉
 
+## 🔌 Using as a Flake Input
+
+You can use the NeoVim, Terminal, and Tmux configurations in your own flake without adopting the entire configuration:
+
+```nix
+{
+  inputs = {
+    nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
+    home-manager.url = "github:nix-community/home-manager";
+
+    # Add this config as an input
+    cb-config.url = "github:chetanbhasin/nix-config";
+  };
+
+  outputs = { nixpkgs, home-manager, cb-config, ... }: {
+    homeConfigurations.myuser = home-manager.lib.homeManagerConfiguration {
+      pkgs = nixpkgs.legacyPackages.aarch64-darwin;
+      modules = [
+        # Import individual modules
+        cb-config.homeManagerModules.neovim
+        cb-config.homeManagerModules.terminal
+        cb-config.homeManagerModules.tmux
+
+        # Or import all at once
+        # cb-config.homeManagerModules.default
+
+        # Configure the modules
+        {
+          cb.neovim.enable = true;
+          cb.terminal.enable = true;
+          cb.tmux.enable = true;
+        }
+      ];
+    };
+  };
+}
+```
+
+### Available Modules
+
+| Module | Description | Options |
+|--------|-------------|---------|
+| `neovim` | Full NeoVim IDE with LSP, treesitter, and 50+ plugins | `cb.neovim.enable`, `cb.neovim.enableTmuxIntegration`, `cb.neovim.treesitterGrammars` |
+| `terminal` | Zsh + FZF + Starship + Direnv + Zoxide + Ghostty | `cb.terminal.enable`, `cb.terminal.enableFzf`, `cb.terminal.enableStarship`, `cb.terminal.viMode` |
+| `tmux` | Modern tmux with sessions, FZF, and Catppuccin theme | `cb.tmux.enable`, `cb.tmux.enableVimIntegration`, `cb.tmux.enableSessionPersistence` |
+| `default` | All modules combined | All options from above |
+
+See [Module Options Documentation](docs/modules.md) for complete configuration options.
+
 ## 📖 Documentation
 
 📖 **[IDE Setup Guide](docs/ide.md)** - Comprehensive guide to the powerful Neovim IDE configuration with language servers, type annotations, keyboard shortcuts, Claude AI integration, and development workflows.
 
 🚀 **[Terminal Configuration Guide](docs/terminal.md)** - Complete guide to the modern terminal setup with Zsh, FZF, tmux, and Ghostty for enhanced productivity and development workflows.
+
+📦 **[Module Options](docs/modules.md)** - Complete reference for all exportable Home Manager module options.
 
 ### Development
 
