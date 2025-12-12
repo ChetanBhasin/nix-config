@@ -78,4 +78,18 @@ nix flake update
 - The configuration is optimized for aarch64-darwin (Apple Silicon)
 - Homebrew usage is minimized - prefer nixpkgs when packages have proper aarch64-darwin support
 - Home Manager provides user-level package management across platforms
-- All hosts use nushell available as a package but zsh as default shell
+- All hosts use zsh as default shell with starship prompt
+
+## Shell Configuration
+
+The shell setup uses a layered approach:
+- `home/zsh/default.nix`: Main zsh configuration with plugins (via nixpkgs)
+- `home/zsh/sources.sh`: Platform-agnostic shell configuration (symlinked to `~/.sources`)
+- `home/zsh/sources_darwin.sh` / `sources_linux.sh`: Platform-specific config (symlinked to `~/.sources_platform`)
+
+Shell plugins are managed via nixpkgs packages for automatic updates:
+- `zsh-syntax-highlighting`
+- `zsh-fzf-tab`
+- `zsh-history-substring-search`
+
+FZF configuration is managed via `programs.fzf` in nix, not shell exports.

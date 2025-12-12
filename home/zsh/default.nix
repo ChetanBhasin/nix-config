@@ -1,4 +1,4 @@
-{ config, pkgs, ... }: {
+{ config, pkgs, lib, ... }: {
   programs.zsh = {
     enable = true;
     enableCompletion = true;
@@ -14,10 +14,9 @@
       expireDuplicatesFirst = true;
     };
     shellAliases = {
-      ls = "exa";
       c = "z";
     };
-    sessionVariables = rec {
+    sessionVariables = {
       EDITOR = "nvim";
       OPENSSL_NO_VENDOR = "1";
       OPENSSL_LIB_DIR = "${pkgs.openssl.out}/lib";
@@ -26,95 +25,31 @@
       LIBRARY_PATH = "LIBRARY_PATH:${pkgs.libiconv}/lib:${pkgs.poppler}/lib";
       PKG_CONFIG_PATH =
         "$PKG_CONFIG_PATH:${pkgs.rdkafka}/lib/pkgconfig:${pkgs.libiconv}/lib/pkgconfig:${pkgs.leptonica}/lib/pkgconfig/:${pkgs.tesseract}/lib/pkgconfig";
-      CC = if pkgs.stdenv.isDarwin then "clang" else "$CC";
-      CXX = if pkgs.stdenv.isDarwin then "clang++" else "$CXX";
     };
 
     initContent = ''
-      export CARAPACE_BRIDGES='zsh,fish,bash,inshellisense' # optional
-      zstyle ':completion:*' format $'\e[2;37mCompleting %d\e[m'
-      source <(carapace _carapace)
-      export SDKROOT="$(xcrun --sdk macosx --show-sdk-path)"
-      export MACOSX_DEPLOYMENT_TARGET="$(sw_vers -productVersion | cut -d. -f1-2)"
-      ${builtins.readFile ./sources.sh}
-
-      # Enhanced Git functions with FZF
-      fzf_git_log() {
-        git log --oneline --color=always | fzf --ansi --preview 'git show --color=always {1}'
-      }
-
-      fzf_git_branch() {
-        git branch -a --color=always | grep -v '/HEAD\s' | sort | fzf --ansi --preview 'git log --oneline --graph --date=short --color=always --pretty="format:%C(auto)%cd %h%d %s" $(sed s/^..// <<< {} | cut -d" " -f1) | head -'$LINES
-      }
-
-      # Override git log and git branch with FZF versions when called without arguments
-      git() {
-        case $1 in
-          log)
-            if [[ $# -eq 1 ]]; then
-              fzf_git_log
-            else
-              command git "$@"
-            fi
-            ;;
-          branch)
-            if [[ $# -eq 1 ]]; then
-              fzf_git_branch
-            else
-              command git "$@"
-            fi
-            ;;
-          *)
-            command git "$@"
-            ;;
-        esac
-      }
-
-      # Other utility functions
-      fzf_kill() {
-        local pid
-        pid=$(ps -ef | sed 1d | fzf -m | awk '{print $2}')
-        if [ "x$pid" != "x" ]; then
-          echo $pid | xargs kill -''${1:-9}
-        fi
-      }
-
-      hist_search() {
-        print -z $( ([ -n "$ZSH_NAME" ] && fc -l 1 || history) | fzf +s --tac | sed 's/ *[0-9]* *//')
-      }
-
-      hist_stats() {
-        history | awk '{CMD[$2]++;count++;}END { for (a in CMD)print CMD[a] " " CMD[a]/count*100 "% " a;}' | grep -v "./" | column -c3 -s " " -t | sort -nr | nl |  head -n20
-      }
+      # Source main configuration
+      [[ -f ~/.sources ]] && source ~/.sources
     '';
 
     plugins = [
       {
-        name = "zsh-autosuggestions";
-        src = pkgs.fetchFromGitHub {
-          owner = "zsh-users";
-          repo = "zsh-autosuggestions";
-          rev = "v0.7.0";
-          sha256 = "1g3pij5qn2j7v7jjac2a63lxd97mcsgw6xq6k5p7835q9fjiid98";
-        };
-      }
-      {
+        # Syntax highlighting - use nixpkgs version
         name = "zsh-syntax-highlighting";
-        src = pkgs.fetchFromGitHub {
-          owner = "zsh-users";
-          repo = "zsh-syntax-highlighting";
-          rev = "0.8.0";
-          sha256 = "0zmq66dzasmr5pwribyh4kbkk23jxbpdw4rjxx0i7dx8jjp2lzl4";
-        };
+        src = pkgs.zsh-syntax-highlighting;
+        file = "share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh";
       }
       {
+        # FZF-powered tab completion - use nixpkgs version (v1.2.0)
         name = "fzf-tab";
-        src = pkgs.fetchFromGitHub {
-          owner = "Aloxaf";
-          repo = "fzf-tab";
-          rev = "v1.1.2";
-          sha256 = "061jjpgghn8d5q2m2cd2qdjwbz38qrcarldj16xvxbid4c137zs2";
-        };
+        src = pkgs.zsh-fzf-tab;
+        file = "share/fzf-tab/fzf-tab.plugin.zsh";
+      }
+      {
+        # History substring search - fish-style
+        name = "zsh-history-substring-search";
+        src = pkgs.zsh-history-substring-search;
+        file = "share/zsh-history-substring-search/zsh-history-substring-search.zsh";
       }
     ];
   };
@@ -140,21 +75,30 @@
       # Keep Ctrl bindings for power users
       "--bind=ctrl-u:preview-half-page-up,ctrl-d:preview-half-page-down"
       "--bind=ctrl-f:preview-page-down,ctrl-b:preview-page-up"
+      "--bind=ctrl-/:toggle-preview"
     ];
+    fileWidgetCommand = "fd --type f --hidden --follow --exclude .git";
+    fileWidgetOptions = [
+      "--preview 'bat --color=always --line-range :100 {}'"
+      "--bind 'ctrl-/:change-preview-window(down|hidden|)'"
+    ];
+    changeDirWidgetCommand = "fd --type d --hidden --follow --exclude .git";
+    changeDirWidgetOptions = [ "--preview 'tree -C {} | head -200'" ];
     historyWidgetOptions = [
       "--sort"
       "--exact"
       "--preview 'echo {}'"
       "--preview-window up:3:hidden:wrap"
       "--bind 'ctrl-/:toggle-preview'"
-      "--bind 'ctrl-y:execute-silent(echo -n {2..} | pbcopy)+abort'"
       "--color header:italic"
       "--header 'Press CTRL-Y to copy command into clipboard'"
     ];
-    fileWidgetOptions = [
-      "--preview 'head -100 {}'"
-      "--bind 'ctrl-/:change-preview-window(down|hidden|)'"
-    ];
-    changeDirWidgetOptions = [ "--preview 'tree -C {} | head -200'" ];
   };
+
+  # Symlink sources files to home directory
+  home.file.".sources".source = ./sources.sh;
+  home.file.".sources_platform".source =
+    if pkgs.stdenv.isDarwin
+    then ./sources_darwin.sh
+    else ./sources_linux.sh;
 }
