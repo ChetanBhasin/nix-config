@@ -9,7 +9,8 @@ This is a cross-platform Nix configuration supporting both macOS (Darwin) and Li
 ### Key Architectural Components
 
 **Flake Structure (`flake.nix`)**:
-- `darwinConfigurations`: macOS systems using nix-darwin (hugh, markus)  
+- `darwinConfigurations`: macOS systems using nix-darwin (hugh, markus)
+- `homeManagerModules`: Exportable Home Manager modules for external use (neovim, terminal, tmux)
 - `nixosModules` and `darwinModules`: Reusable module functions for platform-specific setups
 - Home Manager integration for both platforms with user-specific configurations
 
@@ -93,3 +94,44 @@ Shell plugins are managed via nixpkgs packages for automatic updates:
 - `zsh-history-substring-search`
 
 FZF configuration is managed via `programs.fzf` in nix, not shell exports.
+
+## Exportable Home Manager Modules
+
+The repository exports standalone Home Manager modules via `homeManagerModules` for use in other flakes:
+
+**Module Structure (`modules/homeManager/`)**:
+- `neovim.nix`: NeoVim IDE with LSP, treesitter, 50+ plugins (options under `cb.neovim.*`)
+- `terminal.nix`: Zsh + FZF + Starship + Direnv + Zoxide + Ghostty (options under `cb.terminal.*`)
+- `tmux.nix`: Modern tmux with sessions, FZF, Catppuccin theme (options under `cb.tmux.*`)
+- `default.nix`: Index that exports all modules
+
+**Design Principles**:
+- Modules are self-contained and can be used independently
+- Each module has an `enable` option (defaults to `false`) for explicit opt-in
+- Config files are referenced via relative paths from the module files
+- Platform-specific behavior handled via `pkgs.stdenv.isDarwin` checks
+
+**Relationship with `home/` Directory**:
+- `home/` contains the internal configuration used by `darwinConfigurations`
+- `modules/homeManager/` contains exportable versions with options
+- These are intentionally parallel (some duplication) to:
+  - Keep existing configurations stable
+  - Allow external modules to evolve independently
+  - Avoid breaking changes when adding features
+
+**Usage by External Flakes**:
+```nix
+{
+  inputs.cb-config.url = "github:chetanbhasin/nix-config";
+  outputs = { cb-config, ... }: {
+    homeConfigurations.user = {
+      modules = [
+        cb-config.homeManagerModules.neovim
+        { cb.neovim.enable = true; }
+      ];
+    };
+  };
+}
+```
+
+See `docs/modules.md` for complete option documentation.

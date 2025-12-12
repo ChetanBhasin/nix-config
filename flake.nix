@@ -86,6 +86,10 @@
           }
         ];
     in {
+      # Standalone Home Manager modules for use in other flakes
+      # Usage: inputs.nix-config.homeManagerModules.neovim
+      homeManagerModules = import ./modules/homeManager;
+
       darwinConfigurations = {
         nix.enable = false;
         environment.etc."determinate/config.json".text =
