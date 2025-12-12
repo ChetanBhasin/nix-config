@@ -1,0 +1,285 @@
+# yaml-language-server: $schema=config.schema.yaml
+# Simple which-key config - complex FZF commands are in tmux.conf
+command_alias_start_index: 200
+
+keybindings:
+  prefix_table: Space
+  root_table: C-Space
+
+title:
+  style: "align=centre,bold"
+  prefix: "tmux"
+  prefix_style: "fg=#8aadf4,bold"
+
+position:
+  x: C
+  y: C
+
+custom_variables: []
+
+macros:
+  - name: reload-config
+    commands:
+      - "source-file ~/.tmux.conf"
+      - "display-message \"Config reloaded!\""
+
+items:
+  # Quick actions
+  - name: "New window"
+    key: "c"
+    command: "new-window -c \"#{pane_current_path}\""
+
+  - name: "Next window"
+    key: "n"
+    command: "next-window"
+
+  - name: "Previous window"
+    key: "N"
+    command: "previous-window"
+
+  - name: "Split vertical"
+    key: "|"
+    command: "split-window -h -c \"#{pane_current_path}\""
+
+  - name: "Split horizontal"
+    key: "-"
+    command: "split-window -v -c \"#{pane_current_path}\""
+
+  - name: "Zoom pane"
+    key: "z"
+    command: "resize-pane -Z"
+
+  - name: "Kill pane"
+    key: "x"
+    command: "confirm-before -p \"Kill pane? (y/n)\" kill-pane"
+
+  - name: "Reload config"
+    key: "r"
+    command: "macro reload-config"
+
+  - name: "Toggle mouse"
+    key: "m"
+    command: "set-option -g mouse"
+
+  - name: "Toggle status"
+    key: "t"
+    command: "set-option -g status"
+
+  - name: "Copy mode"
+    key: "["
+    command: "copy-mode"
+
+  - name: "Paste buffer"
+    key: "]"
+    command: "paste-buffer"
+
+  - name: "Thumbs (hints)"
+    key: "T"
+    command: "thumbs-pick"
+
+  - separator: true
+
+  # Pane navigation
+  - name: "Pane left"
+    key: "h"
+    command: "select-pane -L"
+
+  - name: "Pane down"
+    key: "j"
+    command: "select-pane -D"
+
+  - name: "Pane up"
+    key: "k"
+    command: "select-pane -U"
+
+  - name: "Pane right"
+    key: "l"
+    command: "select-pane -R"
+
+  - separator: true
+
+  # Sessions submenu (simple commands only)
+  - name: "+Sessions"
+    key: "s"
+    menu:
+      - name: "Switch session"
+        key: "s"
+        command: "choose-tree -Zs"
+
+      - name: "New session"
+        key: "n"
+        command: "command-prompt -p \"Session name:\" \"new-session -s '%%'\""
+
+      - name: "Rename session"
+        key: "r"
+        command: "command-prompt -p \"Rename:\" \"rename-session '%%'\""
+
+      - name: "Kill session"
+        key: "k"
+        command: "confirm-before -p \"Kill session? (y/n)\" kill-session"
+
+      - name: "Detach"
+        key: "d"
+        command: "detach-client"
+
+  # Windows submenu
+  - name: "+Windows"
+    key: "w"
+    menu:
+      - name: "New window"
+        key: "n"
+        command: "new-window -c \"#{pane_current_path}\""
+
+      - name: "Rename window"
+        key: "r"
+        command: "command-prompt -p \"Rename:\" \"rename-window '%%'\""
+
+      - name: "Kill window"
+        key: "k"
+        command: "confirm-before -p \"Kill window? (y/n)\" kill-window"
+
+      - name: "Choose window"
+        key: "l"
+        command: "choose-tree -Zw"
+
+      - separator: true
+
+      - name: "Move left"
+        key: "<"
+        command: "swap-window -t -1"
+
+      - name: "Move right"
+        key: ">"
+        command: "swap-window -t +1"
+
+  # Panes submenu
+  - name: "+Panes"
+    key: "p"
+    menu:
+      - name: "Split vertical"
+        key: "|"
+        command: "split-window -h -c \"#{pane_current_path}\""
+
+      - name: "Split horizontal"
+        key: "-"
+        command: "split-window -v -c \"#{pane_current_path}\""
+
+      - separator: true
+
+      - name: "Zoom toggle"
+        key: "z"
+        command: "resize-pane -Z"
+
+      - name: "Kill pane"
+        key: "k"
+        command: "confirm-before -p \"Kill pane? (y/n)\" kill-pane"
+
+      - name: "Break to window"
+        key: "!"
+        command: "break-pane"
+
+      - name: "Mark pane"
+        key: "m"
+        command: "select-pane -m"
+
+      - name: "Rename pane"
+        key: "R"
+        command: "command-prompt -p \"Pane title:\" \"select-pane -T '%%'\""
+
+      - separator: true
+
+      - name: "+Resize"
+        key: "r"
+        menu:
+          - name: "Left"
+            key: "h"
+            command: "resize-pane -L 5"
+            transient: true
+
+          - name: "Down"
+            key: "j"
+            command: "resize-pane -D 5"
+            transient: true
+
+          - name: "Up"
+            key: "k"
+            command: "resize-pane -U 5"
+            transient: true
+
+          - name: "Right"
+            key: "l"
+            command: "resize-pane -R 5"
+            transient: true
+
+      - name: "+Layouts"
+        key: "L"
+        menu:
+          - name: "Even horizontal"
+            key: "h"
+            command: "select-layout even-horizontal"
+
+          - name: "Even vertical"
+            key: "v"
+            command: "select-layout even-vertical"
+
+          - name: "Tiled"
+            key: "t"
+            command: "select-layout tiled"
+
+          - name: "Next layout"
+            key: "n"
+            command: "next-layout"
+
+  # Git submenu (simple - lazygit via prefix+g g)
+  - name: "+Git"
+    key: "g"
+    menu:
+      - name: "Lazygit"
+        key: "g"
+        command: "display-popup -E -w 90% -h 90% lazygit"
+
+      - name: "Git status"
+        key: "s"
+        command: "display-popup -E -w 80% -h 80% git status"
+
+      - name: "Git log"
+        key: "l"
+        command: "display-popup -E -w 80% -h 80% \"git log --oneline --graph -20\""
+
+      - name: "Git diff"
+        key: "d"
+        command: "display-popup -E -w 80% -h 80% git diff"
+
+  # Find submenu
+  - name: "+Find"
+    key: "f"
+    menu:
+      - name: "Copy mode"
+        key: "c"
+        command: "copy-mode"
+
+      - name: "Show messages"
+        key: "l"
+        command: "show-messages"
+
+      - name: "Reload config"
+        key: "r"
+        command: "macro reload-config"
+
+      - name: "Command prompt"
+        key: ":"
+        command: "command-prompt"
+
+  - separator: true
+
+  # Help
+  - name: "+Help"
+    key: "?"
+    menu:
+      - name: "Show all keys"
+        key: "a"
+        command: "list-keys"
+
+      - name: "Describe key"
+        key: "d"
+        command: "command-prompt -p \"Key:\" \"list-keys -1 '%%'\""

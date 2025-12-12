@@ -30,20 +30,23 @@ in {
       # Session management and persistence
       resurrect
       continuum
-      session-wizard # Available in nixpkgs
+      session-wizard
 
       # Enhanced user experience with FZF
-      tmux-fzf # Available in nixpkgs
-      extrakto # Smart text extraction with fzf
-      fzf-tmux-url # Quick URL opening with fzf
+      tmux-fzf
+      extrakto
+      fzf-tmux-url
 
       # Visual feedback and status
-      prefix-highlight # Visual feedback for prefix key
-      battery # Battery status
-      cpu # CPU information
+      prefix-highlight
+      battery
+      cpu
 
       # Clipboard integration
       yank
+
+      # Vimium/easymotion-like hints for quick text selection
+      tmux-thumbs
 
       # Theme
       catppuccin
@@ -57,6 +60,17 @@ in {
     '';
   };
 
-  # Install required dependencies for FZF integration
-  home.packages = with pkgs; [ fzf ripgrep fd bat jq ];
+  # Pre-generated which-key menu (generated from which-key-config.yaml via build.py)
+  home.file.".config/tmux/which-key-init.tmux".source = ./which-key-init.tmux;
+
+  # Install required dependencies
+  home.packages = with pkgs; [
+    fzf
+    ripgrep
+    fd
+    bat
+    jq
+    python3
+    coreutils
+  ];
 }
