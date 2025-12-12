@@ -159,14 +159,7 @@ vim.g.rustaceanvim = {
 }
 
 
-
--- Configure inlay hints appearance
-vim.api.nvim_set_hl(0, 'LspInlayHint', {
-    fg = '#7c7c7c',
-    bg = 'NONE',
-    italic = true,
-    bold = false,
-})
+-- Note: LspInlayHint highlight is configured in colors.lua for consistency
 
 -- Additional Rust-specific settings
 vim.api.nvim_create_autocmd("FileType", {

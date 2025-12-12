@@ -1,39 +1,31 @@
+-- ═══════════════════════════════════════════════════════════════════════════════
+-- 🧠 LSP CONFIGURATION (Neovim 0.11+ native API)
+-- ═══════════════════════════════════════════════════════════════════════════════
+-- Using vim.lsp.config() and vim.lsp.enable() instead of deprecated lspconfig.setup()
+
 if vim.g._custom_lsp_setup_done then return end
 vim.g._custom_lsp_setup_done = true
 
-local lspconfig = require('lspconfig')
-local util = require('lspconfig.util')
-
--- Guard: ensure only one client per server per root_dir
-local function unique_root(server_names, base_root)
-  local names = {}
-  if type(server_names) == 'table' then
-    for _, n in ipairs(server_names) do names[n] = true end
-  else
-    names[server_names] = true
-  end
-  return function(fname)
-    local root = base_root and base_root(fname) or nil
-    if not root then return nil end
-    for _, client in ipairs(vim.lsp.get_active_clients()) do
-      if names[client.name] and client.config and client.config.root_dir == root then
-        return nil -- another instance already managing this root
-      end
-    end
-    return root
-  end
-end
+-- ═══════════════════════════════════════════════════════════════════════════════
+-- SHARED CONFIGURATION
+-- ═══════════════════════════════════════════════════════════════════════════════
 
 local lsp_capabilities = require('cmp_nvim_lsp').default_capabilities()
 
--- Enhanced on_attach function
+-- Shared on_attach function for all LSP clients
 local on_attach = function(client, bufnr)
-    -- All keybindings are centralized in keymaps.lua
-    -- This function only handles LSP-specific setup
+    -- Enable inlay hints if supported (using colon syntax for Neovim 0.11+)
+    if client:supports_method('textDocument/inlayHint') then
+        vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })
+    end
 end
 
--- TypeScript/JavaScript setup
-lspconfig.ts_ls.setup({
+-- ═══════════════════════════════════════════════════════════════════════════════
+-- SERVER CONFIGURATIONS
+-- ═══════════════════════════════════════════════════════════════════════════════
+
+-- TypeScript/JavaScript
+vim.lsp.config('ts_ls', {
     capabilities = lsp_capabilities,
     on_attach = on_attach,
     settings = {
@@ -64,32 +56,26 @@ lspconfig.ts_ls.setup({
     }
 })
 
--- Python: Ruff (linter)
-local ruff_base_root = util.root_pattern('pyproject.toml', 'ruff.toml', '.ruff.toml', '.git')
-lspconfig.ruff.setup({
+-- Python: Ruff (linter) - disable hover to avoid conflict with basedpyright
+vim.lsp.config('ruff', {
     capabilities = lsp_capabilities,
     on_attach = function(client, bufnr)
         client.server_capabilities.hoverProvider = false
-        if on_attach then on_attach(client, bufnr) end
+        on_attach(client, bufnr)
     end,
-    single_file_support = false,
-    root_dir = unique_root({ 'ruff', 'ruff_lsp' }, ruff_base_root),
 })
 
 -- Python: BasedPyright (language server)
-local bp_base_root = util.root_pattern('pyproject.toml', 'pyrightconfig.json', 'poetry.lock', 'setup.py', 'setup.cfg', '.git')
-lspconfig.basedpyright.setup({
+vim.lsp.config('basedpyright', {
     capabilities = lsp_capabilities,
     on_attach = on_attach,
-    single_file_support = false,
-    root_dir = unique_root({ 'basedpyright', 'pyright' }, bp_base_root),
     settings = {
         basedpyright = {
             analysis = {
-                typeCheckingMode = "standard", -- "off", "basic", "standard", "strict"
+                typeCheckingMode = "standard",
                 autoSearchPaths = true,
                 useLibraryCodeForTypes = true,
-                diagnosticMode = "openFilesOnly", -- or "workspace"
+                diagnosticMode = "openFilesOnly",
                 inlayHints = {
                     variableTypes = true,
                     functionReturnTypes = true,
@@ -101,7 +87,22 @@ lspconfig.basedpyright.setup({
 })
 
 -- Nix with nixd (better than nil_ls)
-lspconfig.nixd.setup({
+-- Note: Options configuration is platform-aware (macOS doesn't have /etc/hostname)
+local nixd_options = {}
+
+-- Only configure NixOS options on Linux where /etc/hostname exists
+if vim.fn.has("unix") == 1 and vim.fn.filereadable("/etc/hostname") == 1 then
+    nixd_options.nixos = {
+        expr = '(builtins.getFlake ("git+file://" + toString ./.)).nixosConfigurations.${builtins.readFile /etc/hostname}.options',
+    }
+end
+
+-- Home Manager options (works on both platforms)
+nixd_options.home_manager = {
+    expr = '(builtins.getFlake ("git+file://" + toString ./.)).homeConfigurations."${builtins.getEnv "USER"}".options',
+}
+
+vim.lsp.config('nixd', {
     capabilities = lsp_capabilities,
     on_attach = on_attach,
     settings = {
@@ -110,48 +111,39 @@ lspconfig.nixd.setup({
                 expr = "import <nixpkgs> { }",
             },
             formatting = {
-                command = { "alejandra" }, -- or nixfmt, nixpkgs-fmt
+                command = { "alejandra" },
             },
-            options = {
-                nixos = {
-                    expr =
-                    '(builtins.getFlake ("git+file://" + toString ./.)).nixosConfigurations.${builtins.readFile /etc/hostname}.options',
-                },
-                home_manager = {
-                    expr =
-                    '(builtins.getFlake ("git+file://" + toString ./.)).homeConfigurations."${builtins.getEnv "USER"}".options',
-                },
-            },
+            options = nixd_options,
         },
     },
 })
 
 -- JSON
-lspconfig.jsonls.setup({
+vim.lsp.config('jsonls', {
     capabilities = lsp_capabilities,
     on_attach = on_attach,
 })
 
 -- YAML
-lspconfig.yamlls.setup({
+vim.lsp.config('yamlls', {
     capabilities = lsp_capabilities,
     on_attach = on_attach,
 })
 
 -- Kotlin
-lspconfig.kotlin_language_server.setup({
+vim.lsp.config('kotlin_language_server', {
     capabilities = lsp_capabilities,
     on_attach = on_attach,
 })
 
 -- Docker
-lspconfig.dockerls.setup({
+vim.lsp.config('dockerls', {
     capabilities = lsp_capabilities,
     on_attach = on_attach,
 })
 
 -- Lua with enhanced settings
-lspconfig.lua_ls.setup({
+vim.lsp.config('lua_ls', {
     capabilities = lsp_capabilities,
     on_attach = on_attach,
     settings = {
@@ -169,21 +161,13 @@ lspconfig.lua_ls.setup({
 })
 
 -- Bash
-lspconfig.bashls.setup({
+vim.lsp.config('bashls', {
     capabilities = lsp_capabilities,
     on_attach = on_attach,
 })
 
--- Gleam (if available)
-if vim.fn.executable('gleam') == 1 then
-    lspconfig.gleam.setup({
-        capabilities = lsp_capabilities,
-        on_attach = on_attach,
-    })
-end
-
 -- Go language server with inlay hints
-lspconfig.gopls.setup({
+vim.lsp.config('gopls', {
     capabilities = lsp_capabilities,
     on_attach = on_attach,
     settings = {
@@ -201,17 +185,54 @@ lspconfig.gopls.setup({
     },
 })
 
--- Rust setup is handled by rustaceanvim (see rust.lua)
+-- Gleam (conditional - only if available)
+if vim.fn.executable('gleam') == 1 then
+    vim.lsp.config('gleam', {
+        capabilities = lsp_capabilities,
+        on_attach = on_attach,
+    })
+end
 
--- LSP Settings - Basic completion and diagnostic configuration
+-- ═══════════════════════════════════════════════════════════════════════════════
+-- ENABLE ALL CONFIGURED SERVERS
+-- ═══════════════════════════════════════════════════════════════════════════════
+
+-- Core servers (always enabled)
+local servers = {
+    'ts_ls',
+    'ruff',
+    'basedpyright',
+    'nixd',
+    'jsonls',
+    'yamlls',
+    'kotlin_language_server',
+    'dockerls',
+    'lua_ls',
+    'bashls',
+    'gopls',
+}
+
+-- Add gleam if available
+if vim.fn.executable('gleam') == 1 then
+    table.insert(servers, 'gleam')
+end
+
+-- Enable all servers
+vim.lsp.enable(servers)
+
+-- Note: Rust setup is handled by rustaceanvim (see rust.lua)
+
+-- ═══════════════════════════════════════════════════════════════════════════════
+-- LSP UI CONFIGURATION
+-- ═══════════════════════════════════════════════════════════════════════════════
+
+-- Basic completion and diagnostic configuration
 vim.opt.completeopt = { 'menuone', 'noselect', 'noinsert' }
 vim.opt.shortmess = vim.opt.shortmess + { c = true }
 vim.opt.updatetime = 300
 
 -- Fixed column for diagnostics to appear
-vim.cmd([[
-    set signcolumn=yes
-]])
+vim.opt.signcolumn = "yes"
 
 -- Show diagnostic popup on cursor hold
 vim.api.nvim_create_autocmd("CursorHold", {
@@ -227,26 +248,11 @@ vim.api.nvim_create_autocmd("CursorHold", {
     end,
 })
 
--- Configure inlay hints appearance
-vim.api.nvim_set_hl(0, 'LspInlayHint', {
-    fg = '#6c7086',
-    bg = 'NONE',
-    italic = true
-})
+-- Note: LspInlayHint highlight is configured in colors.lua for consistency
 
 -- Configure LSP hover window
 vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, {
     border = "rounded",
     focusable = true,
     close_events = { "CursorMoved", "BufLeave", "InsertEnter" },
-})
-
--- Single, optimal inlay hints setup
-vim.api.nvim_create_autocmd("LspAttach", {
-    callback = function(args)
-        local client = vim.lsp.get_client_by_id(args.data.client_id)
-        if client and client.supports_method('textDocument/inlayHint') then
-            vim.lsp.inlay_hint.enable(true, { bufnr = args.buf })
-        end
-    end,
 })

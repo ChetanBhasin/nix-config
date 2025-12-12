@@ -113,35 +113,5 @@ end
 
 bufferline.setup(setup_opts)
 
--- Enhanced keybindings for pure bufferline workflow
-local function setup_bufferline_keymaps()
-    local keymap = vim.keymap.set
-
-    -- Quick buffer navigation
-    keymap("n", "<S-h>", ":BufferLineCyclePrev<CR>", { desc = "Previous buffer" })
-    keymap("n", "<S-l>", ":BufferLineCycleNext<CR>", { desc = "Next buffer" })
-
-    -- Pin/unpin buffers (replaces harpoon add/remove)
-    keymap("n", "<leader>bp", ":BufferLineTogglePin<CR>", { desc = "📌 Pin/unpin buffer" })
-    keymap("n", "<leader>ha", ":BufferLineTogglePin<CR>", { desc = "📌 Pin buffer (harpoon-like)" })
-
-    -- Buffer management (cleaned up, no duplicates)
-    keymap("n", "<leader>ba", ":BufferLineCloseOthers<CR>", { desc = "Close all other buffers" })
-    keymap("n", "<leader>bL", ":BufferLineCloseLeft<CR>", { desc = "Close buffers to the left" })
-    keymap("n", "<leader>bR", ":BufferLineCloseRight<CR>", { desc = "Close buffers to the right" })
-
-    -- Buffer picker (replaces harpoon menu) - avoiding conflict with <leader>fb
-    keymap("n", "<leader>hh", ":BufferLinePick<CR>", { desc = "📋 Pick buffer (harpoon-like)" })
-    keymap("n", "<leader>bb", ":BufferLinePick<CR>", { desc = "Pick buffer" })
-
-    -- Move buffers
-    keymap("n", "<leader>bmh", ":BufferLineMoveNext<CR>", { desc = "Move buffer right" })
-    keymap("n", "<leader>bml", ":BufferLineMovePrev<CR>", { desc = "Move buffer left" })
-end
-
--- Setup the keymaps
-setup_bufferline_keymaps()
-
--- Note: No auto-pinning - pin buffers manually using <leader>ha or <leader>bp
-
--- Note: Buffer groups are configured but not auto-toggled to avoid errors
+-- Note: All keybindings are centralized in keymaps.lua for discoverability via Legendary
+-- See: <leader>? to search all keybindings

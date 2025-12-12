@@ -17,15 +17,22 @@ with lib; {
           deadnix
           statix
           nixd
+          alejandra # Nix formatter for nixd
           taplo
           yamllint
           go
+          gopls # Go language server
           ctags
           stylua
           ruff
           ripgrep
           gzip
           nerd-fonts.hack
+          # Python debugging
+          python3Packages.debugpy
+          # Version control TUIs
+          lazygit
+          lazyjj
         ] ++ (with nodePackages; [
           dockerfile-language-server-nodejs
           typescript-language-server
@@ -36,10 +43,12 @@ with lib; {
         vim-cool
         comment-nvim
         vim-smoothie
-        vim-closer
+        nvim-autopairs # Replaced vim-closer with treesitter-aware autopairs
         telescope-nvim
         telescope-ui-select-nvim
+        telescope-fzf-native-nvim # Fast fuzzy finding
         legendary-nvim
+        which-key-nvim # Keybinding hints
         nvim-tree-lua
         nvim-web-devicons
         lualine-nvim
@@ -55,6 +64,12 @@ with lib; {
         rainbow-delimiters-nvim
         nvim-colorizer-lua
         lspkind-nvim
+        todo-comments-nvim # Highlight TODO/FIXME/etc
+        trouble-nvim # Better diagnostics UI
+        # Version control integration
+        gitsigns-nvim # Git/jj diff signs in gutter
+        lazygit-nvim # Lazygit floating window
+        lazyjj-nvim # Lazyjj floating window (for jj VCS)
         # FZF integration
         fzf-vim
         # Modern Rust plugin (successor to rust-tools.nvim)
@@ -62,12 +77,14 @@ with lib; {
         mini-nvim
         conform-nvim
         nvim-lspconfig
-        vim-vsnip
+        # Snippet engine (replaced vim-vsnip with LuaSnip)
+        luasnip
+        friendly-snippets
         mason-nvim
         mason-lspconfig-nvim
         nvim-cmp
         cmp-nvim-lsp
-        cmp-vsnip
+        cmp_luasnip # LuaSnip completion source
         cmp-nvim-lua
         cmp-buffer
         cmp-path
@@ -77,6 +94,10 @@ with lib; {
         cmp-spell
         cmp-clippy
         cmp-treesitter
+        # Debug Adapter Protocol
+        nvim-dap
+        nvim-dap-python
+        nvim-dap-ui
         (nvim-treesitter.withPlugins (p:
           with p; [
             astro
@@ -187,7 +208,6 @@ with lib; {
             slint
             snakemake
             solidity
-            ssh_config
             ssh_config
             starlark
             strace

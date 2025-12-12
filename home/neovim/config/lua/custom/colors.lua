@@ -153,7 +153,7 @@ require("catppuccin").setup {
             enabled = true,
             style = "nvchad"
         },
-        harpoon = true,
+        harpoon = false,
         mason = true,
         fidget = true,
         which_key = true,

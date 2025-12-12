@@ -35,6 +35,7 @@ end
 require("custom.plugins.indent-blankline")
 require("custom.plugins.rainbow-delimiters")
 require("custom.plugins.colorizer")
+require("custom.plugins.todo-comments") -- Highlight TODO/FIXME/etc comments
 
 -- Plugin Configurations (in logical loading order)
 require("custom.plugins.telescope")
@@ -43,6 +44,7 @@ require("custom.plugins.mason")
 require("custom.plugins.lsp")
 require("custom.plugins.conform")
 require("custom.plugins.cmp")
+require("custom.plugins.autopairs") -- Must load after cmp for integration
 require("custom.plugins.rust")
 require("custom.plugins.nvimtree")
 require("custom.plugins.bufferline")
@@ -50,6 +52,12 @@ require("custom.plugins.fterm")
 require("custom.plugins.fidget")
 require("custom.plugins.lualine")
 require("custom.plugins.dressing")
+require("custom.plugins.trouble") -- Better diagnostics UI
+require("custom.plugins.dap") -- Debug Adapter Protocol
+require("custom.plugins.gitsigns") -- Git diff signs in gutter
+require("custom.plugins.lazygit") -- Lazygit TUI integration
+require("custom.plugins.lazyjj") -- Lazyjj TUI integration (Jujutsu VCS)
+require("custom.plugins.which-key") -- Keybinding hints (load late to capture all keymaps)
 
 -- Built-in Plugin Setup
 require('Comment').setup()
