@@ -64,23 +64,9 @@ pcall(function()
 end)
 
 
--- LSP Diagnostics Options Setup
-local sign = function(opts)
-    vim.fn.sign_define(opts.name, {
-        texthl = opts.name,
-        text = opts.text,
-        numhl = ''
-    })
-end
-
-sign({ name = 'DiagnosticSignError', text = '❌' })
-sign({ name = 'DiagnosticSignWarn', text = '⚠️' })
-sign({ name = 'DiagnosticSignHint', text = '💡' })
-sign({ name = 'DiagnosticSignInfo', text = 'ℹ️' })
-
+-- LSP Diagnostics Options Setup (Neovim 0.11+ API)
 vim.diagnostic.config({
     virtual_text = false,
-    signs = true,
     update_in_insert = true,
     underline = true,
     severity_sort = false,
@@ -89,6 +75,21 @@ vim.diagnostic.config({
         source = 'always',
         header = '',
         prefix = '',
+    },
+    -- Signs configuration using new Neovim 0.11+ API (replaces sign_define)
+    signs = {
+        text = {
+            [vim.diagnostic.severity.ERROR] = '❌',
+            [vim.diagnostic.severity.WARN] = '⚠️',
+            [vim.diagnostic.severity.HINT] = '💡',
+            [vim.diagnostic.severity.INFO] = 'ℹ️',
+        },
+        numhl = {
+            [vim.diagnostic.severity.ERROR] = 'DiagnosticSignError',
+            [vim.diagnostic.severity.WARN] = 'DiagnosticSignWarn',
+            [vim.diagnostic.severity.HINT] = 'DiagnosticSignHint',
+            [vim.diagnostic.severity.INFO] = 'DiagnosticSignInfo',
+        },
     },
 })
 

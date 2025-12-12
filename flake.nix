@@ -27,12 +27,12 @@
 
   outputs = inputs@{ nixpkgs, darwin, home-manager, determinate, ... }:
     let
-      nixpkgsConfig = with inputs; {
+      nixpkgsConfig = {
         config = { allowUnfree = true; };
         overlays = [ ];
       };
       darwinModules = { user, host }:
-        with inputs; [
+        [
           # Main `nix-darwin` config
           (./. + "/hosts/${host}/configuration.nix")
           { nix.enable = false; }
@@ -41,8 +41,7 @@
             determinate-nix.customSettings = {
               # Experimental features needed by Determinate’s builder (+ your usual ones)
               experimental-features = "flakes external-builders";
-
-              # Trust your admin group so restricted settings from flakes are honored
+# Trust your admin group so restricted settings from flakes are honored
               trusted-users = "root @admin chetan";
 
               # Determinate Linux builder wiring (JSON, one line)
@@ -63,14 +62,14 @@
           }
         ];
       nixosModules = { user, host }:
-        with inputs; [
+        [
           # Main `nixos` config
           (./. + "/hosts/${host}/configuration.nix")
           # `home-manager` module
           home-manager.nixosModules.home-manager
           {
             nixpkgs = nixpkgsConfig;
-            users.users.${user}.shell = pkgs.zsh;
+            users.users.${user}.shell = nixpkgs.zsh;
             # `home-manager` config
             users.users.${user} = {
               home = "/home/${user}";
