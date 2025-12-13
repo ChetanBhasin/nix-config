@@ -154,9 +154,7 @@
     };
   };
 
-  xdg.configFile."ghostty/config".source = ./ghostty;
-
-  # Alacritty terminal emulator (alternative to Ghostty)
+  # Alacritty terminal emulator
   # Note: Installed via both Homebrew cask (for macOS app in /Applications)
   # and nixpkgs (for theme/config generation). Use the Homebrew version.
   programs.alacritty = {
@@ -217,6 +215,7 @@
       };
 
       keyboard.bindings = [
+        # Standard macOS shortcuts
         { key = "K"; mods = "Command"; action = "ClearHistory"; }
         { key = "N"; mods = "Command"; action = "SpawnNewInstance"; }
         { key = "W"; mods = "Command"; action = "Quit"; }
@@ -225,6 +224,17 @@
         { key = "Plus"; mods = "Command"; action = "IncreaseFontSize"; }
         { key = "Minus"; mods = "Command"; action = "DecreaseFontSize"; }
         { key = "Key0"; mods = "Command"; action = "ResetFontSize"; }
+        # Tmux window navigation: Super+1-9 (sends escape sequences to tmux)
+        # Note: \u001b is ESC in TOML (TOML doesn't support \x escapes)
+        { key = "Key1"; mods = "Command"; chars = "\\u001b[1;3P"; }
+        { key = "Key2"; mods = "Command"; chars = "\\u001b[2;3P"; }
+        { key = "Key3"; mods = "Command"; chars = "\\u001b[3;3P"; }
+        { key = "Key4"; mods = "Command"; chars = "\\u001b[4;3P"; }
+        { key = "Key5"; mods = "Command"; chars = "\\u001b[5;3P"; }
+        { key = "Key6"; mods = "Command"; chars = "\\u001b[6;3P"; }
+        { key = "Key7"; mods = "Command"; chars = "\\u001b[7;3P"; }
+        { key = "Key8"; mods = "Command"; chars = "\\u001b[8;3P"; }
+        { key = "Key9"; mods = "Command"; chars = "\\u001b[9;3P"; }
       ];
     };
   };

@@ -31,7 +31,7 @@ in {
       EDITOR = "nvim";
       VISUAL = "nvim";
       BROWSER = "firefox";
-      TERMINAL = "ghostty";
+      TERMINAL = "alacritty";
     };
 
     programs.zsh.enable = true;
@@ -164,7 +164,6 @@ in {
         "codex"
         "postico"
         "lens"
-        "ghostty"
         "alacritty"
         "db-browser-for-sqlite"
         "firefox"

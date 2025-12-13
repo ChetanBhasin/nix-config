@@ -102,7 +102,7 @@ Complete terminal environment with Zsh, FZF, Starship prompt, and more.
 | `cb.terminal.enableStarship` | boolean | `true` | Enable Starship prompt |
 | `cb.terminal.enableDirenv` | boolean | `true` | Enable direnv with nix-direnv |
 | `cb.terminal.enableZoxide` | boolean | `true` | Enable zoxide (smart cd) |
-| `cb.terminal.enableGhostty` | boolean | `true` | Enable Ghostty terminal config |
+| `cb.terminal.enableAlacritty` | boolean | `true` | Enable Alacritty terminal config |
 | `cb.terminal.enableDevEnvironment` | boolean | `false` | Enable development env vars (OpenSSL, rdkafka paths) |
 | `cb.terminal.viMode` | boolean | `true` | Enable vi mode for Zsh |
 | `cb.terminal.historySize` | integer | `50000` | Number of history entries |
@@ -121,7 +121,7 @@ Complete terminal environment with Zsh, FZF, Starship prompt, and more.
     viMode = true;
 
     # Disable components you don't need
-    enableGhostty = false;  # If using a different terminal
+    enableAlacritty = false;  # If using a different terminal
 
     # Add custom aliases
     extraAliases = {
@@ -144,7 +144,7 @@ Complete terminal environment with Zsh, FZF, Starship prompt, and more.
 - **Starship**: Minimal prompt with git, kubernetes, language version indicators
 - **Direnv**: Automatic environment switching with nix-direnv
 - **Zoxide**: Smart directory jumping
-- **Ghostty**: Pre-configured terminal emulator settings
+- **Alacritty**: Pre-configured terminal emulator settings
 - **Shell Functions**: Kubernetes helpers, git FZF integrations, extract utility
 
 ---

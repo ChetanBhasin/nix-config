@@ -19,7 +19,7 @@ A comprehensive Nix configuration for reproducible development environments acro
 
 ## ✨ Features
 
-- 🚀 **Modern Terminal Setup**: Zsh + FZF + Ghostty with enhanced productivity workflows
+- 🚀 **Modern Terminal Setup**: Zsh + FZF + Alacritty with enhanced productivity workflows
 - 🧠 **Powerful IDE**: Neovim with LSP, type annotations, smart navigation, and Claude AI integration
 - 🎯 **Tmux Configuration**: C-Space prefix, command palette, session management, and persistence
 - 📦 **Package Management**: Nix + Home Manager for reproducible environments
@@ -91,7 +91,7 @@ You can use the NeoVim, Terminal, and Tmux configurations in your own flake with
 | Module | Description | Options |
 |--------|-------------|---------|
 | `neovim` | Full NeoVim IDE with LSP, treesitter, and 50+ plugins | `cb.neovim.enable`, `cb.neovim.enableTmuxIntegration`, `cb.neovim.treesitterGrammars` |
-| `terminal` | Zsh + FZF + Starship + Direnv + Zoxide + Ghostty | `cb.terminal.enable`, `cb.terminal.enableFzf`, `cb.terminal.enableStarship`, `cb.terminal.viMode` |
+| `terminal` | Zsh + FZF + Starship + Direnv + Zoxide + Alacritty | `cb.terminal.enable`, `cb.terminal.enableFzf`, `cb.terminal.enableStarship`, `cb.terminal.viMode` |
 | `tmux` | Modern tmux with sessions, FZF, and Catppuccin theme | `cb.tmux.enable`, `cb.tmux.enableVimIntegration`, `cb.tmux.enableSessionPersistence` |
 | `default` | All modules combined | All options from above |
 
@@ -101,7 +101,7 @@ See [Module Options Documentation](docs/modules.md) for complete configuration o
 
 📖 **[IDE Setup Guide](docs/ide.md)** - Comprehensive guide to the powerful Neovim IDE configuration with language servers, type annotations, keyboard shortcuts, Claude AI integration, and development workflows.
 
-🚀 **[Terminal Configuration Guide](docs/terminal.md)** - Complete guide to the modern terminal setup with Zsh, FZF, tmux, and Ghostty for enhanced productivity and development workflows.
+🚀 **[Terminal Configuration Guide](docs/terminal.md)** - Complete guide to the modern terminal setup with Zsh, FZF, tmux, and Alacritty for enhanced productivity and development workflows.
 
 📦 **[Module Options](docs/modules.md)** - Complete reference for all exportable Home Manager module options.
 

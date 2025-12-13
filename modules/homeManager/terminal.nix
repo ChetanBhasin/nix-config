@@ -1,5 +1,5 @@
 # Standalone Terminal module for Home Manager
-# Combines: zsh, fzf, starship, direnv, zoxide, ghostty
+# Combines: zsh, fzf, starship, direnv, zoxide, alacritty
 # Can be imported by other flakes via: inputs.nix-config.homeManagerModules.terminal
 { config, pkgs, lib, ... }:
 
@@ -8,7 +8,18 @@ let
 
   # Paths to shell scripts (relative to this module)
   shellScriptsPath = ../../home/zsh;
-  ghosttyConfigPath = ../../home/defaultPrograms/ghostty;
+
+  # Platform-agnostic "Super" key modifier
+  # macOS: Command (Cmd), Linux: Control+Shift (Ctrl+number doesn't produce unique keycodes)
+  superMod = if pkgs.stdenv.isDarwin then "Command" else "Control|Shift";
+
+  # Generate tmux window switching keybindings (Super+1-9)
+  # Sends escape sequences that tmux binds to select-window
+  # Note: \u001b is ESC in TOML (TOML doesn't support \x escapes)
+  tmuxWindowBindings = builtins.genList (n:
+    let num = n + 1;
+    in { key = "Key${toString num}"; mods = superMod; chars = "\\u001b[${toString num};3P"; }
+  ) 9;
 in
 {
   options.cb.terminal = {
@@ -44,16 +55,10 @@ in
       description = "Enable zoxide (smart cd)";
     };
 
-    enableGhostty = lib.mkOption {
-      type = lib.types.bool;
-      default = true;
-      description = "Enable ghostty terminal configuration";
-    };
-
     enableAlacritty = lib.mkOption {
       type = lib.types.bool;
-      default = false;
-      description = "Enable alacritty terminal configuration (alternative to ghostty)";
+      default = true;
+      description = "Enable alacritty terminal configuration";
     };
 
     enableDevEnvironment = lib.mkOption {
@@ -355,11 +360,6 @@ in
       };
     })
 
-    # Ghostty terminal configuration
-    (lib.mkIf cfg.enableGhostty {
-      xdg.configFile."ghostty/config".source = ghosttyConfigPath;
-    })
-
     # Alacritty terminal configuration
     (lib.mkIf cfg.enableAlacritty {
       programs.alacritty = {
@@ -367,7 +367,7 @@ in
         # Use catppuccin_mocha theme from alacritty-theme package
         theme = "catppuccin_mocha";
         settings = {
-          # Window configuration to match Ghostty
+          # Window configuration
           window = {
             dimensions = {
               columns = 150;
@@ -384,7 +384,7 @@ in
             option_as_alt = "OnlyLeft";
           };
 
-          # Font configuration to match Ghostty
+          # Font configuration
           font = {
             normal = {
               family = "JetBrainsMono Nerd Font";
@@ -405,7 +405,7 @@ in
             size = 14.0;
           };
 
-          # Cursor configuration to match Ghostty
+          # Cursor configuration
           cursor = {
             style = {
               shape = "Block";
@@ -414,7 +414,7 @@ in
             unfocused_hollow = true;
           };
 
-          # Selection behavior to match Ghostty's copy-on-select
+          # Selection behavior (copy-on-select)
           selection = {
             save_to_clipboard = true;
           };
@@ -425,17 +425,21 @@ in
             multiplier = 3;
           };
 
-          # Keyboard bindings for macOS
-          keyboard.bindings = lib.optionals pkgs.stdenv.isDarwin [
-            { key = "K"; mods = "Command"; action = "ClearHistory"; }
-            { key = "N"; mods = "Command"; action = "SpawnNewInstance"; }
-            { key = "W"; mods = "Command"; action = "Quit"; }
-            { key = "C"; mods = "Command"; action = "Copy"; }
-            { key = "V"; mods = "Command"; action = "Paste"; }
-            { key = "Plus"; mods = "Command"; action = "IncreaseFontSize"; }
-            { key = "Minus"; mods = "Command"; action = "DecreaseFontSize"; }
-            { key = "Key0"; mods = "Command"; action = "ResetFontSize"; }
-          ];
+          # Keyboard bindings
+          keyboard.bindings =
+            # macOS-specific bindings (standard Cmd shortcuts)
+            lib.optionals pkgs.stdenv.isDarwin [
+              { key = "K"; mods = "Command"; action = "ClearHistory"; }
+              { key = "N"; mods = "Command"; action = "SpawnNewInstance"; }
+              { key = "W"; mods = "Command"; action = "Quit"; }
+              { key = "C"; mods = "Command"; action = "Copy"; }
+              { key = "V"; mods = "Command"; action = "Paste"; }
+              { key = "Plus"; mods = "Command"; action = "IncreaseFontSize"; }
+              { key = "Minus"; mods = "Command"; action = "DecreaseFontSize"; }
+              { key = "Key0"; mods = "Command"; action = "ResetFontSize"; }
+            ]
+            # Tmux window navigation: Super+1-9 (Cmd on macOS, Ctrl+Shift on Linux)
+            ++ tmuxWindowBindings;
         };
       };
     })
