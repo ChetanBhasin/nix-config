@@ -330,7 +330,7 @@ Ghostty is configured as a **modern, fast terminal emulator** with:
 ### 🎨 **Visual Configuration**
 
 - **Theme**: Catppuccin Mocha for consistent dark theme
-- **Font**: Hack font at 14pt for excellent readability
+- **Font**: JetBrains Mono Nerd Font at 14pt for excellent readability
 - **Cursor**: Block cursor for better visibility
 - **Padding**: 8px padding for comfortable viewing
 - **Window decoration**: Native macOS window styling
@@ -438,7 +438,7 @@ export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
 ```ini
 # Theme and appearance
 theme = Catppuccin Mocha
-font-family = "Hack"
+font-family = "JetBrains Mono"
 font-size = 14
 
 # macOS integration

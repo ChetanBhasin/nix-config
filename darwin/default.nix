@@ -165,6 +165,7 @@ in {
         "postico"
         "lens"
         "ghostty"
+        "alacritty"
         "db-browser-for-sqlite"
         "firefox"
         "fork"

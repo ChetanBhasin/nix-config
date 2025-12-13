@@ -50,6 +50,12 @@ in
       description = "Enable ghostty terminal configuration";
     };
 
+    enableAlacritty = lib.mkOption {
+      type = lib.types.bool;
+      default = false;
+      description = "Enable alacritty terminal configuration (alternative to ghostty)";
+    };
+
     enableDevEnvironment = lib.mkOption {
       type = lib.types.bool;
       default = false;
@@ -352,6 +358,86 @@ in
     # Ghostty terminal configuration
     (lib.mkIf cfg.enableGhostty {
       xdg.configFile."ghostty/config".source = ghosttyConfigPath;
+    })
+
+    # Alacritty terminal configuration
+    (lib.mkIf cfg.enableAlacritty {
+      programs.alacritty = {
+        enable = true;
+        # Use catppuccin_mocha theme from alacritty-theme package
+        theme = "catppuccin_mocha";
+        settings = {
+          # Window configuration to match Ghostty
+          window = {
+            dimensions = {
+              columns = 150;
+              lines = 100;
+            };
+            padding = {
+              x = 8;
+              y = 8;
+            };
+            dynamic_padding = true;
+            decorations = "Buttonless";
+            opacity = 1.0;
+          } // lib.optionalAttrs pkgs.stdenv.isDarwin {
+            option_as_alt = "OnlyLeft";
+          };
+
+          # Font configuration to match Ghostty
+          font = {
+            normal = {
+              family = "JetBrainsMono Nerd Font";
+              style = "Regular";
+            };
+            bold = {
+              family = "JetBrainsMono Nerd Font";
+              style = "Bold";
+            };
+            italic = {
+              family = "JetBrainsMono Nerd Font";
+              style = "Italic";
+            };
+            bold_italic = {
+              family = "JetBrainsMono Nerd Font";
+              style = "Bold Italic";
+            };
+            size = 14.0;
+          };
+
+          # Cursor configuration to match Ghostty
+          cursor = {
+            style = {
+              shape = "Block";
+              blinking = "Off";
+            };
+            unfocused_hollow = true;
+          };
+
+          # Selection behavior to match Ghostty's copy-on-select
+          selection = {
+            save_to_clipboard = true;
+          };
+
+          # Scrolling configuration
+          scrolling = {
+            history = 10000;
+            multiplier = 3;
+          };
+
+          # Keyboard bindings for macOS
+          keyboard.bindings = lib.optionals pkgs.stdenv.isDarwin [
+            { key = "K"; mods = "Command"; action = "ClearHistory"; }
+            { key = "N"; mods = "Command"; action = "SpawnNewInstance"; }
+            { key = "W"; mods = "Command"; action = "Quit"; }
+            { key = "C"; mods = "Command"; action = "Copy"; }
+            { key = "V"; mods = "Command"; action = "Paste"; }
+            { key = "Plus"; mods = "Command"; action = "IncreaseFontSize"; }
+            { key = "Minus"; mods = "Command"; action = "DecreaseFontSize"; }
+            { key = "Key0"; mods = "Command"; action = "ResetFontSize"; }
+          ];
+        };
+      };
     })
 
     # Common packages needed by the terminal configuration
