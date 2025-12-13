@@ -92,7 +92,7 @@ in
           ruff
           ripgrep
           gzip
-          nerd-fonts.hack
+          nerd-fonts.jetbrains-mono
 
           # Python debugging
           python3Packages.debugpy

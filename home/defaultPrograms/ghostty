@@ -1,6 +1,6 @@
 # Theme and Appearance
 theme = Catppuccin Mocha
-font-family = "Hack"
+font-family = "JetBrains Mono"
 font-size = 14
 cursor-style = "block"
 window-theme = "auto"
