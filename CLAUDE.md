@@ -101,7 +101,7 @@ The repository exports standalone Home Manager modules via `homeManagerModules` 
 
 **Module Structure (`modules/homeManager/`)**:
 - `neovim.nix`: NeoVim IDE with LSP, treesitter, 50+ plugins (options under `cb.neovim.*`)
-- `terminal.nix`: Zsh + FZF + Starship + Direnv + Zoxide + Ghostty (options under `cb.terminal.*`)
+- `terminal.nix`: Zsh + FZF + Starship + Direnv + Zoxide + Alacritty (options under `cb.terminal.*`)
 - `tmux.nix`: Modern tmux with sessions, FZF, Catppuccin theme (options under `cb.tmux.*`)
 - `default.nix`: Index that exports all modules
 

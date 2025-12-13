@@ -1,6 +1,6 @@
 # Terminal Configuration Guide
 
-This guide covers the comprehensive terminal setup including Zsh, Ghostty, and tmux configurations optimized for development workflows.
+This guide covers the comprehensive terminal setup including Zsh, Alacritty, and tmux configurations optimized for development workflows.
 
 ## 🚀 **Key Improvements Summary**
 
@@ -30,7 +30,7 @@ This guide covers the comprehensive terminal setup including Zsh, Ghostty, and t
 - [⌨️ Keyboard Shortcuts](#️-keyboard-shortcuts)
 - [🔍 FZF Integration](#-fzf-integration)
 - [🐚 Enhanced Shell Features](#-enhanced-shell-features)
-- [🖥️ Ghostty Terminal](#️-ghostty-terminal)
+- [🖥️ Alacritty Terminal](#️-alacritty-terminal)
 - [🛠️ Configuration Files](#️-configuration-files)
 - [🔧 Troubleshooting](#-troubleshooting)
 - [⚡ Performance Tips](#-performance-tips)
@@ -43,7 +43,7 @@ This guide covers the comprehensive terminal setup including Zsh, Ghostty, and t
 
 This terminal configuration transforms your command-line experience into a **modern, productive development environment** with:
 
-- **Ghostty**: Fast, native terminal emulator with excellent macOS integration
+- **Alacritty**: Fast, GPU-accelerated terminal emulator with excellent cross-platform support
 - **Zsh**: Enhanced shell with vi-mode, autosuggestions, and syntax highlighting  
 - **FZF**: Fuzzy finder for history search, file navigation, and more
 - **Enhanced CLI Tools**: Modern replacements for traditional Unix tools
@@ -54,7 +54,7 @@ This terminal configuration transforms your command-line experience into a **mod
 
 ```
 📁 Terminal Configuration Structure
-├─ 🖥️ Ghostty Terminal          → Native macOS terminal emulator
+├─ 🖥️ Alacritty Terminal        → GPU-accelerated terminal emulator
 ├─ 🐚 Zsh Shell                 → Enhanced shell with plugins
 ├─ 🔍 FZF Integration           → Fuzzy finding for everything
 ├─ 🛠️ Modern CLI Tools          → bat, ripgrep, fd, exa, etc.
@@ -122,7 +122,7 @@ sudo darwin-rebuild switch
 ```
 
 ### 2. **Restart Terminal**
-Close and reopen Ghostty to load the new configuration.
+Close and reopen Alacritty to load the new configuration.
 
 ### 3. **Verify Installation**
 ```bash
@@ -159,18 +159,15 @@ exa --version    # Enhanced ls
 | `Ctrl+Y` | **Copy Command** | Copy selected command to clipboard (in history) |
 | `Ctrl+/` | **Toggle Preview** | Show/hide preview in any FZF interface |
 
-### 🖥️ **Ghostty Terminal**
+### 🖥️ **Alacritty Terminal**
 | Shortcut | Action | Description |
 |----------|--------|-------------|
-| `Cmd+T` | New tab | Create new terminal tab |
 | `Cmd+N` | New window | Create new terminal window |
-| `Cmd+W` | Close | Close current tab/window |
-| `Cmd+D` | Split right | Split terminal vertically |
-| `Cmd+Shift+D` | Split down | Split terminal horizontally |
-| `Ctrl+Shift+H/L` | Navigate splits | Move between left/right splits |
-| `Ctrl+Shift+J/K` | Navigate splits | Move between up/down splits |
-| `Cmd+1-5` | Switch tabs | Jump to specific tab |
-| `Cmd+K` | Clear screen | Clear terminal output |
+| `Cmd+W` | Close | Close current window |
+| `Cmd+K` | Clear | Clear terminal history |
+| `Cmd+C/V` | Copy/Paste | Standard clipboard operations |
+| `Cmd++/-/0` | Font size | Increase/decrease/reset font size |
+| `Super+1-9` | Switch tmux window | Jump to tmux window 1-9 (Super = Cmd on macOS, Ctrl+Shift on Linux) |
 
 ### 🐚 **Zsh Navigation**
 | Shortcut | Action | Description |
@@ -304,64 +301,53 @@ hist_stats      # Show command usage statistics
 
 ---
 
-## 🖥️ Ghostty Terminal
+## 🖥️ Alacritty Terminal
 
 ### 🎯 **Key Features**
 
-Ghostty is configured as a **modern, fast terminal emulator** with:
+Alacritty is configured as a **modern, GPU-accelerated terminal emulator** with:
 
 #### **Performance**
-- **Native performance**: Written in Zig for maximum speed
-- **GPU acceleration**: Smooth scrolling and rendering
+- **GPU-accelerated rendering**: Smooth scrolling and fast output
+- **Cross-platform**: Works on macOS, Linux, and Windows
 - **Low latency**: Minimal input lag for responsive typing
 
 #### **macOS Integration**
-- **Native look and feel**: Matches macOS design language
-- **Transparent titlebar**: Clean, modern appearance
-- **Option key handling**: Proper Alt key behavior for terminal apps
+- **Native look and feel**: Buttonless window decorations
+- **Option as Alt**: Left option key works as Alt for terminal apps
 - **Copy on select**: Automatic clipboard integration
 
 #### **Developer Features**
-- **Shell integration**: Enhanced prompt and directory tracking
-- **Split terminals**: Multiple panes in one window
-- **Tab management**: Organized workflow with multiple tabs
+- **Tmux integration**: Super+1-9 switches tmux windows directly (Super = Cmd on macOS, Ctrl+Shift on Linux)
+- **Theme support**: Uses alacritty-theme package for easy theming
 - **Customizable keybindings**: Productivity-focused shortcuts
 
 ### 🎨 **Visual Configuration**
 
 - **Theme**: Catppuccin Mocha for consistent dark theme
 - **Font**: JetBrains Mono Nerd Font at 14pt for excellent readability
-- **Cursor**: Block cursor for better visibility
+- **Cursor**: Block cursor with unfocused hollow
 - **Padding**: 8px padding for comfortable viewing
-- **Window decoration**: Native macOS window styling
+- **Window**: 150x100 dimensions with dynamic padding
 
 ### ⌨️ **Productivity Keybindings**
 
 The configuration includes **macOS-friendly keybindings**:
 
 ```bash
-# Window Management
-Cmd+T           # New tab
-Cmd+N           # New window  
-Cmd+W           # Close current
-Cmd+1-5         # Switch to tab 1-5
+# Window Management (macOS)
+Cmd+N           # New window
+Cmd+W           # Close current window
+Cmd+K           # Clear history
+Cmd+C/V         # Copy/Paste
+Cmd++/-/0       # Font size control
 
-# Splits
-Cmd+D           # Split right
-Cmd+Shift+D     # Split down
-Ctrl+Shift+H/L  # Navigate horizontal splits
-Ctrl+Shift+J/K  # Navigate vertical splits
-
-# Utilities
-Cmd+K           # Clear screen
+# Tmux Window Switching (cross-platform "Super" key)
+Super+1-9       # Switch to tmux window 1-9
+                # Super = Cmd (macOS) or Ctrl+Shift (Linux)
 ```
 
-### 🔧 **Advanced Features**
-
-- **Unbinds problematic keys**: Prevents conflicts with terminal applications
-- **Mouse scroll optimization**: Comfortable scrolling speed
-- **Shell integration**: Automatic Zsh detection and configuration
-- **No close confirmation**: Streamlined workflow
+The "Super" key abstraction allows the same mental model across platforms while using the natural modifier for each OS.
 
 ---
 
@@ -375,8 +361,7 @@ home/
 │   ├── default.nix          # Main Zsh configuration
 │   └── sources.sh           # Shell environment and functions
 ├── defaultPrograms/
-│   ├── default.nix          # Program integration
-│   └── ghostty              # Ghostty terminal config
+│   └── default.nix          # Program integration (includes Alacritty)
 └── default.nix              # Package definitions
 ```
 
@@ -426,28 +411,26 @@ export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'
 export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
 ```
 
-### 🖥️ **Ghostty Configuration (`home/defaultPrograms/ghostty`)**
+### 🖥️ **Alacritty Configuration (`home/defaultPrograms/default.nix`)**
 
 **Optimized for**:
-- **macOS integration**: Native feel and behavior
-- **Developer productivity**: Split management, tab organization
-- **Visual consistency**: Catppuccin theme integration
-- **Performance**: Optimized scrolling and rendering
+- **Cross-platform**: Works on macOS and Linux
+- **Tmux integration**: Super+1-9 switches tmux windows (Cmd on macOS, Ctrl+Shift on Linux)
+- **Visual consistency**: Catppuccin Mocha theme
+- **Performance**: GPU-accelerated rendering
 
 **Key settings**:
-```ini
-# Theme and appearance
-theme = Catppuccin Mocha
-font-family = "JetBrains Mono"
-font-size = 14
-
-# macOS integration
-macos-titlebar-style = transparent
-macos-option-as-alt = left
-
-# Productivity features
-shell-integration = zsh
-copy-on-select = true
+```nix
+programs.alacritty = {
+  enable = true;
+  theme = "catppuccin_mocha";
+  settings = {
+    font.normal.family = "JetBrainsMono Nerd Font";
+    font.size = 14.0;
+    window.option_as_alt = "OnlyLeft";  # macOS
+    selection.save_to_clipboard = true;
+  };
+};
 ```
 
 ### 📦 **Package Dependencies (`home/default.nix`)**
@@ -492,7 +475,7 @@ fzf --version  # Should show 0.62.0+
    ```bash
    home-manager switch
    ```
-2. **Restart terminal**: Close and reopen Ghostty
+2. **Restart terminal**: Close and reopen Alacritty
 3. **Manual fix** (if needed):
    ```bash
    # Source FZF manually to test
@@ -544,23 +527,23 @@ which bat rg exa  # Should all be available
    nix profile list | grep -E "bat|ripgrep|exa"
    ```
 
-#### **4. Ghostty Configuration Not Applied**
-**Symptoms**: Ghostty doesn't match expected appearance/behavior
+#### **4. Alacritty Configuration Not Applied**
+**Symptoms**: Alacritty doesn't match expected appearance/behavior
 
 **Diagnosis**:
 ```bash
 # Check config file location
-ls -la ~/.config/ghostty/config
+ls -la ~/.config/alacritty/alacritty.toml
 # Should exist and contain your settings
 
-# Check Ghostty version
-ghostty --version
+# Check Alacritty version
+alacritty --version
 ```
 
 **Solutions**:
-1. **Reload configuration**: `Ctrl+Shift+P` in Ghostty
-2. **Restart Ghostty**: Close and reopen application
-3. **Verify config syntax**: Check for syntax errors in config file
+1. **Restart Alacritty**: Close and reopen application (config is loaded on startup)
+2. **Verify config syntax**: Check for TOML syntax errors in config file
+3. **Rebuild home-manager**: `home-manager switch`
 
 #### **5. Zsh Plugins Not Loading**
 **Symptoms**: No syntax highlighting, autosuggestions, or tab completion
@@ -604,7 +587,7 @@ echo $fpath
 which fzf bat rg fd exa tree dust duf procs
 
 # Configuration files
-ls -la ~/.config/ghostty/
+ls -la ~/.config/alacritty/
 ls -la ~/.nix-profile/share/fzf/
 ```
 
@@ -621,7 +604,7 @@ home-manager switch
 rm -rf ~/.zcompdump* ~/.zsh_history
 
 # 3. Restart terminal completely
-# Close all Ghostty windows and reopen
+# Close all Alacritty windows and reopen
 
 # 4. Test basic functionality
 fzf --version
