@@ -441,14 +441,28 @@ in
     })
 
     # Common packages needed by the terminal configuration
+    # These are required for the shell aliases and functions in sources.sh to work
     {
       home.packages = with pkgs; [
+        # Shell completion
         zsh-completions
         carapace
+
+        # Modern CLI replacements (required by shell aliases)
+        eza       # ls replacement
+        bat       # cat replacement
+        ripgrep   # grep replacement
+        fd        # find replacement
+        htop      # top replacement
+        dust      # du replacement
+        duf       # df replacement
+        procs     # ps replacement
+
+        # Core utilities
+        git
+        tree      # used by fzf directory preview
       ] ++ lib.optionals cfg.enableFzf [
-        fd
-        bat
-        ripgrep
+        fzf       # fuzzy finder (also enabled via programs.fzf)
       ];
     }
   ]);
