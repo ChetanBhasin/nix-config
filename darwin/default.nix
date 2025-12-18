@@ -17,6 +17,18 @@ in {
         Theme to apply
       '';
     };
+
+    extraBrews = lib.mkOption {
+      type = types.listOf types.str;
+      default = [ ];
+      description = "Additional Homebrew formulae for this host";
+    };
+
+    extraCasks = lib.mkOption {
+      type = types.listOf types.str;
+      default = [ ];
+      description = "Additional Homebrew casks for this host";
+    };
   };
 
   config = {
@@ -236,14 +248,16 @@ in {
       user = "chetan";
       onActivation.autoUpdate = true;
       onActivation = { cleanup = "uninstall"; };
-      brews = [ "cloudflared" ]
+
+      # Base brews (all hosts)
+      brews = [ ]
         ++ lib.optionals cfg.enableProf [ "krb5" "docker" "rocksdb" ]
-        ++ lib.optionals cfg.enableExtras [ "flyctl" "nodenv" "docker" ];
+        ++ lib.optionals cfg.enableExtras [ "nodenv" "docker" ]
+        ++ cfg.extraBrews;
+
+      # Base casks (all hosts)
       casks = [
-        "1password"
         "tailscale-app"
-        "ollama-app"
-        "arc"
         "codex"
         "postico"
         "lens"
@@ -259,18 +273,13 @@ in {
         "zen"
         "utm"
         "logi-options+"
-        "steam"
         "google-chrome"
       ] ++ lib.optionals cfg.enableProf [ "thunderbird" ]
         ++ lib.optionals cfg.enableExtras [
-          "netdownloadhelpercoapp"
-          "balenaetcher"
           "ticktick"
-          "proton-mail-bridge"
           "yubico-authenticator"
           "whatsapp@beta"
           "notion-calendar"
-          "cryptomator"
           "telegram"
           "signal"
           "protonvpn"
@@ -281,17 +290,14 @@ in {
           "spotify"
           "caffeine"
           "monitorcontrol"
-          "shureplus-motiv"
-          "insta360-studio"
-          "screen-studio"
           "proton-mail"
           "macfuse"
           "orbstack"
-          "zoom"
           "oracle-jdk"
           "cursor"
           "chatgpt"
-        ];
+        ]
+        ++ cfg.extraCasks;
     };
 
     fonts.packages = with pkgs; [ recursive nerd-fonts.jetbrains-mono ];
