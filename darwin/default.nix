@@ -278,7 +278,6 @@ in {
         ++ lib.optionals cfg.enableExtras [
           "ticktick"
           "yubico-authenticator"
-          "whatsapp@beta"
           "notion-calendar"
           "telegram"
           "signal"

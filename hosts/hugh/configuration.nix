@@ -19,6 +19,7 @@
       "proton-mail-bridge"
       "zoom"
       "steam"
+      "whatsapp@beta"
       "shureplus-motiv"
       "screen-studio"
       "netdownloadhelpercoapp"
