@@ -1,9 +1,9 @@
 { config, pkgs, ... }: {
 
   darwin-config-manager = {
-    enableSudoTouch = false;
-    enableExtras = false;
-    enableProf = true;
+    enableSudoTouch = true;
+    enableExtras = true;
+    enableProf = false;
     theme = "nord";
   };
 
