@@ -12,6 +12,9 @@ in {
   imports = [ ./defaultPrograms ./vscode ./zsh ./neovim ./tmux ./darwin ];
 
   config = {
+    fonts.fontconfig = lib.mkIf cfg.includeFonts {
+      enable = true;
+    };
 
     home.packages = with pkgs;
       [
@@ -82,6 +85,9 @@ in {
         # File format utilities (user-specific)
         sqlx-cli
 
+      ] ++ lib.optionals cfg.includeFonts [
+        nerd-fonts.jetbrains-mono
+        nerd-fonts.symbols-only
       ] ++ lib.optionals cfg.enableExtras [
         # Extra packages when enableExtras is true
         elixir
