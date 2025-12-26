@@ -299,7 +299,10 @@ in {
         ++ cfg.extraCasks;
     };
 
-    fonts.packages = with pkgs; [ recursive nerd-fonts.jetbrains-mono ];
+    fonts.packages = with pkgs; [
+      nerd-fonts.jetbrains-mono
+      nerd-fonts.symbols-only
+    ];
 
     system.stateVersion = 4;
   };
