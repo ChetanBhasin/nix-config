@@ -126,7 +126,10 @@ in
           OPENSSL_LIB_DIR = "${pkgs.openssl.out}/lib";
           OPENSSL_DIR = "${pkgs.openssl.dev}";
           PKG_CONFIG_LIBDIR = "${pkgs.rdkafka}/lib/pkgconfig";
-          LIBRARY_PATH = "LIBRARY_PATH:${pkgs.libiconv}/lib:${pkgs.poppler}/lib";
+          LIBRARY_PATH = lib.makeLibraryPath (
+            [ pkgs.libiconv pkgs.poppler ]
+            ++ lib.optionals pkgs.stdenv.isDarwin [ pkgs.darwin.libcxx ]
+          );
           PKG_CONFIG_PATH =
             "$PKG_CONFIG_PATH:${pkgs.rdkafka}/lib/pkgconfig:${pkgs.libiconv}/lib/pkgconfig:${pkgs.leptonica}/lib/pkgconfig/:${pkgs.tesseract}/lib/pkgconfig";
         };
@@ -427,8 +430,14 @@ in
 
           # Keyboard bindings
           keyboard.bindings =
+            # Ctrl+Space: Send CSI u sequence so tmux recognizes it as C-Space (not C-@/NUL)
+            # Without this, Ctrl+Space sends NUL (0x00) which tmux sees as C-@
+            # \u001b[32;5u = ESC [ 32 ; 5 u = CSI u encoding for Ctrl+Space
+            [
+              { key = "Space"; mods = "Control"; chars = "\\u001b[32;5u"; }
+            ]
             # macOS-specific bindings (standard Cmd shortcuts)
-            lib.optionals pkgs.stdenv.isDarwin [
+            ++ lib.optionals pkgs.stdenv.isDarwin [
               { key = "K"; mods = "Command"; action = "ClearHistory"; }
               { key = "N"; mods = "Command"; action = "SpawnNewInstance"; }
               { key = "W"; mods = "Command"; action = "Quit"; }

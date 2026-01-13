@@ -250,7 +250,7 @@ in {
       onActivation = { cleanup = "uninstall"; };
 
       # Base brews (all hosts)
-      brews = [ ]
+      brews = [ "docker-credential-helper" ]
         ++ lib.optionals cfg.enableProf [ "krb5" "docker" "rocksdb" ]
         ++ lib.optionals cfg.enableExtras [ "nodenv" "docker" ]
         ++ cfg.extraBrews;

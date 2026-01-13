@@ -154,7 +154,6 @@ with lib; {
             jsdoc
             json
             json5
-            jsonc
             jsonnet
             julia
             kconfig
@@ -200,7 +199,6 @@ with lib; {
             requirements
             rescript
             robot
-            robots
             ruby
             rust
             scala

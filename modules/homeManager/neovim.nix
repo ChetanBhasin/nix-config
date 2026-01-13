@@ -199,11 +199,11 @@ in
                 git_config git_rebase gitattributes gitcommit gitignore gleam go goctl
                 godot_resource gomod gosum gotmpl gowork gpg graphql haskell hcl helm
                 hjson hocon html http hurl ini ispc java javascript jq jsdoc json json5
-                jsonc jsonnet julia kconfig kotlin latex linkerscript llvm lua luadoc
+                jsonnet julia kconfig kotlin latex linkerscript llvm lua luadoc
                 luap luau make markdown markdown_inline matlab mermaid meson mlir nginx
                 nim ninja nix ocaml ocaml_interface ocamllex pem php phpdoc pod powershell
                 printf prisma promql proto puppet purescript pymanifest python query rasi
-                readline regex requirements rescript robot robots ruby rust scala scheme
+                readline regex requirements rescript robot ruby rust scala scheme
                 scss slint snakemake solidity ssh_config starlark strace svelte swift tcl
                 templ terraform textproto thrift tlaplus tmux todotxt toml tsv tsx twig
                 typescript typespec typoscript typst v vim vimdoc vue wing wit xml yaml zig
