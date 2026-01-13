@@ -13,6 +13,15 @@ export CC="clang"
 export CXX="clang++"
 
 # ===============================================
+# HOMEBREW ENV
+# ===============================================
+
+if [[ -x /opt/homebrew/bin/brew ]]; then
+  # Ensure Homebrew packages are available in PATH/man/Info
+  eval "$(/opt/homebrew/bin/brew shellenv)"
+fi
+
+# ===============================================
 # CLIPBOARD INTEGRATION
 # ===============================================
 

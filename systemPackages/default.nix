@@ -1,15 +1,20 @@
 { config, pkgs, lib, ... }: {
   # Shared system packages available across all platforms (Darwin and Linux)
-  environment.systemPackages = with pkgs; [
-    # Development Build Tools
-    autoconf
-    automake
-    libtool
-    pkg-config
-    cmake
-    gnumake
-    gcc
-    openssl
+  environment.systemPackages = with pkgs;
+    [
+      # Development Build Tools
+      autoconf
+      automake
+      libtool
+      pkg-config
+      cmake
+      gnumake
+    ]
+    ++ lib.optionals pkgs.stdenv.isLinux [ gcc ]
+    ++ lib.optionals (llvmPackages ? libcxx) [ llvmPackages.libcxx ]
+    ++ lib.optionals (llvmPackages ? libcxxabi) [ llvmPackages.libcxxabi ]
+    ++ [
+      openssl
     iconv
     libiconv
     libpq
@@ -78,6 +83,6 @@
     poppler
 
     # Development IDE Support
-    nil # Nix LSP
-  ];
+      nil # Nix LSP
+    ];
 }

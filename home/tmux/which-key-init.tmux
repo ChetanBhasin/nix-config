@@ -140,6 +140,10 @@ display-message "Config reloaded!"'
 display -p "[tmux-which-key] Binding root table key to #{@wk_cfg_key_root_table} ..."
 run-shell "tmux bind-key -Troot #{@wk_cfg_key_root_table} show-wk-menu-root"
 
+# Also bind C-@ (NUL) as fallback - this is what Ctrl+Space sends in traditional terminals
+display -p "[tmux-which-key] Binding C-@ (NUL) as fallback for Ctrl+Space ..."
+run-shell "tmux bind-key -Troot 'C-@' show-wk-menu-root"
+
 display -p "[tmux-which-key] Binding prefix table key to #{@wk_cfg_key_prefix_table} ..."
 run-shell "tmux bind-key -Tprefix #{@wk_cfg_key_prefix_table} show-wk-menu-root"
 

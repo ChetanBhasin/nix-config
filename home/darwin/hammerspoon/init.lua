@@ -1,6 +1,29 @@
 local hyper = { 'option', 'command' }
 local winMgmt = { 'ctrl', 'option' }
 
+-- Terminal apps where Ctrl+Space should send CSI u sequence for tmux
+local terminalApps = {
+  ["Alacritty"] = true,
+  ["Terminal"] = true,
+  ["iTerm2"] = true,
+  ["kitty"] = true,
+  ["WezTerm"] = true,
+}
+
+-- Ctrl+Space handler for terminal apps
+-- Sends CSI u sequence (ESC [ 32 ; 5 u) instead of NUL so tmux sees C-Space
+hs.hotkey.bind({ "ctrl" }, "space", function()
+  local app = hs.application.frontmostApplication()
+  if app and terminalApps[app:name()] then
+    -- Send the CSI u escape sequence for Ctrl+Space: ESC [ 32 ; 5 u
+    -- This is what tmux expects when extended-keys is enabled
+    hs.eventtap.keyStrokes("\x1b[32;5u")
+  else
+    -- For non-terminal apps, send the original Ctrl+Space (as NUL)
+    hs.eventtap.keyStroke({ "ctrl" }, "space", 0, app)
+  end
+end)
+
 -- Window Management
 hs.hotkey.bind(winMgmt, "return", function()
   local win = hs.window.focusedWindow()

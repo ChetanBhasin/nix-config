@@ -215,6 +215,10 @@
       };
 
       keyboard.bindings = [
+        # Ctrl+Space: Send CSI u sequence so tmux recognizes it as C-Space (not C-@/NUL)
+        # Without this, Ctrl+Space sends NUL (0x00) which tmux sees as C-@
+        # \u001b[32;5u = ESC [ 32 ; 5 u = CSI u encoding for Ctrl+Space
+        { key = "Space"; mods = "Control"; chars = "\\u001b[32;5u"; }
         # Standard macOS shortcuts
         { key = "K"; mods = "Command"; action = "ClearHistory"; }
         { key = "N"; mods = "Command"; action = "SpawnNewInstance"; }
