@@ -237,7 +237,6 @@ in
 
           right_format = builtins.concatStringsSep "" [
             "$kubernetes"
-            "$aws"
           ];
 
           custom = {

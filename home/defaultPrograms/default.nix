@@ -35,7 +35,6 @@
       # Right side - less important context (kubernetes, aws)
       right_format = builtins.concatStringsSep "" [
         "$kubernetes"
-        "$aws"
       ];
 
       # Character/prompt
