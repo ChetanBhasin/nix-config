@@ -222,8 +222,7 @@ in
 
           format = builtins.concatStringsSep "" [
             "$directory"
-            "$git_branch"
-            "$git_status"
+            "$custom"
             "$nix_shell"
             "$rust"
             "$python"
@@ -241,6 +240,14 @@ in
             "$aws"
           ];
 
+          custom = {
+              jj = {
+                  when = "jj starship detect";
+                  shell = ["jj-starship"];
+                  format = "$output ";
+              };
+          };
+
           character = {
             success_symbol = "[➜](bold green)";
             error_symbol = "[➜](bold red)";
@@ -251,27 +258,6 @@ in
             truncation_length = 3;
             truncate_to_repo = true;
             style = "bold cyan";
-          };
-
-          git_branch = {
-            symbol = " ";
-            style = "bold purple";
-            format = "[$symbol$branch(:$remote_branch)]($style) ";
-          };
-
-          git_status = {
-            style = "bold red";
-            format = "([$all_status$ahead_behind]($style) )";
-            conflicted = "=";
-            ahead = "⇡\${count}";
-            behind = "⇣\${count}";
-            diverged = "⇕";
-            untracked = "?";
-            stashed = "*";
-            modified = "!";
-            staged = "+";
-            renamed = "»";
-            deleted = "✘";
           };
 
           nix_shell = {

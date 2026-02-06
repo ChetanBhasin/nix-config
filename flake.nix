@@ -23,13 +23,15 @@
       inputs = { nixpkgs.follows = "nixpkgs"; };
     };
 
+    jj-starship = { url = "github:dmmulroy/jj-starship"; };
+
   };
 
   outputs = inputs@{ nixpkgs, darwin, home-manager, determinate, ... }:
     let
       nixpkgsConfig = {
         config = { allowUnfree = true; };
-        overlays = [ ];
+        overlays = [ inputs.jj-starship.overlays.default ];
       };
       darwinModules = { user, host }:
         [
