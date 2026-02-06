@@ -32,6 +32,7 @@ in {
         zsh-completions
         carapace
         tmux
+        jj-starship
 
         # Enhanced CLI Tools (user-specific)
         ripgrep # Better grep
