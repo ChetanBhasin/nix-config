@@ -31,7 +31,49 @@
     let
       nixpkgsConfig = {
         config = { allowUnfree = true; };
-        overlays = [ inputs.jj-starship.overlays.default ];
+        overlays = [
+          inputs.jj-starship.overlays.default
+          (final: prev:
+            let
+              rapidfuzzOverride =
+                pyFinal: pyPrev: {
+                  rapidfuzz = pyPrev.rapidfuzz.overridePythonAttrs (old: {
+                    # RapidFuzz's C++ extension doesn't currently build on aarch64-darwin with
+                    # this nixpkgs snapshot, so allow the pure-Python fallback on Darwin.
+                    env =
+                      (old.env or { })
+                      // prev.lib.optionalAttrs prev.stdenv.hostPlatform.isDarwin {
+                        RAPIDFUZZ_BUILD_EXTENSION = 0;
+                      };
+
+                    doCheck = !prev.stdenv.hostPlatform.isDarwin;
+
+                    # Work around RapidFuzz CMake configure failures on Darwin where
+                    # `CMAKE_CXX_COMPILER_{AR,RANLIB}` are not auto-detected (CMake 4.x).
+                    preBuild =
+                      (old.preBuild or "")
+                      + prev.lib.optionalString prev.stdenv.hostPlatform.isDarwin ''
+                        if [[ "''${CMAKE_ARGS:-}" != *"CMAKE_CXX_COMPILER_AR"* ]]; then
+                          export CMAKE_ARGS="''${CMAKE_ARGS:-} -DCMAKE_CXX_COMPILER_AR=$AR -DCMAKE_CXX_COMPILER_RANLIB=$RANLIB"
+                        fi
+                      '';
+                  });
+                };
+            in
+            rec {
+              python313 = prev.python313.override (old: {
+                packageOverrides = prev.lib.composeManyExtensions (
+                  (if old ? packageOverrides then [ old.packageOverrides ] else [ ])
+                  ++ [ rapidfuzzOverride ]
+                );
+              });
+
+              # Keep common aliases consistent with the overridden interpreter.
+              python3 = python313;
+              python3Packages = python313.pkgs;
+              python313Packages = python313.pkgs;
+            })
+        ];
       };
       darwinModules = { user, host }:
         [
@@ -40,15 +82,26 @@
           { nix.enable = false; }
           determinate.darwinModules.default
           {
-            determinate-nix.customSettings = {
-              # Experimental features needed by Determinate’s builder (+ your usual ones)
-              experimental-features = "flakes external-builders";
-# Trust your admin group so restricted settings from flakes are honored
-              trusted-users = "root @admin chetan";
+            determinateNix = {
+              # Settings written to `/etc/nix/nix.custom.conf`. Some settings (including
+              # `external-builders`) are intentionally blocked by the Determinate module.
+              customSettings = {
+                experimental-features = [
+                  "nix-command"
+                  "flakes"
+                  "external-builders"
+                ];
 
-              # Determinate Linux builder wiring (JSON, one line)
-              external-builders = ''
-                [{"systems":["aarch64-linux","x86_64-linux"],"program":"/usr/local/bin/determinate-nixd","args":["builder"]}]'';
+                # Trust your admin group (and this user) so restricted settings from flakes are honored.
+                trusted-users = [
+                  "root"
+                  "@admin"
+                  user
+                ];
+              };
+
+              # Configure Determinate Nixd (writes `/etc/determinate/config.json`).
+              determinateNixd.builder.state = "enabled";
             };
           }
           # `home-manager` module
@@ -93,10 +146,6 @@
       homeManagerModules = import ./modules/homeManager;
 
       darwinConfigurations = {
-        nix.enable = false;
-        environment.etc."determinate/config.json".text =
-          builtins.toJSON { builder = { state = "enabled"; }; };
-
         hugh = darwin.lib.darwinSystem {
           system = "aarch64-darwin";
           modules = darwinModules {
