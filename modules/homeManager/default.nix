@@ -13,11 +13,5 @@
   tmux = import ./tmux.nix;
 
   # Combined module that imports all
-  default = { ... }: {
-    imports = [
-      ./neovim.nix
-      ./terminal.nix
-      ./tmux.nix
-    ];
-  };
+  default = { ... }: { imports = [ ./neovim.nix ./terminal.nix ./tmux.nix ]; };
 }

@@ -90,7 +90,8 @@ in {
         NSAutomaticPeriodSubstitutionEnabled = false;
         NSAutomaticQuoteSubstitutionEnabled = false;
         NSAutomaticSpellingCorrectionEnabled = false;
-        ApplePressAndHoldEnabled = false; # Disable accent menu, enable key repeat
+        ApplePressAndHoldEnabled =
+          false; # Disable accent menu, enable key repeat
 
         # Keyboard
         InitialKeyRepeat = 15;
@@ -199,8 +200,10 @@ in {
           TrackpadFourFingerHorizSwipeGesture = 2;
           TrackpadFourFingerPinchGesture = 2;
           TrackpadFourFingerVertSwipeGesture = 2;
-          TrackpadThreeFingerHorizSwipeGesture = 0; # Disabled (using 3-finger drag)
-          TrackpadThreeFingerVertSwipeGesture = 0; # Disabled (using 3-finger drag)
+          TrackpadThreeFingerHorizSwipeGesture =
+            0; # Disabled (using 3-finger drag)
+          TrackpadThreeFingerVertSwipeGesture =
+            0; # Disabled (using 3-finger drag)
           TrackpadTwoFingerDoubleTapGesture = 1;
           TrackpadTwoFingerFromRightEdgeSwipeGesture = 3;
 
@@ -295,8 +298,7 @@ in {
           "oracle-jdk"
           "cursor"
           "chatgpt"
-        ]
-        ++ cfg.extraCasks;
+        ] ++ cfg.extraCasks;
     };
 
     fonts.packages = with pkgs; [

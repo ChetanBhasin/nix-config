@@ -7,8 +7,7 @@ let
 
   # Path to the neovim lua config directory (relative to this module)
   nvimConfigPath = ../../home/neovim/config;
-in
-{
+in {
   options.cb.neovim = {
     enable = lib.mkEnableOption "Chetan's NeoVim configuration";
 
@@ -33,7 +32,8 @@ in
     enableTmuxIntegration = lib.mkOption {
       type = lib.types.bool;
       default = true;
-      description = "Enable vim-tmux-navigator for seamless tmux/vim navigation";
+      description =
+        "Enable vim-tmux-navigator for seamless tmux/vim navigation";
     };
 
     extraPackages = lib.mkOption {
@@ -49,9 +49,11 @@ in
     };
 
     treesitterGrammars = lib.mkOption {
-      type = lib.types.either (lib.types.enum [ "all" ]) (lib.types.listOf lib.types.str);
+      type = lib.types.either (lib.types.enum [ "all" ])
+        (lib.types.listOf lib.types.str);
       default = "all";
-      description = "Treesitter grammars to install. Use 'all' for comprehensive language support or a list of specific grammars.";
+      description =
+        "Treesitter grammars to install. Use 'all' for comprehensive language support or a list of specific grammars.";
     };
   };
 
@@ -188,31 +190,154 @@ in
           nvim-dap-ui
         ]
         # Tmux integration (optional)
-        ++ lib.optionals cfg.enableTmuxIntegration [ vim-tmux-navigator ]
+        ++ lib.optionals cfg.enableTmuxIntegration [
+          vim-tmux-navigator
+        ]
         # Treesitter with comprehensive language support
         ++ [
           (nvim-treesitter.withPlugins (p:
             if cfg.treesitterGrammars == "all" then
               with p; [
-                astro awk bash c c_sharp cmake clojure comment commonlisp cpp css csv
-                cuda dart dhall diff dockerfile editorconfig elixir elm erlang fortran
-                git_config git_rebase gitattributes gitcommit gitignore gleam go goctl
-                godot_resource gomod gosum gotmpl gowork gpg graphql haskell hcl helm
-                hjson hocon html http hurl ini ispc java javascript jq jsdoc json json5
-                jsonnet julia kconfig kotlin latex linkerscript llvm lua luadoc
-                luap luau make markdown markdown_inline matlab mermaid meson mlir nginx
-                nim ninja nix ocaml ocaml_interface ocamllex pem php phpdoc pod powershell
-                printf prisma promql proto puppet purescript pymanifest python query rasi
-                readline regex requirements rescript robot ruby rust scala scheme
-                scss slint snakemake solidity ssh_config starlark strace svelte swift tcl
-                templ terraform textproto thrift tlaplus tmux todotxt toml tsv tsx twig
-                typescript typespec typoscript typst v vim vimdoc vue wing wit xml yaml zig
+                astro
+                awk
+                bash
+                c
+                c_sharp
+                cmake
+                clojure
+                comment
+                commonlisp
+                cpp
+                css
+                csv
+                cuda
+                dart
+                dhall
+                diff
+                dockerfile
+                editorconfig
+                elixir
+                elm
+                erlang
+                fortran
+                git_config
+                git_rebase
+                gitattributes
+                gitcommit
+                gitignore
+                gleam
+                go
+                goctl
+                godot_resource
+                gomod
+                gosum
+                gotmpl
+                gowork
+                gpg
+                graphql
+                haskell
+                hcl
+                helm
+                hjson
+                hocon
+                html
+                http
+                hurl
+                ini
+                ispc
+                java
+                javascript
+                jq
+                jsdoc
+                json
+                json5
+                jsonnet
+                julia
+                kconfig
+                kotlin
+                latex
+                linkerscript
+                llvm
+                lua
+                luadoc
+                luap
+                luau
+                make
+                markdown
+                markdown_inline
+                matlab
+                mermaid
+                meson
+                mlir
+                nginx
+                nim
+                ninja
+                nix
+                ocaml
+                ocaml_interface
+                ocamllex
+                pem
+                php
+                phpdoc
+                pod
+                powershell
+                printf
+                prisma
+                promql
+                proto
+                puppet
+                purescript
+                pymanifest
+                python
+                query
+                rasi
+                readline
+                regex
+                requirements
+                rescript
+                robot
+                ruby
+                rust
+                scala
+                scheme
+                scss
+                slint
+                snakemake
+                solidity
+                ssh_config
+                starlark
+                strace
+                svelte
+                swift
+                tcl
+                templ
+                terraform
+                textproto
+                thrift
+                tlaplus
+                tmux
+                todotxt
+                toml
+                tsv
+                tsx
+                twig
+                typescript
+                typespec
+                typoscript
+                typst
+                v
+                vim
+                vimdoc
+                vue
+                wing
+                wit
+                xml
+                yaml
+                zig
               ]
             else
-              builtins.map (name: p.${name}) cfg.treesitterGrammars
-          ))
-        ]
-        ++ cfg.extraPlugins;
+              builtins.map (name: p.${name}) cfg.treesitterGrammars))
+        ] ++ cfg.extraPlugins;
     };
 
     # Link the NeoVim lua configuration

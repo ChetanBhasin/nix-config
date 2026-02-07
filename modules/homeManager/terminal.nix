@@ -18,10 +18,12 @@ let
   # Note: \u001b is ESC in TOML (TOML doesn't support \x escapes)
   tmuxWindowBindings = builtins.genList (n:
     let num = n + 1;
-    in { key = "Key${toString num}"; mods = superMod; chars = "\\u001b[${toString num};3P"; }
-  ) 9;
-in
-{
+    in {
+      key = "Key${toString num}";
+      mods = superMod;
+      chars = "\\u001b[${toString num};3P";
+    }) 9;
+in {
   options.cb.terminal = {
     enable = lib.mkEnableOption "Chetan's terminal configuration";
 
@@ -115,9 +117,7 @@ in
           expireDuplicatesFirst = true;
         };
 
-        shellAliases = {
-          c = "z";
-        } // cfg.extraAliases;
+        shellAliases = { c = "z"; } // cfg.extraAliases;
 
         sessionVariables = {
           EDITOR = "nvim";
@@ -126,10 +126,8 @@ in
           OPENSSL_LIB_DIR = "${pkgs.openssl.out}/lib";
           OPENSSL_DIR = "${pkgs.openssl.dev}";
           PKG_CONFIG_LIBDIR = "${pkgs.rdkafka}/lib/pkgconfig";
-          LIBRARY_PATH = lib.makeLibraryPath (
-            [ pkgs.libiconv pkgs.poppler ]
-            ++ lib.optionals pkgs.stdenv.isDarwin [ pkgs.darwin.libcxx ]
-          );
+          LIBRARY_PATH = lib.makeLibraryPath ([ pkgs.libiconv pkgs.poppler ]
+            ++ lib.optionals pkgs.stdenv.isDarwin [ pkgs.darwin.libcxx ]);
           PKG_CONFIG_PATH =
             "$PKG_CONFIG_PATH:${pkgs.rdkafka}/lib/pkgconfig:${pkgs.libiconv}/lib/pkgconfig:${pkgs.leptonica}/lib/pkgconfig/:${pkgs.tesseract}/lib/pkgconfig";
         };
@@ -154,17 +152,18 @@ in
           {
             name = "zsh-history-substring-search";
             src = pkgs.zsh-history-substring-search;
-            file = "share/zsh-history-substring-search/zsh-history-substring-search.zsh";
+            file =
+              "share/zsh-history-substring-search/zsh-history-substring-search.zsh";
           }
         ];
       };
 
       # Symlink shell configuration files
       home.file.".sources".source = shellScriptsPath + "/sources.sh";
-      home.file.".sources_platform".source =
-        if pkgs.stdenv.isDarwin
-        then shellScriptsPath + "/sources_darwin.sh"
-        else shellScriptsPath + "/sources_linux.sh";
+      home.file.".sources_platform".source = if pkgs.stdenv.isDarwin then
+        shellScriptsPath + "/sources_darwin.sh"
+      else
+        shellScriptsPath + "/sources_linux.sh";
     })
 
     # FZF configuration
@@ -235,16 +234,14 @@ in
             "$character"
           ];
 
-          right_format = builtins.concatStringsSep "" [
-            "$kubernetes"
-          ];
+          right_format = builtins.concatStringsSep "" [ "$kubernetes" ];
 
           custom = {
-              jj = {
-                  when = "jj starship detect";
-                  shell = ["jj-starship"];
-                  format = "$output ";
-              };
+            jj = {
+              when = "jj starship detect";
+              shell = [ "jj-starship" ];
+              format = "$output ";
+            };
           };
 
           character = {
@@ -403,9 +400,7 @@ in
           };
 
           # Selection behavior (copy-on-select)
-          selection = {
-            save_to_clipboard = true;
-          };
+          selection = { save_to_clipboard = true; };
 
           # Scrolling configuration
           scrolling = {
@@ -418,19 +413,53 @@ in
             # Ctrl+Space: Send CSI u sequence so tmux recognizes it as C-Space (not C-@/NUL)
             # Without this, Ctrl+Space sends NUL (0x00) which tmux sees as C-@
             # \u001b[32;5u = ESC [ 32 ; 5 u = CSI u encoding for Ctrl+Space
-            [
-              { key = "Space"; mods = "Control"; chars = "\\u001b[32;5u"; }
-            ]
+            [{
+              key = "Space";
+              mods = "Control";
+              chars = "\\u001b[32;5u";
+            }]
             # macOS-specific bindings (standard Cmd shortcuts)
             ++ lib.optionals pkgs.stdenv.isDarwin [
-              { key = "K"; mods = "Command"; action = "ClearHistory"; }
-              { key = "N"; mods = "Command"; action = "SpawnNewInstance"; }
-              { key = "W"; mods = "Command"; action = "Quit"; }
-              { key = "C"; mods = "Command"; action = "Copy"; }
-              { key = "V"; mods = "Command"; action = "Paste"; }
-              { key = "Plus"; mods = "Command"; action = "IncreaseFontSize"; }
-              { key = "Minus"; mods = "Command"; action = "DecreaseFontSize"; }
-              { key = "Key0"; mods = "Command"; action = "ResetFontSize"; }
+              {
+                key = "K";
+                mods = "Command";
+                action = "ClearHistory";
+              }
+              {
+                key = "N";
+                mods = "Command";
+                action = "SpawnNewInstance";
+              }
+              {
+                key = "W";
+                mods = "Command";
+                action = "Quit";
+              }
+              {
+                key = "C";
+                mods = "Command";
+                action = "Copy";
+              }
+              {
+                key = "V";
+                mods = "Command";
+                action = "Paste";
+              }
+              {
+                key = "Plus";
+                mods = "Command";
+                action = "IncreaseFontSize";
+              }
+              {
+                key = "Minus";
+                mods = "Command";
+                action = "DecreaseFontSize";
+              }
+              {
+                key = "Key0";
+                mods = "Command";
+                action = "ResetFontSize";
+              }
             ]
             # Tmux window navigation: Super+1-9 (Cmd on macOS, Ctrl+Shift on Linux)
             ++ tmuxWindowBindings;
@@ -441,27 +470,28 @@ in
     # Common packages needed by the terminal configuration
     # These are required for the shell aliases and functions in sources.sh to work
     {
-      home.packages = with pkgs; [
-        # Shell completion
-        zsh-completions
-        carapace
+      home.packages = with pkgs;
+        [
+          # Shell completion
+          zsh-completions
+          carapace
 
-        # Modern CLI replacements (required by shell aliases)
-        eza       # ls replacement
-        bat       # cat replacement
-        ripgrep   # grep replacement
-        fd        # find replacement
-        htop      # top replacement
-        dust      # du replacement
-        duf       # df replacement
-        procs     # ps replacement
+          # Modern CLI replacements (required by shell aliases)
+          eza # ls replacement
+          bat # cat replacement
+          ripgrep # grep replacement
+          fd # find replacement
+          htop # top replacement
+          dust # du replacement
+          duf # df replacement
+          procs # ps replacement
 
-        # Core utilities
-        git
-        tree      # used by fzf directory preview
-      ] ++ lib.optionals cfg.enableFzf [
-        fzf       # fuzzy finder (also enabled via programs.fzf)
-      ];
+          # Core utilities
+          git
+          tree # used by fzf directory preview
+        ] ++ lib.optionals cfg.enableFzf [
+          fzf # fuzzy finder (also enabled via programs.fzf)
+        ];
     }
   ]);
 }

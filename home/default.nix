@@ -12,9 +12,7 @@ in {
   imports = [ ./defaultPrograms ./vscode ./zsh ./neovim ./tmux ./darwin ];
 
   config = {
-    fonts.fontconfig = lib.mkIf cfg.includeFonts {
-      enable = true;
-    };
+    fonts.fontconfig = lib.mkIf cfg.includeFonts { enable = true; };
 
     home.packages = with pkgs;
       [

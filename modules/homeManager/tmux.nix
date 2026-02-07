@@ -19,8 +19,7 @@ let
       sha256 = "sha256-Csvw9JLe6Djs5svYpW20Lh3pJ/og4WHtghwaISnK2dI=";
     };
   };
-in
-{
+in {
   options.cb.tmux = {
     enable = lib.mkEnableOption "Chetan's tmux configuration";
 
@@ -33,19 +32,22 @@ in
     enableVimIntegration = lib.mkOption {
       type = lib.types.bool;
       default = true;
-      description = "Enable vim-tmux-navigator for seamless navigation between vim and tmux";
+      description =
+        "Enable vim-tmux-navigator for seamless navigation between vim and tmux";
     };
 
     enableSessionPersistence = lib.mkOption {
       type = lib.types.bool;
       default = true;
-      description = "Enable tmux-resurrect and tmux-continuum for session persistence";
+      description =
+        "Enable tmux-resurrect and tmux-continuum for session persistence";
     };
 
     enableFzfIntegration = lib.mkOption {
       type = lib.types.bool;
       default = true;
-      description = "Enable FZF-powered features (session switching, URL opening, etc.)";
+      description =
+        "Enable FZF-powered features (session switching, URL opening, etc.)";
     };
 
     enableThumbs = lib.mkOption {
@@ -106,7 +108,9 @@ in
           catppuccin
         ]
         # Vim integration
-        ++ lib.optionals cfg.enableVimIntegration [ vim-tmux-navigator ]
+        ++ lib.optionals cfg.enableVimIntegration [
+          vim-tmux-navigator
+        ]
         # Session persistence
         ++ lib.optionals cfg.enableSessionPersistence [
           resurrect
@@ -120,8 +124,7 @@ in
           fzf-tmux-url
         ]
         # Thumbs (vimium-like hints)
-        ++ lib.optionals cfg.enableThumbs [ tmux-thumbs ]
-        ++ cfg.extraPlugins;
+        ++ lib.optionals cfg.enableThumbs [ tmux-thumbs ] ++ cfg.extraPlugins;
 
       extraConfig = ''
         ${builtins.readFile (tmuxConfigPath + "/tmux.conf")}
@@ -130,14 +133,12 @@ in
     };
 
     # Pre-generated which-key menu configuration
-    home.file.".config/tmux/which-key-init.tmux".source = tmuxConfigPath + "/which-key-init.tmux";
+    home.file.".config/tmux/which-key-init.tmux".source = tmuxConfigPath
+      + "/which-key-init.tmux";
 
     # Required packages for tmux features
     home.packages = with pkgs;
-      [
-        coreutils
-      ]
-      ++ lib.optionals cfg.enableFzfIntegration [
+      [ coreutils ] ++ lib.optionals cfg.enableFzfIntegration [
         fzf
         ripgrep
         fd

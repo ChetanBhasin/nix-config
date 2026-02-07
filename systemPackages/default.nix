@@ -9,80 +9,80 @@
       pkg-config
       cmake
       gnumake
-    ]
-    ++ lib.optionals pkgs.stdenv.isLinux [ gcc ]
+    ] ++ lib.optionals pkgs.stdenv.isLinux [ gcc ]
     ++ lib.optionals (llvmPackages ? libcxx) [ llvmPackages.libcxx ]
-    ++ lib.optionals (llvmPackages ? libcxxabi) [ llvmPackages.libcxxabi ]
-    ++ [
+    ++ lib.optionals (llvmPackages ? libcxxabi) [ llvmPackages.libcxxabi ] ++ [
       openssl
-    iconv
-    libiconv
-    libpq
+      iconv
+      libiconv
+      libpq
 
-    # Container and Infrastructure Tools
-    docker
-    docker-compose
-    kubectl
-    kubectx
-    kubernetes-helm
-    helmfile
-    argocd
-    terraform
-    opentofu
-    mise
-    just
-    doppler
-    tea
+      # Container and Infrastructure Tools
+      docker
+      docker-compose
+      kubectl
+      kubectx
+      kubernetes-helm
+      helmfile
+      argocd
+      terraform
+      opentofu
+      mise
+      just
+      doppler
+      tea
 
-    # Development Languages and Runtimes
-    bun
-    uv
-    deno
-    python3
-    rustup
-    go
-    nodejs
+      # Development Languages and Runtimes
+      bun
+      uv
+      deno
+      python3
+      rustup
+      go
+      nodejs
 
-    # Database and API Tools
-    amazon-ecr-credential-helper
-    rdkafka
-    protobuf
-    protox
-    grpc
-    postgresql
-    redis
-    httpie
+      # Database and API Tools
+      amazon-ecr-credential-helper
+      rdkafka
+      protobuf
+      protox
+      grpc
+      postgresql
+      redis
+      httpie
 
-    # Security and Network Tools
-    curl
-    wget
-    nmap
+      # Security and Network Tools
+      curl
+      wget
+      nmap
 
-    # File and Archive Tools
-    zip
-    unzip
-    gnutar
+      # File and Archive Tools
+      zip
+      unzip
+      gnutar
 
-    claude-code
+      claude-code
+      codex
+      opencode
 
-    # Git and Version Control
-    git
-    git-lfs
+      # Git and Version Control
+      git
+      git-lfs
 
-    # System Monitoring and Process Management
-    htop
-    tree
+      # System Monitoring and Process Management
+      htop
+      tree
 
-    # Text Processing and Utilities
-    jq
-    yq
+      # Text Processing and Utilities
+      jq
+      yq
 
-    # Image Processing
-    leptonica
-    tesseract
-    poppler
+      # Image Processing
+      leptonica
+      tesseract
+      poppler
 
-    # Development IDE Support
+      # Development IDE Support
       nil # Nix LSP
     ];
 }
