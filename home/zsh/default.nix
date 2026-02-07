@@ -13,19 +13,15 @@
       ignoreSpace = true;
       expireDuplicatesFirst = true;
     };
-    shellAliases = {
-      c = "z";
-    };
+    shellAliases = { c = "z"; };
     sessionVariables = {
       EDITOR = "nvim";
       OPENSSL_NO_VENDOR = "1";
       OPENSSL_LIB_DIR = "${pkgs.openssl.out}/lib";
       OPENSSL_DIR = "${pkgs.openssl.dev}";
       PKG_CONFIG_LIBDIR = "${pkgs.rdkafka}/lib/pkgconfig";
-      LIBRARY_PATH = lib.makeLibraryPath (
-        [ pkgs.libiconv pkgs.poppler ]
-        ++ lib.optionals pkgs.stdenv.isDarwin [ pkgs.darwin.libcxx ]
-      );
+      LIBRARY_PATH = lib.makeLibraryPath ([ pkgs.libiconv pkgs.poppler ]
+        ++ lib.optionals pkgs.stdenv.isDarwin [ pkgs.darwin.libcxx ]);
       PKG_CONFIG_PATH =
         "$PKG_CONFIG_PATH:${pkgs.rdkafka}/lib/pkgconfig:${pkgs.libiconv}/lib/pkgconfig:${pkgs.leptonica}/lib/pkgconfig/:${pkgs.tesseract}/lib/pkgconfig";
     };
@@ -52,7 +48,8 @@
         # History substring search - fish-style
         name = "zsh-history-substring-search";
         src = pkgs.zsh-history-substring-search;
-        file = "share/zsh-history-substring-search/zsh-history-substring-search.zsh";
+        file =
+          "share/zsh-history-substring-search/zsh-history-substring-search.zsh";
       }
     ];
   };
@@ -101,7 +98,5 @@
   # Symlink sources files to home directory
   home.file.".sources".source = ./sources.sh;
   home.file.".sources_platform".source =
-    if pkgs.stdenv.isDarwin
-    then ./sources_darwin.sh
-    else ./sources_linux.sh;
+    if pkgs.stdenv.isDarwin then ./sources_darwin.sh else ./sources_linux.sh;
 }
