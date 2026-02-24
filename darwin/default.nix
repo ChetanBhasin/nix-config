@@ -253,7 +253,7 @@ in {
       onActivation = { cleanup = "uninstall"; };
 
       # Base brews (all hosts)
-      brews = [ "docker-credential-helper" ]
+      brews = [ "docker-credential-helper" "podman" ]
         ++ lib.optionals cfg.enableProf [ "krb5" "docker" "rocksdb" ]
         ++ lib.optionals cfg.enableExtras [ "nodenv" "docker" ]
         ++ cfg.extraBrews;
@@ -294,7 +294,6 @@ in {
           "monitorcontrol"
           "proton-mail"
           "macfuse"
-          "orbstack"
           "oracle-jdk"
           "cursor"
           "chatgpt"

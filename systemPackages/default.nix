@@ -19,6 +19,7 @@
 
       # Container and Infrastructure Tools
       docker
+      docker-buildx
       docker-compose
       kubectl
       kubectx
