@@ -35,7 +35,6 @@
       # Development Languages and Runtimes
       bun
       uv
-      deno
       python3
       rustup
       go

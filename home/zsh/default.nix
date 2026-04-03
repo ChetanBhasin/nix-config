@@ -15,6 +15,7 @@
     };
     shellAliases = { c = "z"; };
     sessionVariables = {
+      BAO_ADDR = "https://values.ferocia.co";
       EDITOR = "nvim";
       OPENSSL_NO_VENDOR = "1";
       OPENSSL_LIB_DIR = "${pkgs.openssl.out}/lib";

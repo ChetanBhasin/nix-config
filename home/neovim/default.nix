@@ -33,11 +33,10 @@ with lib; {
           # Version control TUIs
           lazygit
           lazyjj
-        ] ++ (with nodePackages; [
-          dockerfile-language-server-nodejs
+          dockerfile-language-server
           typescript-language-server
           yaml-language-server
-        ]);
+        ];
       plugins = with pkgs.vimPlugins; [
         plenary-nvim
         vim-cool

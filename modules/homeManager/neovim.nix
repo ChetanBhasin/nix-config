@@ -102,11 +102,10 @@ in {
           # Version control TUIs
           lazygit
           lazyjj
-        ] ++ (with nodePackages; [
-          dockerfile-language-server-nodejs
+          dockerfile-language-server
           typescript-language-server
           yaml-language-server
-        ]) ++ cfg.extraPackages;
+        ] ++ cfg.extraPackages;
 
       plugins = with pkgs.vimPlugins;
         [

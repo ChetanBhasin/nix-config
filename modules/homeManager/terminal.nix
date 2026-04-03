@@ -120,6 +120,7 @@ in {
         shellAliases = { c = "z"; } // cfg.extraAliases;
 
         sessionVariables = {
+          BAO_ADDR = "https://values.ferocia.co";
           EDITOR = "nvim";
         } // lib.optionalAttrs cfg.enableDevEnvironment {
           OPENSSL_NO_VENDOR = "1";
