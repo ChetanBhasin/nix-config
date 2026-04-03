@@ -11,7 +11,6 @@
 
     extraCasks = [
       "1password"
-      "ollama-app"
       "balenaetcher"
       "proton-mail-bridge"
       "zoom"

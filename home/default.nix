@@ -18,13 +18,11 @@ in {
       [
         # User-specific CLI tools
         hl-log-viewer
-        goose-cli
         bazelisk
         duckdb
         gh
         k9s
         bitwarden-cli
-        bws
 
         # User shell and terminal utilities
         zsh-completions
