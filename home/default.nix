@@ -88,7 +88,6 @@ in {
       ] ++ lib.optionals cfg.enableExtras [
         # Extra packages when enableExtras is true
         elixir
-        gleam
         rebar3
         erlang
         ngrok
