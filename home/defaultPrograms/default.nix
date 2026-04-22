@@ -136,9 +136,7 @@
     };
   };
 
-  # Alacritty terminal emulator
-  # Note: Installed via both Homebrew cask (for macOS app in /Applications)
-  # and nixpkgs (for theme/config generation). Use the Homebrew version.
+  # Alacritty terminal emulator, installed and configured via nix/home-manager.
   programs.alacritty = {
     enable = true;
     # Use catppuccin_mocha theme from alacritty-theme package

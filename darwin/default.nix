@@ -264,7 +264,6 @@ in {
         "codex"
         "postico"
         "lens"
-        "alacritty"
         "db-browser-for-sqlite"
         "firefox"
         "fork"
