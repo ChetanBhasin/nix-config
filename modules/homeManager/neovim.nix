@@ -29,6 +29,12 @@ in {
       description = "Enable Python 3 integration for NeoVim";
     };
 
+    withRuby = lib.mkOption {
+      type = lib.types.bool;
+      default = false;
+      description = "Enable Ruby integration for NeoVim";
+    };
+
     enableTmuxIntegration = lib.mkOption {
       type = lib.types.bool;
       default = true;
@@ -66,6 +72,7 @@ in {
       vimdiffAlias = true;
       withNodeJs = cfg.withNodeJs;
       withPython3 = cfg.withPython3;
+      withRuby = cfg.withRuby;
 
       extraPackages = with pkgs;
         [
@@ -78,7 +85,7 @@ in {
           deadnix
           statix
           nixd
-          alejandra
+          nixfmt
 
           # Language servers
           terraform-lsp

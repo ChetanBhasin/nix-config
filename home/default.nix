@@ -41,7 +41,7 @@ in {
         fzf # Fuzzy finder
 
         # Development Utilities (user-specific)
-        nixfmt-classic
+        nixfmt
         tokei # Code statistics
         hyperfine # Benchmarking
         sccache # Compilation cache
