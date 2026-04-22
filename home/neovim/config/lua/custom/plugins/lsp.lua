@@ -111,7 +111,7 @@ vim.lsp.config('nixd', {
                 expr = "import <nixpkgs> { }",
             },
             formatting = {
-                command = { "alejandra" },
+                command = { "nixfmt" },
             },
             options = nixd_options,
         },

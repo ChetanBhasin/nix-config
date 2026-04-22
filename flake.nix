@@ -32,7 +32,14 @@
       nixpkgsConfig = {
         config = { allowUnfree = true; };
         overlays = [
-          inputs.jj-starship.overlays.default
+          (final: _prev:
+            let
+              system = final.stdenv.hostPlatform.system;
+              packages = inputs.jj-starship.packages.${system};
+            in {
+              jj-starship = packages.jj-starship;
+              jj-starship-no-git = packages.jj-starship-no-git;
+            })
           (final: prev:
             let
               rapidfuzzOverride = pyFinal: pyPrev: {

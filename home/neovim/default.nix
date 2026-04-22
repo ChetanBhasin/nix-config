@@ -9,6 +9,7 @@ with lib; {
       vimdiffAlias = true;
       withNodeJs = true;
       withPython3 = true;
+      withRuby = false;
       extraPackages = with pkgs;
         [
           lua
@@ -17,7 +18,7 @@ with lib; {
           deadnix
           statix
           nixd
-          alejandra # Nix formatter for nixd
+          nixfmt # Nix formatter for nixd
           taplo
           yamllint
           go
