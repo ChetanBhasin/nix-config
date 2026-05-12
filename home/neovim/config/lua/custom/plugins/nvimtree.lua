@@ -1,4 +1,7 @@
 require("nvim-tree").setup({
+    filters = {
+        custom = { "^bazel%-.*" },
+    },
     update_focused_file = {
         enable = true,
         update_root = false,
