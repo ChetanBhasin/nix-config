@@ -99,18 +99,6 @@ local setup_opts = {
     }
 }
 
--- Catppuccin integration API changed upstream. Try to use it if available,
--- but don't error if the function name differs or the module is absent.
-do
-    local ok, bl = pcall(require, "catppuccin.groups.integrations.bufferline")
-    if ok and bl then
-        local get_fn = bl.get or bl.highlights
-        if type(get_fn) == "function" then
-            setup_opts.highlights = get_fn()
-        end
-    end
-end
-
 bufferline.setup(setup_opts)
 
 -- Note: All keybindings are centralized in keymaps.lua for discoverability via Legendary

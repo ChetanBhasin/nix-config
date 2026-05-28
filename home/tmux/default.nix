@@ -1,16 +1,4 @@
-{ config, pkgs, ... }:
-let
-  catppuccin = pkgs.tmuxPlugins.mkTmuxPlugin {
-    pluginName = "catppuccin";
-    version = "default";
-    src = pkgs.fetchFromGitHub {
-      owner = "catppuccin";
-      repo = "tmux";
-      rev = "10d1b1f7c3e235dfe0bb0082970cb559615bdb25";
-      sha256 = "sha256-Csvw9JLe6Djs5svYpW20Lh3pJ/og4WHtghwaISnK2dI=";
-    };
-  };
-in {
+{ config, pkgs, ... }: {
   programs.tmux = {
     enable = true;
     clock24 = true;
@@ -49,7 +37,13 @@ in {
       tmux-thumbs
 
       # Theme
-      catppuccin
+      {
+        plugin = gruvbox;
+        extraConfig = ''
+          set -g @tmux-gruvbox 'dark'
+          set -g @tmux-gruvbox-statusbar-alpha 'true'
+        '';
+      }
     ];
 
     # Shell integration - use system zsh which is in /etc/shells

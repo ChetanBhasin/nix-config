@@ -563,7 +563,7 @@ inlayHints = {
 
 ### 🎨 **Theme and Appearance**
 
-- **Color scheme**: Catppuccin (can be changed in color configuration)
+- **Color scheme**: Gruvbox dark (can be changed in color configuration)
 - **Inlay hint styling**: Subtle gray italic text
 - **Status line**: Lualine with file information
 - **Icons**: Nerdfont icons throughout

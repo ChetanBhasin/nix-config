@@ -137,7 +137,7 @@ in {
           # UI enhancements
           lualine-nvim
           bufferline-nvim
-          catppuccin-nvim
+          gruvbox-nvim
           alpha-nvim
           indent-blankline-nvim
           rainbow-delimiters-nvim

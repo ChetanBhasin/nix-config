@@ -24,7 +24,7 @@ A comprehensive Nix configuration for reproducible development environments acro
 - 🎯 **Tmux Configuration**: C-Space prefix, command palette, session management, and persistence
 - 📦 **Package Management**: Nix + Home Manager for reproducible environments
 - 🔧 **Cross-Platform**: macOS (Darwin) and Linux (NixOS) support
-- 🎨 **Consistent Theming**: Catppuccin theme across all applications
+- 🎨 **Consistent Theming**: Gruvbox dark theme across all applications
 - ⚡ **Performance Optimized**: Fast startup times and efficient resource usage
 - 🔐 **Security Focused**: Proper SSH configurations and secure defaults
 
@@ -92,7 +92,7 @@ You can use the NeoVim, Terminal, and Tmux configurations in your own flake with
 |--------|-------------|---------|
 | `neovim` | Full NeoVim IDE with LSP, treesitter, and 50+ plugins | `cb.neovim.enable`, `cb.neovim.enableTmuxIntegration`, `cb.neovim.treesitterGrammars` |
 | `terminal` | Zsh + FZF + Starship + Direnv + Zoxide + Alacritty | `cb.terminal.enable`, `cb.terminal.enableFzf`, `cb.terminal.enableStarship`, `cb.terminal.viMode` |
-| `tmux` | Modern tmux with sessions, FZF, and Catppuccin theme | `cb.tmux.enable`, `cb.tmux.enableVimIntegration`, `cb.tmux.enableSessionPersistence` |
+| `tmux` | Modern tmux with sessions, FZF, and Gruvbox dark theme | `cb.tmux.enable`, `cb.tmux.enableVimIntegration`, `cb.tmux.enableSessionPersistence` |
 | `default` | All modules combined | All options from above |
 
 See [Module Options Documentation](docs/modules.md) for complete configuration options.
