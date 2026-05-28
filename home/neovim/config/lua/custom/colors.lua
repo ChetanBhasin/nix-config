@@ -2,183 +2,133 @@
 -- 🎨 ENHANCED COLOR CONFIGURATION
 -- ═══════════════════════════════════════════════════════════════════════════════
 
+local colors = {
+    bg0 = "#282828",
+    bg1 = "#3c3836",
+    bg2 = "#504945",
+    bg3 = "#665c54",
+    bg4 = "#7c6f64",
+    fg0 = "#fbf1c7",
+    fg1 = "#ebdbb2",
+    fg2 = "#d5c4a1",
+    fg3 = "#bdae93",
+    fg4 = "#a89984",
+    gray = "#928374",
+    red = "#fb4934",
+    green = "#b8bb26",
+    yellow = "#fabd2f",
+    blue = "#83a598",
+    purple = "#d3869b",
+    aqua = "#8ec07c",
+    orange = "#fe8019",
+}
+
 function DefineColors(scheme)
-    local color_scheme = scheme or "catppuccin-mocha"
+    vim.o.background = "dark"
+    local color_scheme = scheme or "gruvbox"
     vim.cmd.colorscheme(color_scheme)
 
     -- Enhanced transparency with better contrast
-    vim.api.nvim_set_hl(0, "Normal", { bg = "none" })
-    vim.api.nvim_set_hl(0, "NormalFloat", { bg = "none" })
-    vim.api.nvim_set_hl(0, "SignColumn", { bg = "none" })
-    vim.api.nvim_set_hl(0, "EndOfBuffer", { bg = "none" })
+    vim.api.nvim_set_hl(0, "Normal", { bg = "NONE" })
+    vim.api.nvim_set_hl(0, "NormalFloat", { bg = "NONE" })
+    vim.api.nvim_set_hl(0, "SignColumn", { bg = "NONE" })
+    vim.api.nvim_set_hl(0, "EndOfBuffer", { bg = "NONE" })
 
     -- Better cursor line
-    vim.api.nvim_set_hl(0, "CursorLine", { bg = "#313244" })
-    vim.api.nvim_set_hl(0, "CursorLineNr", { fg = "#f9e2af", bg = "none", bold = true })
+    vim.api.nvim_set_hl(0, "CursorLine", { bg = colors.bg1 })
+    vim.api.nvim_set_hl(0, "CursorLineNr", { fg = colors.yellow, bg = "NONE", bold = true })
 
     -- Enhanced search highlighting
-    vim.api.nvim_set_hl(0, "Search", { bg = "#f9e2af", fg = "#1e1e2e", bold = true })
-    vim.api.nvim_set_hl(0, "IncSearch", { bg = "#fab387", fg = "#1e1e2e", bold = true })
+    vim.api.nvim_set_hl(0, "Search", { bg = colors.yellow, fg = colors.bg0, bold = true })
+    vim.api.nvim_set_hl(0, "IncSearch", { bg = colors.orange, fg = colors.bg0, bold = true })
 
     -- Better visual selection
-    vim.api.nvim_set_hl(0, "Visual", { bg = "#585b70" })
+    vim.api.nvim_set_hl(0, "Visual", { bg = colors.bg3 })
 
     -- Enhanced fold styling
-    vim.api.nvim_set_hl(0, "Folded", { bg = "#313244", fg = "#a6adc8", italic = true })
-    vim.api.nvim_set_hl(0, "FoldColumn", { bg = "none", fg = "#6c7086" })
+    vim.api.nvim_set_hl(0, "Folded", { bg = colors.bg1, fg = colors.fg3, italic = true })
+    vim.api.nvim_set_hl(0, "FoldColumn", { bg = "NONE", fg = colors.gray })
 end
 
-require("catppuccin").setup {
-    flavour = "mocha", -- latte, frappe, macchiato, mocha
-    background = {     -- :h background
-        light = "latte",
-        dark = "mocha",
+require("gruvbox").setup {
+    transparent_mode = true,
+    terminal_colors = true,
+    contrast = "",
+    dim_inactive = false,
+    undercurl = true,
+    underline = true,
+    bold = true,
+    strikethrough = true,
+    invert_selection = false,
+    invert_signs = false,
+    invert_tabline = false,
+    inverse = true,
+    italic = {
+        strings = false,
+        emphasis = true,
+        comments = true,
+        operators = false,
+        folds = true,
     },
-    transparent_background = true,
-    show_end_of_buffer = false,
-    term_colors = true,
-    dim_inactive = {
-        enabled = false,
-        shade = "dark",
-        percentage = 0.15,
-    },
-    no_italic = false,
-    no_bold = false,
-    no_underline = false,
-    styles = {
-        comments = { "italic" },
-        conditionals = { "bold" },
-        loops = { "bold" },
-        functions = { "bold" },
-        keywords = { "bold" },
-        strings = {},
-        variables = {},
-        numbers = {},
-        booleans = { "bold" },
-        properties = {},
-        types = { "italic" },
-        operators = {},
-    },
-    color_overrides = {
-        mocha = {
-            base = "#000000",   -- Make base fully transparent
-            mantle = "#000000", -- Make mantle fully transparent
-            crust = "#000000",  -- Make crust fully transparent
-        },
-    },
-    custom_highlights = function(colors)
-        return {
-            -- Floating windows with subtle borders
-            NormalFloat = { bg = colors.none },
-            FloatBorder = { fg = colors.surface2, bg = colors.none },
+    overrides = {
+        NormalFloat = { bg = "NONE" },
+        FloatBorder = { fg = colors.bg4, bg = "NONE" },
 
-            -- Better completion menu
-            Pmenu = { bg = colors.surface0, fg = colors.text },
-            PmenuSel = { bg = colors.surface1, fg = colors.text, bold = true },
-            PmenuSbar = { bg = colors.surface1 },
-            PmenuThumb = { bg = colors.overlay0 },
+        Pmenu = { bg = colors.bg1, fg = colors.fg1 },
+        PmenuSel = { bg = colors.bg2, fg = colors.fg0, bold = true },
+        PmenuSbar = { bg = colors.bg2 },
+        PmenuThumb = { bg = colors.bg4 },
 
-            -- Enhanced telescope
-            TelescopeBorder = { fg = colors.blue, bg = colors.none },
-            TelescopeSelection = { bg = colors.surface1, bold = true },
-            TelescopeMatching = { fg = colors.peach, bold = true },
-            TelescopePromptPrefix = { fg = colors.flamingo },
+        TelescopeBorder = { fg = colors.blue, bg = "NONE" },
+        TelescopeSelection = { bg = colors.bg1, bold = true },
+        TelescopeMatching = { fg = colors.orange, bold = true },
+        TelescopePromptPrefix = { fg = colors.purple },
 
-            -- Better nvim-tree
-            NvimTreeNormal = { bg = colors.none },
-            NvimTreeEndOfBuffer = { bg = colors.none },
-            NvimTreeRootFolder = { fg = colors.pink, bold = true },
-            NvimTreeFolderIcon = { fg = colors.blue },
-            NvimTreeFileIcon = { fg = colors.text },
-            NvimTreeSpecialFile = { fg = colors.yellow, underline = true },
-            NvimTreeGitDirty = { fg = colors.yellow },
-            NvimTreeGitNew = { fg = colors.green },
-            NvimTreeGitDeleted = { fg = colors.red },
-            NvimTreeIndentMarker = { fg = colors.surface2 },
+        NvimTreeNormal = { bg = "NONE" },
+        NvimTreeEndOfBuffer = { bg = "NONE" },
+        NvimTreeRootFolder = { fg = colors.purple, bold = true },
+        NvimTreeFolderIcon = { fg = colors.blue },
+        NvimTreeFileIcon = { fg = colors.fg1 },
+        NvimTreeSpecialFile = { fg = colors.yellow, underline = true },
+        NvimTreeGitDirty = { fg = colors.yellow },
+        NvimTreeGitNew = { fg = colors.green },
+        NvimTreeGitDeleted = { fg = colors.red },
+        NvimTreeIndentMarker = { fg = colors.bg4 },
 
-            -- Enhanced LSP highlights
-            LspReferenceText = { bg = colors.surface1 },
-            LspReferenceRead = { bg = colors.surface1 },
-            LspReferenceWrite = { bg = colors.surface1, bold = true },
+        LspReferenceText = { bg = colors.bg1 },
+        LspReferenceRead = { bg = colors.bg1 },
+        LspReferenceWrite = { bg = colors.bg1, bold = true },
 
-            -- Better diagnostic highlights
-            DiagnosticError = { fg = colors.red },
-            DiagnosticWarn = { fg = colors.yellow },
-            DiagnosticInfo = { fg = colors.sky },
-            DiagnosticHint = { fg = colors.teal },
-            DiagnosticVirtualTextError = { fg = colors.red, bg = colors.none, italic = true },
-            DiagnosticVirtualTextWarn = { fg = colors.yellow, bg = colors.none, italic = true },
-            DiagnosticVirtualTextInfo = { fg = colors.sky, bg = colors.none, italic = true },
-            DiagnosticVirtualTextHint = { fg = colors.teal, bg = colors.none, italic = true },
+        DiagnosticError = { fg = colors.red },
+        DiagnosticWarn = { fg = colors.yellow },
+        DiagnosticInfo = { fg = colors.blue },
+        DiagnosticHint = { fg = colors.aqua },
+        DiagnosticVirtualTextError = { fg = colors.red, bg = "NONE", italic = true },
+        DiagnosticVirtualTextWarn = { fg = colors.yellow, bg = "NONE", italic = true },
+        DiagnosticVirtualTextInfo = { fg = colors.blue, bg = "NONE", italic = true },
+        DiagnosticVirtualTextHint = { fg = colors.aqua, bg = "NONE", italic = true },
 
-            -- Enhanced inlay hints
-            LspInlayHint = { fg = colors.overlay0, bg = colors.none, italic = true },
+        LspInlayHint = { fg = colors.gray, bg = "NONE", italic = true },
 
-            -- Better line numbers
-            LineNr = { fg = colors.surface2 },
-            CursorLineNr = { fg = colors.peach, bold = true },
+        LineNr = { fg = colors.bg4 },
+        CursorLineNr = { fg = colors.yellow, bold = true },
 
-            -- Enhanced git signs
-            GitSignsAdd = { fg = colors.green },
-            GitSignsChange = { fg = colors.yellow },
-            GitSignsDelete = { fg = colors.red },
+        GitSignsAdd = { fg = colors.green },
+        GitSignsChange = { fg = colors.yellow },
+        GitSignsDelete = { fg = colors.red },
 
-            -- Better indentation guides (if using indent-blankline)
-            IndentBlanklineChar = { fg = colors.surface1 },
-            IndentBlanklineContextChar = { fg = colors.surface2 },
+        IndentBlanklineChar = { fg = colors.bg1 },
+        IndentBlanklineContextChar = { fg = colors.bg3 },
 
-            -- Enhanced markdown
-            MarkdownHeadingDelimiter = { fg = colors.peach, bold = true },
-            MarkdownH1 = { fg = colors.red, bold = true },
-            MarkdownH2 = { fg = colors.orange, bold = true },
-            MarkdownH3 = { fg = colors.yellow, bold = true },
-            MarkdownH4 = { fg = colors.green, bold = true },
-            MarkdownH5 = { fg = colors.blue, bold = true },
-            MarkdownH6 = { fg = colors.purple, bold = true },
+        MarkdownHeadingDelimiter = { fg = colors.orange, bold = true },
+        MarkdownH1 = { fg = colors.red, bold = true },
+        MarkdownH2 = { fg = colors.orange, bold = true },
+        MarkdownH3 = { fg = colors.yellow, bold = true },
+        MarkdownH4 = { fg = colors.green, bold = true },
+        MarkdownH5 = { fg = colors.blue, bold = true },
+        MarkdownH6 = { fg = colors.purple, bold = true },
 
-            -- Better terminal colors
-            TermCursor = { fg = colors.rosewater, bg = colors.rosewater },
-            TermCursorNC = { fg = colors.overlay1, bg = colors.overlay1 },
-        }
-    end,
-    integrations = {
-        -- Enable bufferline integration; the bufferline module also guards
-        -- against API changes when applying highlights.
-        bufferline = true,
-        cmp = true,
-        gitsigns = true,
-        nvimtree = true,
-        treesitter = true,
-        telescope = {
-            enabled = true,
-            style = "nvchad"
-        },
-        harpoon = false,
-        mason = true,
-        fidget = true,
-        which_key = true,
-        lsp_trouble = true,
-        dap = {
-            enabled = true,
-            enable_ui = true,
-        },
-        native_lsp = {
-            enabled = true,
-            virtual_text = {
-                errors = { "italic" },
-                hints = { "italic" },
-                warnings = { "italic" },
-                information = { "italic" },
-            },
-            underlines = {
-                errors = { "underline" },
-                hints = { "underline" },
-                warnings = { "underline" },
-                information = { "underline" },
-            },
-            inlay_hints = {
-                background = true,
-            },
-        },
+        TermCursor = { fg = colors.yellow, bg = colors.yellow },
+        TermCursorNC = { fg = colors.gray, bg = colors.gray },
     },
 }

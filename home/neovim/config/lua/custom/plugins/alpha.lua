@@ -60,9 +60,9 @@ dashboard.section.buttons.opts.hl = "AlphaButtons"
 dashboard.section.footer.opts.hl = "AlphaFooter"
 
 -- Custom highlight groups
-vim.api.nvim_set_hl(0, "AlphaHeader", { fg = "#89b4fa", bold = true })
-vim.api.nvim_set_hl(0, "AlphaButtons", { fg = "#cba6f7" })
-vim.api.nvim_set_hl(0, "AlphaFooter", { fg = "#6c7086", italic = true })
+vim.api.nvim_set_hl(0, "AlphaHeader", { fg = "#83a598", bold = true })
+vim.api.nvim_set_hl(0, "AlphaButtons", { fg = "#d3869b" })
+vim.api.nvim_set_hl(0, "AlphaFooter", { fg = "#928374", italic = true })
 
 -- Layout configuration
 dashboard.config.layout = {

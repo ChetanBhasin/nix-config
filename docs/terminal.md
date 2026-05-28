@@ -100,7 +100,7 @@ hist_stats     # Show most used commands statistics
 ```
 
 ### 🎨 **Visual Enhancements**
-- **Catppuccin theme** integration across all tools
+- **Gruvbox dark theme** integration across all tools
 - **Syntax highlighting** in file previews
 - **Git status indicators** in file listings
 - **Color-coded output** for better readability
@@ -205,9 +205,9 @@ FZF (Fuzzy Finder) is the heart of the enhanced terminal experience, providing:
 
 ### 🎨 **Visual Configuration**
 
-FZF is configured with a beautiful **Catppuccin-inspired theme**:
+FZF is configured with a beautiful **Gruvbox-inspired theme**:
 - **Dark background** with high contrast
-- **Purple highlights** for selected items
+- **Warm highlights** for selected items
 - **Blue accents** for information text
 - **Consistent theming** across all interfaces
 
@@ -324,7 +324,7 @@ Alacritty is configured as a **modern, GPU-accelerated terminal emulator** with:
 
 ### 🎨 **Visual Configuration**
 
-- **Theme**: Catppuccin Mocha for consistent dark theme
+- **Theme**: Gruvbox dark for consistent dark theme
 - **Font**: JetBrains Mono Nerd Font at 14pt for excellent readability
 - **Cursor**: Block cursor with unfocused hollow
 - **Padding**: 8px padding for comfortable viewing
@@ -416,14 +416,14 @@ export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
 **Optimized for**:
 - **Cross-platform**: Works on macOS and Linux
 - **Tmux integration**: Super+1-9 switches tmux windows (Cmd on macOS, Ctrl+Shift on Linux)
-- **Visual consistency**: Catppuccin Mocha theme
+- **Visual consistency**: Gruvbox dark theme
 - **Performance**: GPU-accelerated rendering
 
 **Key settings**:
 ```nix
 programs.alacritty = {
   enable = true;
-  theme = "catppuccin_mocha";
+  theme = "gruvbox_dark";
   settings = {
     font.normal.family = "JetBrainsMono Nerd Font";
     font.size = 14.0;
@@ -947,7 +947,7 @@ C-Space [    # Enter copy mode
 - Activity indicators
 
 #### 🎨 **Beautiful Status Line**
-- Catppuccin theme (Macchiato flavor)
+- Gruvbox dark theme
 - Battery status with icons
 - Date/time display
 - Session and window information

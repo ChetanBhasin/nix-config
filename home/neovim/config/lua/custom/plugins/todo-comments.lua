@@ -50,14 +50,14 @@ todo.setup({
         exclude = {}, -- Filetypes to exclude
     },
 
-    -- Colors matching catppuccin theme
+    -- Colors matching gruvbox dark theme
     colors = {
-        error = { "DiagnosticError", "ErrorMsg", "#f38ba8" },
-        warning = { "DiagnosticWarn", "WarningMsg", "#f9e2af" },
-        info = { "DiagnosticInfo", "#89dceb" },
-        hint = { "DiagnosticHint", "#a6e3a1" },
-        default = { "Identifier", "#cba6f7" },
-        test = { "Identifier", "#fab387" },
+        error = { "DiagnosticError", "ErrorMsg", "#fb4934" },
+        warning = { "DiagnosticWarn", "WarningMsg", "#fabd2f" },
+        info = { "DiagnosticInfo", "#83a598" },
+        hint = { "DiagnosticHint", "#8ec07c" },
+        default = { "Identifier", "#d3869b" },
+        test = { "Identifier", "#fe8019" },
     },
 
     -- Search configuration

@@ -56,7 +56,7 @@ with lib; {
         bufferline-nvim
         dressing-nvim
         fidget-nvim
-        catppuccin-nvim
+        gruvbox-nvim
         FTerm-nvim
         undotree
         # Visual enhancement plugins

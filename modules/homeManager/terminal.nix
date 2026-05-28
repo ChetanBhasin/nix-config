@@ -350,8 +350,8 @@ in {
     (lib.mkIf cfg.enableAlacritty {
       programs.alacritty = {
         enable = true;
-        # Use catppuccin_mocha theme from alacritty-theme package
-        theme = "catppuccin_mocha";
+        # Use gruvbox_dark theme from alacritty-theme package
+        theme = "gruvbox_dark";
         settings = {
           # Window configuration
           window = {
