@@ -1,10 +1,11 @@
 host?=hugh
+open_files_limit?=65536
 
 build-darwin:
-	nix build .#darwinConfigurations.$(host).system
+	ulimit -n $(open_files_limit); nix build .#darwinConfigurations.$(host).system
 
 apply-darwin: build-darwin
-	result/sw/bin/darwin-rebuild switch --flake .#$(host)
+	ulimit -n $(open_files_limit); result/sw/bin/darwin-rebuild switch --flake .#$(host)
 
 apply-nix:
-	nix-rebuild switch --flake .#$(host)
+	ulimit -n $(open_files_limit); nix-rebuild switch --flake .#$(host)
