@@ -62,6 +62,16 @@
                       fi
                     '';
                 });
+
+                pipx = pyPrev.pipx.overridePythonAttrs (old: {
+                  # packaging 26 renders direct URL requirements in canonical PEP 508
+                  # form ("name @ url"). pipx 1.8.0 still has tests expecting the
+                  # older "name@ url" formatting.
+                  disabledTests = (old.disabledTests or [ ]) ++ [
+                    "test_fix_package_name"
+                    "test_parse_specifier_for_metadata"
+                  ];
+                });
               };
             in rec {
               python313 = prev.python313.override (old: {
