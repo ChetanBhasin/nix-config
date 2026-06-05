@@ -257,8 +257,8 @@ in {
 
       # Base brews (all hosts)
       brews = [ "docker-credential-helper" "podman" ]
-        ++ lib.optionals cfg.enableProf [ "krb5" "docker" "rocksdb" ]
-        ++ lib.optionals cfg.enableExtras [ "nodenv" "docker" ]
+        ++ lib.optionals cfg.enableProf [ "krb5" "rocksdb" ]
+        ++ lib.optionals cfg.enableExtras [ "nodenv" ]
         ++ cfg.extraBrews;
 
       # Base casks (all hosts)
