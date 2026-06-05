@@ -11,6 +11,9 @@
 -- - cargo.runBuildScripts: Set to true for complex build environments
 -- - procMacro.attributes: Set to true for full proc macro analysis
 -- ═══════════════════════════════════════════════════════════════════════════════
+local rust_workspace = require("custom.plugins.rust_workspace")
+rust_workspace.setup()
+
 vim.g.rustaceanvim = {
     -- Plugin configuration
     tools = {
@@ -147,6 +150,9 @@ vim.g.rustaceanvim = {
                 },
             },
         },
+        settings = function(project_root, default_settings)
+            return rust_workspace.apply_settings(project_root, default_settings)
+        end,
     },
     -- DAP configuration for debugging
     dap = {

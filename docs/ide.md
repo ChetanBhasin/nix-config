@@ -172,6 +172,7 @@ When you first open Neovim:
 | `<leader>rp` | Parent module | Navigate to parent |
 | `<leader>rc` | Open Cargo | Jump to Cargo.toml |
 | `<leader>rs` | SSR | Structural search/replace |
+| `<leader>rw` | Linked projects | Select rust-analyzer projects |
 
 ### 💻 **Terminal & Tools**
 | Shortcut | Action | Description |
@@ -278,6 +279,13 @@ Your IDE is specially optimized for Rust development with **rustaceanvim** provi
    - `<leader>rm`: Expand macros inline
    - `<leader>rp`: Jump to parent module
    - `<leader>rc`: Quick access to Cargo.toml
+   - `<leader>rw`: Select rust-analyzer linked projects for large repos
+     - Search by package name or path
+     - Move through the list with `j`/`k`
+     - Press `i` or `/` to filter, then `<Esc>` to return to selection
+     - Press `<Space>` to check/uncheck a project or folder subtree, then `<Enter>` to apply
+     - Press `<C-a>` to select all projects or `<C-x>` to select none
+     - Run `:RustWorkspaceClear` to remove the override and restore auto-discovery
 
 ### 🎯 **Rust-Specific Settings**
 
