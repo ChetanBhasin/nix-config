@@ -9,6 +9,19 @@
 local ok, lazyjj = pcall(require, "lazyjj")
 if ok then
     lazyjj.setup({ mapping = false })
+
+    vim.api.nvim_create_autocmd("FileType", {
+        pattern = "lazyjj",
+        callback = function(event)
+            local opts = { buffer = event.buf, silent = true }
+            vim.keymap.set("t", "<C-j>", "<C-e>", vim.tbl_extend("force", opts, {
+                desc = "LazyJJ: scroll details down",
+            }))
+            vim.keymap.set("t", "<C-k>", "<C-y>", vim.tbl_extend("force", opts, {
+                desc = "LazyJJ: scroll details up",
+            }))
+        end,
+    })
 else
     vim.notify("lazyjj.nvim not found", vim.log.levels.WARN)
 end

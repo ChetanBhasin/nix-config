@@ -40,6 +40,31 @@
               jj-starship = packages.jj-starship;
               jj-starship-no-git = packages.jj-starship-no-git;
             })
+          (_final: prev: {
+            lazyjj = prev.lazyjj.overrideAttrs (old: {
+              postInstall = (old.postInstall or "") + ''
+                mv "$out/bin/lazyjj" "$out/bin/lazyjj-unwrapped"
+
+                cat > "$out/bin/lazyjj-jj" <<EOF
+                #!/bin/sh
+                exec ${prev.jujutsu}/bin/jj \
+                  --config lazyjj.diff-format=git \
+                  --config lazyjj.layout=horizontal \
+                  --config lazyjj.layout-percent=30 \
+                  --config 'lazyjj.highlight-color="#504945"' \
+                  --config 'lazyjj.keybinds.log_tab.open-files=["enter", "o"]' \
+                  "\$@"
+                EOF
+
+                cat > "$out/bin/lazyjj" <<EOF
+                #!/bin/sh
+                exec "$out/bin/lazyjj-unwrapped" --jj-bin "$out/bin/lazyjj-jj" "\$@"
+                EOF
+
+                chmod +x "$out/bin/lazyjj" "$out/bin/lazyjj-jj"
+              '';
+            });
+          })
           (final: prev:
             let
               rapidfuzzOverride = pyFinal: pyPrev: {
