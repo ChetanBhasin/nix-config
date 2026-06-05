@@ -27,8 +27,12 @@ vim.g.rustaceanvim = {
     },
     -- LSP configuration
     server = {
-        standalone = true,
+        standalone = false,
+        root_dir = function(file_name, default_root_dir)
+            return rust_workspace.root_dir_for_file(file_name, default_root_dir)
+        end,
         on_attach = function(client, bufnr)
+            rust_workspace.detach_client_if_excluded(client, bufnr)
             -- All keybindings are centralized in keymaps.lua
         end,
         default_settings = {

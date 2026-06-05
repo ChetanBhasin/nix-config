@@ -282,9 +282,11 @@ Your IDE is specially optimized for Rust development with **rustaceanvim** provi
    - `<leader>rw`: Select rust-analyzer linked projects for large repos
      - Search by package name or path
      - Move through the list with `j`/`k`
+     - Collapse or expand folder rows with `h`/`l`
      - Press `i` or `/` to filter, then `<Esc>` to return to selection
      - Press `<Space>` to check/uncheck a project or folder subtree, then `<Enter>` to apply
      - Press `<C-a>` to select all projects or `<C-x>` to select none
+     - Unchecked project files are kept detached from rust-analyzer
      - Run `:RustWorkspaceClear` to remove the override and restore auto-discovery
 
 ### 🎯 **Rust-Specific Settings**
