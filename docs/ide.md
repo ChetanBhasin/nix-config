@@ -286,6 +286,7 @@ Your IDE is specially optimized for Rust development with **rustaceanvim** provi
      - Press `i` or `/` to filter, then `<Esc>` to return to selection
      - Press `<Space>` to check/uncheck a project or folder subtree, then `<Enter>` to apply
      - Press `<C-a>` to select all projects or `<C-x>` to select none
+     - Applying changes reloads rust-analyzer workspace config without a full restart when possible
      - Unchecked project files are kept detached from rust-analyzer
      - Run `:RustWorkspaceClear` to remove the override and restore auto-discovery
 
@@ -614,7 +615,7 @@ inlayHints = {
 
 **4. Rust analyzer issues**
 ```bash  
-# Restart rust-analyzer
+# Restart rust-analyzer if config reload is not enough
 :RustLsp restart
 
 # Check Cargo.toml is in project root

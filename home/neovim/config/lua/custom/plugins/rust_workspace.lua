@@ -539,6 +539,22 @@ function M.apply_settings(project_root, default_settings)
     return settings
 end
 
+local function settings_for_reload(project_root, current_settings)
+    local settings = vim.deepcopy(current_settings or {})
+    local linked_projects, has_override = M.linked_projects_for_settings(project_root)
+    local rust_settings = settings["rust-analyzer"]
+
+    if has_override then
+        rust_settings = rust_settings or {}
+        rust_settings.linkedProjects = linked_projects
+        settings["rust-analyzer"] = rust_settings
+    elseif rust_settings then
+        rust_settings.linkedProjects = nil
+    end
+
+    return settings
+end
+
 local function selection_for_file(file_name)
     file_name = normalize(file_name)
     if not file_name then
@@ -627,6 +643,76 @@ local function is_rust_analyzer(client)
     return client and (client.name == "rust_analyzer" or client.name == "rust-analyzer")
 end
 
+local function client_root(client)
+    local root = client and client.config and client.config.root_dir
+    if root then
+        return normalize(root)
+    end
+
+    local folder = client and client.workspace_folders and client.workspace_folders[1]
+    if folder then
+        return normalize(folder.name)
+    end
+
+    return nil
+end
+
+local function client_matches_root(client, root)
+    root = normalize(root)
+    local root_dir = client_root(client)
+    if not root or not root_dir then
+        return true
+    end
+
+    return root == root_dir or is_subpath(root_dir, root) or is_subpath(root, root_dir)
+end
+
+local function rust_analyzer_clients(root)
+    local clients = {}
+    for _, client in ipairs(vim.lsp.get_clients()) do
+        if is_rust_analyzer(client) and client_matches_root(client, root) then
+            table.insert(clients, client)
+        end
+    end
+    return clients
+end
+
+local function buffer_has_client(bufnr, client_id)
+    for _, client in ipairs(vim.lsp.get_clients({ bufnr = bufnr })) do
+        if client.id == client_id then
+            return true
+        end
+    end
+    return false
+end
+
+local function is_rust_buffer(bufnr)
+    if not vim.api.nvim_buf_is_loaded(bufnr) then
+        return false
+    end
+
+    local name = vim.api.nvim_buf_get_name(bufnr)
+    return name ~= "" and (vim.bo[bufnr].filetype == "rust" or vim.endswith(name, ".rs"))
+end
+
+local function refresh_buffer_attachments(clients)
+    for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
+        if is_rust_buffer(bufnr) then
+            M.detach_excluded_clients(bufnr)
+
+            local file_name = vim.api.nvim_buf_get_name(bufnr)
+            local allowed = M.file_is_selected(file_name)
+            if allowed then
+                for _, client in ipairs(clients) do
+                    if vim.lsp.get_client_by_id(client.id) and not buffer_has_client(bufnr, client.id) then
+                        pcall(vim.lsp.buf_attach_client, bufnr, client.id)
+                    end
+                end
+            end
+        end
+    end
+end
+
 function M.detach_client_if_excluded(client, bufnr)
     if not is_rust_analyzer(client) then
         return false
@@ -683,16 +769,65 @@ function M.restart_rust_analyzer()
     end
 end
 
-function M.clear()
-    local root = M.find_root()
-    local selected = M.get_selected(root)
-    if not selected then
-        notify("No linkedProjects override to clear; rust-analyzer was not restarted")
+function M.reload_rust_analyzer(root)
+    root = normalize(root or M.root_for_picker())
+    local clients = rust_analyzer_clients(root)
+    if #clients == 0 then
+        return false, false
+    end
+
+    local methods = vim.lsp.protocol.Methods or {}
+    local method = methods.workspace_didChangeConfiguration or "workspace/didChangeConfiguration"
+    local reloaded_clients = {}
+    local failed = false
+
+    for _, client in ipairs(clients) do
+        local current_settings = client.settings or (client.config and client.config.settings) or {}
+        local settings = settings_for_reload(root, current_settings)
+        client.config = client.config or {}
+        client.settings = settings
+        client.config.settings = settings
+
+        local ok, notified = pcall(client.notify, client, method, { settings = settings })
+        if ok and notified ~= false then
+            table.insert(reloaded_clients, client)
+        else
+            failed = true
+        end
+    end
+
+    refresh_buffer_attachments(reloaded_clients)
+    return #reloaded_clients > 0, true, failed
+end
+
+function M.reload_or_restart_rust_analyzer(root)
+    local reloaded, had_clients, failed = M.reload_rust_analyzer(root)
+
+    if reloaded then
+        local suffix = failed and "; some clients may still need a restart" or ""
+        notify("Saved linked projects and reloaded rust-analyzer workspace config" .. suffix)
         return
     end
 
-    M.remove_selected(root)
-    M.restart_rust_analyzer()
+    if had_clients then
+        notify("rust-analyzer config reload failed; restarting as fallback", vim.log.levels.WARN)
+        M.restart_rust_analyzer()
+        return
+    end
+
+    notify("Saved linked projects; rust-analyzer will use them next time it starts")
+end
+
+function M.clear()
+    local root = M.find_root()
+    local selected, state_root = M.get_selected(root)
+    if not selected then
+        notify("No linkedProjects override to clear; rust-analyzer was not reloaded")
+        return
+    end
+
+    M.remove_selected(state_root)
+    M.reload_or_restart_rust_analyzer(state_root)
 end
 
 function M.status()
@@ -894,12 +1029,12 @@ function M.select()
         actions.close(prompt_bufnr)
 
         if lists_equal(initial_selected, linked_projects) and not persisted_had_stale_projects then
-            notify("Linked projects unchanged; rust-analyzer was not restarted")
+            notify("Linked projects unchanged; rust-analyzer was not reloaded")
             return
         end
 
         M.set_selected(root, linked_projects)
-        M.restart_rust_analyzer()
+        M.reload_or_restart_rust_analyzer(root)
     end
 
     pickers.new({}, {
