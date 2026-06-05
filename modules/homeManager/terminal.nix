@@ -9,19 +9,21 @@ let
   # Paths to shell scripts (relative to this module)
   shellScriptsPath = ../../home/zsh;
 
+  # Keep escape-sequence keybindings independent of TOML string quoting.
+  esc = builtins.fromJSON ''"\u001b"'';
+
   # Platform-agnostic "Super" key modifier
   # macOS: Command (Cmd), Linux: Control+Shift (Ctrl+number doesn't produce unique keycodes)
   superMod = if pkgs.stdenv.isDarwin then "Command" else "Control|Shift";
 
   # Generate tmux window switching keybindings (Super+1-9)
   # Sends escape sequences that tmux binds to select-window
-  # Note: \u001b is ESC in TOML (TOML doesn't support \x escapes)
   tmuxWindowBindings = builtins.genList (n:
     let num = n + 1;
     in {
       key = "Key${toString num}";
       mods = superMod;
-      chars = "\\u001b[${toString num};3P";
+      chars = "${esc}[${toString num};3P";
     }) 9;
 in {
   options.cb.terminal = {
@@ -417,7 +419,7 @@ in {
             [{
               key = "Space";
               mods = "Control";
-              chars = "\\u001b[32;5u";
+              chars = "${esc}[32;5u";
             }]
             # macOS-specific bindings (standard Cmd shortcuts)
             ++ lib.optionals pkgs.stdenv.isDarwin [
