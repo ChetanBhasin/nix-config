@@ -2,6 +2,17 @@ local M = {}
 
 local state_path = vim.fs.joinpath(vim.fn.stdpath("data"), "rust-linked-projects.json")
 
+local display_colors = {
+    fg1 = "#ebdbb2",
+    gray = "#928374",
+    green = "#b8bb26",
+    yellow = "#fabd2f",
+    blue = "#83a598",
+    aqua = "#8ec07c",
+    orange = "#fe8019",
+    bg4 = "#7c6f64",
+}
+
 local function notify(message, level)
     vim.notify(message, level or vim.log.levels.INFO, { title = "Rust workspace" })
 end
@@ -314,7 +325,7 @@ local function fallback_project_name(root, dir)
     return vim.fs.basename(dir) or dir
 end
 
-local function tree_prefix(entry)
+local function tree_indent(entry)
     if entry.depth == 0 then
         return ""
     end
@@ -843,6 +854,18 @@ function M.status()
     notify(("linkedProjects override for %s:\n%s"):format(state_root, table.concat(selected, "\n")))
 end
 
+function M.setup_highlights()
+    vim.api.nvim_set_hl(0, "RustWorkspaceSelected", { fg = display_colors.green, bold = true })
+    vim.api.nvim_set_hl(0, "RustWorkspacePartial", { fg = display_colors.yellow, bold = true })
+    vim.api.nvim_set_hl(0, "RustWorkspaceUnchecked", { fg = display_colors.gray })
+    vim.api.nvim_set_hl(0, "RustWorkspaceGroup", { fg = display_colors.blue, bold = true })
+    vim.api.nvim_set_hl(0, "RustWorkspaceProject", { fg = display_colors.fg1 })
+    vim.api.nvim_set_hl(0, "RustWorkspacePath", { fg = display_colors.gray })
+    vim.api.nvim_set_hl(0, "RustWorkspaceCount", { fg = display_colors.aqua })
+    vim.api.nvim_set_hl(0, "RustWorkspaceKind", { fg = display_colors.orange })
+    vim.api.nvim_set_hl(0, "RustWorkspaceTree", { fg = display_colors.bg4 })
+end
+
 local function group_selection(entry, selected)
     local total = #(entry.children or {})
     local checked = 0
@@ -862,21 +885,67 @@ local function group_selection(entry, selected)
     return "[-]", checked, total
 end
 
-local function format_entry(entry, selected, collapsed)
+local function selection_marker(entry, selected)
     if entry.kind == "group" then
         local mark, checked, total = group_selection(entry, selected)
-        local expander = collapsed[entry.dir] and "+ " or "- "
-        local tree_name = tree_prefix(entry) .. expander .. entry.name .. "/"
-        local detail = entry.dir == "." and ("%d/%d projects"):format(checked, total)
-            or ("%s  %d/%d projects"):format(entry.dir, checked, total)
-
-        return string.format("%s %-42s %s", mark, tree_name, detail)
+        if checked == 0 then
+            return mark, "RustWorkspaceUnchecked"
+        elseif checked == total then
+            return mark, "RustWorkspaceSelected"
+        end
+        return mark, "RustWorkspacePartial"
     end
 
-    local mark = selected[entry.value] and "[x]" or "[ ]"
-    local tree_name = tree_prefix(entry) .. entry.name
+    if selected[entry.value] then
+        return "[x]", "RustWorkspaceSelected"
+    end
 
-    return string.format("%s %-42s %s", mark, tree_name, entry.dir)
+    return "[ ]", "RustWorkspaceUnchecked"
+end
+
+local function kind_label(entry)
+    if entry.kind == "group" then
+        return "dir", "RustWorkspaceTree"
+    elseif entry.kind == "rust-project" then
+        return "json", "RustWorkspaceKind"
+    end
+
+    return "crate", "RustWorkspaceKind"
+end
+
+local function display_name(entry, collapsed)
+    if entry.kind == "group" then
+        local expander = collapsed[entry.dir] and "+" or "-"
+        return tree_indent(entry) .. expander .. " " .. entry.name .. "/"
+    end
+
+    return tree_indent(entry) .. entry.name
+end
+
+local function detail_text(entry, selected)
+    if entry.kind == "group" then
+        local _, checked, total = group_selection(entry, selected)
+        if entry.dir == "." then
+            return ("%d/%d selected"):format(checked, total), "RustWorkspaceCount"
+        end
+        return ("%s  %d/%d selected"):format(entry.dir, checked, total), "RustWorkspaceCount"
+    end
+
+    return entry.dir, "RustWorkspacePath"
+end
+
+local function format_entry(entry, selected, collapsed, displayer)
+    local mark, mark_hl = selection_marker(entry, selected)
+    local kind, kind_hl = kind_label(entry)
+    local name_hl = entry.kind == "group" and "RustWorkspaceGroup" or "RustWorkspaceProject"
+    local detail, detail_hl = detail_text(entry, selected)
+
+    return displayer({
+        { mark, mark_hl },
+        { kind, kind_hl },
+        { display_name(entry, collapsed), name_hl },
+        { detail, detail_hl },
+    })
 end
 
 local function toggle_entry_selection(entry, selected)
@@ -899,11 +968,11 @@ end
 
 M.toggle_entry_selection = toggle_entry_selection
 
-local function make_entry(item, selected, collapsed)
+local function make_entry(item, selected, collapsed, displayer)
     return {
         value = item.value,
         display = function()
-            return format_entry(item, selected, collapsed)
+            return format_entry(item, selected, collapsed, displayer)
         end,
         ordinal = item.ordinal,
         project = item,
@@ -951,9 +1020,19 @@ function M.select()
     local conf = require("telescope.config").values
     local actions = require("telescope.actions")
     local action_state = require("telescope.actions.state")
+    local entry_display = require("telescope.pickers.entry_display")
+    local displayer = entry_display.create({
+        separator = " ",
+        items = {
+            { width = 3 },
+            { width = 5 },
+            { width = 44 },
+            { remaining = true },
+        },
+    })
 
     local function entry_maker(item)
-        return make_entry(item, selected, collapsed)
+        return make_entry(item, selected, collapsed, displayer)
     end
 
     local function current_entries()
@@ -1015,7 +1094,7 @@ function M.select()
     end
 
     local function select_all(prompt_bufnr)
-        selected = list_to_set(projects)
+        selected = vim.deepcopy(selectable_project_set)
         refresh(prompt_bufnr)
     end
 
@@ -1038,15 +1117,24 @@ function M.select()
     end
 
     pickers.new({}, {
-        prompt_title = "Rust projects: j/k move, h/l fold, Space toggle, Enter apply",
-        results_title = relative_to(root, vim.uv.cwd()) == "." and root or "Cargo projects",
+        prompt_title = "Rust workspace",
+        results_title = relative_to(root, vim.uv.cwd()) == "." and root or relative_to(root, vim.uv.cwd()),
         finder = finders.new_table({
             results = current_entries(),
             entry_maker = entry_maker,
         }),
+        previewer = false,
         sorter = conf.generic_sorter({}),
         initial_mode = "normal",
         selection_strategy = "row",
+        sorting_strategy = "ascending",
+        prompt_prefix = " filter > ",
+        selection_caret = "> ",
+        entry_prefix = "  ",
+        layout_config = {
+            width = 0.78,
+            height = 0.82,
+        },
         attach_mappings = function(prompt_bufnr, map)
             map("n", "<Space>", toggle)
             map("n", "h", collapse)
@@ -1068,6 +1156,7 @@ function M.setup()
         return
     end
     M._setup_done = true
+    M.setup_highlights()
 
     vim.api.nvim_create_user_command("RustWorkspaceSelect", M.select, {
         desc = "Pick rust-analyzer linkedProjects for this repo",
@@ -1080,6 +1169,10 @@ function M.setup()
     })
 
     local group = vim.api.nvim_create_augroup("CustomRustWorkspace", { clear = true })
+    vim.api.nvim_create_autocmd("ColorScheme", {
+        group = group,
+        callback = M.setup_highlights,
+    })
     vim.api.nvim_create_autocmd("LspAttach", {
         group = group,
         callback = function(args)
