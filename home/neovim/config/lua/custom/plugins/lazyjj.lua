@@ -3,13 +3,13 @@
 -- ═══════════════════════════════════════════════════════════════════════════════
 -- Floating window integration for lazyjj TUI (Jujutsu version control)
 
--- Note: lazyjj.nvim doesn't support disabling its default keymap cleanly.
--- We skip calling setup() to avoid duplicate keybindings.
--- The :LazyJJ command is still available, and we define our keybinding in keymaps.lua.
+-- The :LazyJJ command is registered by setup(). Disable lazyjj.nvim's own
+-- keymap so the binding stays centralized in keymaps.lua/Legendary.
 
--- Verify the plugin is available (for :LazyJJ command)
-local ok = pcall(require, "lazyjj")
-if not ok then
+local ok, lazyjj = pcall(require, "lazyjj")
+if ok then
+    lazyjj.setup({ mapping = false })
+else
     vim.notify("lazyjj.nvim not found", vim.log.levels.WARN)
 end
 
