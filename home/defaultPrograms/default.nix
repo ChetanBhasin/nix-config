@@ -1,4 +1,8 @@
-{ config, pkgs, ... }: {
+{ config, pkgs, ... }:
+let
+  # Keep escape-sequence keybindings independent of TOML string quoting.
+  esc = builtins.fromJSON ''"\u001b"'';
+in {
   programs.direnv.enable = true;
   programs.direnv.enableZshIntegration = true;
   programs.direnv.nix-direnv.enable = true;
@@ -199,7 +203,7 @@
         {
           key = "Space";
           mods = "Control";
-          chars = "\\u001b[32;5u";
+          chars = "${esc}[32;5u";
         }
         # Standard macOS shortcuts
         {
@@ -243,51 +247,50 @@
           action = "ResetFontSize";
         }
         # Tmux window navigation: Super+1-9 (sends escape sequences to tmux)
-        # Note: \u001b is ESC in TOML (TOML doesn't support \x escapes)
         {
           key = "Key1";
           mods = "Command";
-          chars = "\\u001b[1;3P";
+          chars = "${esc}[1;3P";
         }
         {
           key = "Key2";
           mods = "Command";
-          chars = "\\u001b[2;3P";
+          chars = "${esc}[2;3P";
         }
         {
           key = "Key3";
           mods = "Command";
-          chars = "\\u001b[3;3P";
+          chars = "${esc}[3;3P";
         }
         {
           key = "Key4";
           mods = "Command";
-          chars = "\\u001b[4;3P";
+          chars = "${esc}[4;3P";
         }
         {
           key = "Key5";
           mods = "Command";
-          chars = "\\u001b[5;3P";
+          chars = "${esc}[5;3P";
         }
         {
           key = "Key6";
           mods = "Command";
-          chars = "\\u001b[6;3P";
+          chars = "${esc}[6;3P";
         }
         {
           key = "Key7";
           mods = "Command";
-          chars = "\\u001b[7;3P";
+          chars = "${esc}[7;3P";
         }
         {
           key = "Key8";
           mods = "Command";
-          chars = "\\u001b[8;3P";
+          chars = "${esc}[8;3P";
         }
         {
           key = "Key9";
           mods = "Command";
-          chars = "\\u001b[9;3P";
+          chars = "${esc}[9;3P";
         }
       ];
     };
