@@ -250,7 +250,10 @@ in {
       enable = true;
       user = "chetan";
       onActivation.autoUpdate = true;
-      onActivation = { cleanup = "uninstall"; };
+      onActivation = {
+        cleanup = "uninstall";
+        extraFlags = [ "--force-cleanup" ];
+      };
 
       # Base brews (all hosts)
       brews = [ "docker-credential-helper" "podman" ]

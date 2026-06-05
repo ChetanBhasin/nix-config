@@ -272,6 +272,7 @@ legendary.keymaps({
     { "<leader>rj", function() vim.cmd.RustLsp('joinLines') end, description = "Rust: Join lines", mode = "n" },
     { "<leader>rs", function() vim.cmd.RustLsp('ssr') end, description = "Rust: Structural search replace", mode = "n" },
     { "<leader>rc", function() vim.cmd.RustLsp('openCargo') end, description = "Rust: Open Cargo.toml", mode = "n" },
+    { "<leader>rw", function() require("custom.plugins.rust_workspace").select() end, description = "Rust: Select linked projects", mode = "n" },
 
     -- ┌─────────────────────────────────────────────────────────────────────────┐
     -- │ VERSION CONTROL (Git/Jujutsu)                                           │
@@ -396,6 +397,7 @@ QUICK ACCESS:
   <leader>gg  → Open LazyGit
   <leader>jj  → Open LazyJJ (Jujutsu)
   <leader>rn  → Rename symbol
+  <leader>rw  → Rust linked projects
   <leader>fo  → Format code
   <leader>ca  → Code actions
   <leader>dc  → Debug continue
