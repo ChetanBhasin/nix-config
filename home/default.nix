@@ -61,6 +61,7 @@ in {
 
         # Version Control and Project Management (user-specific)
         jujutsu
+        lazyjj
         gitoxide
 
         # System Utilities (user-specific)
