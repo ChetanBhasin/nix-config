@@ -296,3 +296,6 @@ export PATH="$PATH:$HOME/.cargo/bin"
 
 # NPM global packages
 export PATH="$PATH:$HOME/.local/lib/bin"
+
+# Export UV tooling
+export PATH="/Users/chetan/.local/bin:$PATH"
