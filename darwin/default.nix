@@ -267,23 +267,18 @@ in {
         "codex"
         "postico"
         "lens"
-        "db-browser-for-sqlite"
         "firefox"
-        "fork"
         "hammerspoon"
-        "jetbrains-toolbox"
         "vlc"
         "obsidian"
         "slack"
         "zen"
-        "utm"
         "logi-options+"
         "google-chrome"
       ] ++ lib.optionals cfg.enableProf [ "thunderbird" ]
         ++ lib.optionals cfg.enableExtras [
           "ticktick"
           "yubico-authenticator"
-          "notion-calendar"
           "telegram"
           "signal"
           "protonvpn"
@@ -297,8 +292,6 @@ in {
           "proton-mail"
           "macfuse"
           "oracle-jdk"
-          "cursor"
-          "chatgpt"
         ] ++ cfg.extraCasks;
     };
 
