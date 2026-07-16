@@ -104,7 +104,7 @@ in {
           nerd-fonts.jetbrains-mono
 
           # Python debugging
-          python3Packages.debugpy
+          python313Packages.debugpy
 
           # Version control TUIs
           lazygit

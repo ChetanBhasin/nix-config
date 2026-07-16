@@ -78,14 +78,18 @@
       "--bind=ctrl-f:preview-page-down,ctrl-b:preview-page-up"
       "--bind=ctrl-/:toggle-preview"
     ];
-    fileWidgetCommand = "fd --type f --hidden --follow --exclude .git";
-    fileWidgetOptions = [
-      "--preview 'bat --color=always --line-range :100 {}'"
-      "--bind 'ctrl-/:change-preview-window(down|hidden|)'"
-    ];
-    changeDirWidgetCommand = "fd --type d --hidden --follow --exclude .git";
-    changeDirWidgetOptions = [ "--preview 'tree -C {} | head -200'" ];
-    historyWidgetOptions = [
+    fileWidget = {
+      command = "fd --type f --hidden --follow --exclude .git";
+      options = [
+        "--preview 'bat --color=always --line-range :100 {}'"
+        "--bind 'ctrl-/:change-preview-window(down|hidden|)'"
+      ];
+    };
+    changeDirWidget = {
+      command = "fd --type d --hidden --follow --exclude .git";
+      options = [ "--preview 'tree -C {} | head -200'" ];
+    };
+    historyWidget.options = [
       "--sort"
       "--exact"
       "--preview 'echo {}'"

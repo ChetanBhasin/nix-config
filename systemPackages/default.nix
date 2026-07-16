@@ -9,9 +9,7 @@
       pkg-config
       cmake
       gnumake
-    ] ++ lib.optionals pkgs.stdenv.isLinux [ gcc ]
-    ++ lib.optionals (llvmPackages ? libcxx) [ llvmPackages.libcxx ]
-    ++ lib.optionals (llvmPackages ? libcxxabi) [ llvmPackages.libcxxabi ] ++ [
+    ] ++ lib.optionals pkgs.stdenv.isLinux [ gcc ] ++ [
       openssl
       iconv
       libiconv
@@ -36,7 +34,7 @@
       # Development Languages and Runtimes
       bun
       uv
-      python3
+      python313
       rustup
       go
       nodejs

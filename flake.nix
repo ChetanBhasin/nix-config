@@ -98,19 +98,12 @@
                   ];
                 });
               };
-            in rec {
-              python313 = prev.python313.override (old: {
-                packageOverrides = prev.lib.composeManyExtensions
-                  ((if old ? packageOverrides then
-                    [ old.packageOverrides ]
-                  else
-                    [ ]) ++ [ rapidfuzzOverride ]);
-              });
-
-              # Keep common aliases consistent with the overridden interpreter.
-              python3 = python313;
-              python3Packages = python313.pkgs;
-              python313Packages = python313.pkgs;
+            in {
+              # Keep these fixes scoped to the Python 3.13 package set. Overriding
+              # nixpkgs' global Python aliases changes the Darwin stdenv and Clang
+              # derivations, preventing them from using the official binary cache.
+              python313Packages =
+                prev.python313Packages.overrideScope rapidfuzzOverride;
             })
         ];
       };
@@ -121,14 +114,25 @@
         determinate.darwinModules.default
         {
           determinateNix = {
-            # Settings written to `/etc/nix/nix.custom.conf`. Some settings (including
-            # `external-builders`) are intentionally blocked by the Determinate module.
+            # Settings written to `/etc/nix/nix.custom.conf`.
             customSettings = {
+              auto-optimise-store = true;
+              builders-use-substitutes = true;
               experimental-features =
                 [ "nix-command" "flakes" "external-builders" ];
+              substituters = [
+                "https://cache.nixos.org/"
+                "https://nix-community.cachix.org"
+                "https://devenv.cachix.org"
+              ];
 
               # Trust your admin group (and this user) so restricted settings from flakes are honored.
               trusted-users = [ "root" "@admin" user ];
+              trusted-public-keys = [
+                "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
+                "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
+                "devenv.cachix.org-1:w1cLUi8dv3hnoSPGAuibQv+f9TZLr6cv/Hm9XgU50cw="
+              ];
             };
 
             # Configure Determinate Nixd (writes `/etc/determinate/config.json`).

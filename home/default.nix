@@ -48,8 +48,8 @@ in {
 
         # Python ecosystem (user-specific)
         poetry
-        pipx
-        virtualenv
+        python313Packages.pipx
+        python313Packages.virtualenv
 
         # File Format and Data Processing (user-specific)
         sops
@@ -88,9 +88,9 @@ in {
         nerd-fonts.symbols-only
       ] ++ lib.optionals cfg.enableExtras [
         # Extra packages when enableExtras is true
-        elixir
-        rebar3
-        erlang
+        beamPackages.elixir
+        beamPackages.rebar3
+        beamPackages.erlang
         ngrok
         flyctl
         nodenv
@@ -98,7 +98,6 @@ in {
         # Darwin-specific packages that need special handling
         pam-reattach
         libiconv
-        cctools # for ld-classic and ar
       ] ++ lib.optionals pkgs.stdenv.isLinux [
         # Linux-specific packages
         systemd
