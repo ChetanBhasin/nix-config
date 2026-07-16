@@ -138,7 +138,7 @@ in {
         fd
         bat
         jq
-        python3
+        python313
       ];
   };
 }
