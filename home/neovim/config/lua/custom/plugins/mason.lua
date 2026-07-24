@@ -66,10 +66,18 @@ end)
 
 -- LSP Diagnostics Options Setup (Neovim 0.11+ API)
 vim.diagnostic.config({
-    virtual_text = false,
+    -- Show error and warning messages at the end of the affected line.
+    virtual_text = {
+        spacing = 4,
+        source = 'if_many',
+        prefix = '●',
+        severity = {
+            min = vim.diagnostic.severity.WARN,
+        },
+    },
     update_in_insert = true,
     underline = true,
-    severity_sort = false,
+    severity_sort = true,
     float = {
         border = 'rounded',
         source = 'always',
