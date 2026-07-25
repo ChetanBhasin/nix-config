@@ -1,4 +1,10 @@
-{ config, pkgs, lib, ... }: {
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
+{
   programs.zsh = {
     enable = true;
     enableCompletion = true;
@@ -13,7 +19,9 @@
       ignoreSpace = true;
       expireDuplicatesFirst = true;
     };
-    shellAliases = { c = "z"; };
+    shellAliases = {
+      c = "z";
+    };
     sessionVariables = {
       BAO_ADDR = "https://values.ferocia.co";
       EDITOR = "nvim";
@@ -21,10 +29,14 @@
       OPENSSL_LIB_DIR = "${pkgs.openssl.out}/lib";
       OPENSSL_DIR = "${pkgs.openssl.dev}";
       PKG_CONFIG_LIBDIR = "${pkgs.rdkafka}/lib/pkgconfig";
-      LIBRARY_PATH = lib.makeLibraryPath ([ pkgs.libiconv pkgs.poppler ]
-        ++ lib.optionals pkgs.stdenv.isDarwin [ pkgs.darwin.libcxx ]);
-      PKG_CONFIG_PATH =
-        "$PKG_CONFIG_PATH:${pkgs.rdkafka}/lib/pkgconfig:${pkgs.libiconv}/lib/pkgconfig:${pkgs.leptonica}/lib/pkgconfig/:${pkgs.tesseract}/lib/pkgconfig";
+      LIBRARY_PATH = lib.makeLibraryPath (
+        [
+          pkgs.libiconv
+          pkgs.poppler
+        ]
+        ++ lib.optionals pkgs.stdenv.isDarwin [ pkgs.darwin.libcxx ]
+      );
+      PKG_CONFIG_PATH = "$PKG_CONFIG_PATH:${pkgs.rdkafka}/lib/pkgconfig:${pkgs.libiconv}/lib/pkgconfig:${pkgs.leptonica}/lib/pkgconfig/:${pkgs.tesseract}/lib/pkgconfig";
     };
 
     initContent = ''
@@ -49,8 +61,7 @@
         # History substring search - fish-style
         name = "zsh-history-substring-search";
         src = pkgs.zsh-history-substring-search;
-        file =
-          "share/zsh-history-substring-search/zsh-history-substring-search.zsh";
+        file = "share/zsh-history-substring-search/zsh-history-substring-search.zsh";
       }
     ];
   };

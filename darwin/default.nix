@@ -1,7 +1,14 @@
-{ config, pkgs, lib, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 with lib;
-let cfg = config.darwin-config-manager;
-in {
+let
+  cfg = config.darwin-config-manager;
+in
+{
 
   imports = [ ../systemPackages ];
 
@@ -69,8 +76,7 @@ in {
         NSAutomaticPeriodSubstitutionEnabled = false;
         NSAutomaticQuoteSubstitutionEnabled = false;
         NSAutomaticSpellingCorrectionEnabled = false;
-        ApplePressAndHoldEnabled =
-          false; # Disable accent menu, enable key repeat
+        ApplePressAndHoldEnabled = false; # Disable accent menu, enable key repeat
 
         # Keyboard
         InitialKeyRepeat = 15;
@@ -179,10 +185,8 @@ in {
           TrackpadFourFingerHorizSwipeGesture = 2;
           TrackpadFourFingerPinchGesture = 2;
           TrackpadFourFingerVertSwipeGesture = 2;
-          TrackpadThreeFingerHorizSwipeGesture =
-            0; # Disabled (using 3-finger drag)
-          TrackpadThreeFingerVertSwipeGesture =
-            0; # Disabled (using 3-finger drag)
+          TrackpadThreeFingerHorizSwipeGesture = 0; # Disabled (using 3-finger drag)
+          TrackpadThreeFingerVertSwipeGesture = 0; # Disabled (using 3-finger drag)
           TrackpadTwoFingerDoubleTapGesture = 1;
           TrackpadTwoFingerFromRightEdgeSwipeGesture = 3;
 
@@ -235,10 +239,16 @@ in {
       };
 
       # Base brews (all hosts)
-      brews = [ "docker-credential-helper" "podman" ]
-        ++ lib.optionals cfg.enableProf [ "krb5" "rocksdb" ]
-        ++ lib.optionals cfg.enableExtras [ "nodenv" ]
-        ++ cfg.extraBrews;
+      brews = [
+        "docker-credential-helper"
+        "podman"
+      ]
+      ++ lib.optionals cfg.enableProf [
+        "krb5"
+        "rocksdb"
+      ]
+      ++ lib.optionals cfg.enableExtras [ "nodenv" ]
+      ++ cfg.extraBrews;
 
       # Base casks (all hosts)
       casks = [
@@ -254,24 +264,26 @@ in {
         "zen"
         "logi-options+"
         "google-chrome"
-      ] ++ lib.optionals cfg.enableProf [ "thunderbird" ]
-        ++ lib.optionals cfg.enableExtras [
-          "ticktick"
-          "yubico-authenticator"
-          "telegram"
-          "signal"
-          "protonvpn"
-          "proton-drive"
-          "proton-pass"
-          "figma"
-          "discord"
-          "spotify"
-          "caffeine"
-          "monitorcontrol"
-          "proton-mail"
-          "macfuse"
-          "oracle-jdk"
-        ] ++ cfg.extraCasks;
+      ]
+      ++ lib.optionals cfg.enableProf [ "thunderbird" ]
+      ++ lib.optionals cfg.enableExtras [
+        "ticktick"
+        "yubico-authenticator"
+        "telegram"
+        "signal"
+        "protonvpn"
+        "proton-drive"
+        "proton-pass"
+        "figma"
+        "discord"
+        "spotify"
+        "caffeine"
+        "monitorcontrol"
+        "proton-mail"
+        "macfuse"
+        "oracle-jdk"
+      ]
+      ++ cfg.extraCasks;
     };
 
     fonts.packages = with pkgs; [

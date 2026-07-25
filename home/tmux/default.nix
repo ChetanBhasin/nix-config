@@ -58,5 +58,13 @@
   home.file.".config/tmux/which-key-init.tmux".source = ./which-key-init.tmux;
 
   # Install required dependencies
-  home.packages = with pkgs; [ fzf ripgrep fd bat jq python313 coreutils ];
+  home.packages = with pkgs; [
+    fzf
+    ripgrep
+    fd
+    bat
+    jq
+    python313
+    coreutils
+  ];
 }

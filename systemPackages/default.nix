@@ -1,6 +1,13 @@
-{ config, pkgs, lib, ... }: {
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
+{
   # Shared system packages available across all platforms (Darwin and Linux)
-  environment.systemPackages = with pkgs;
+  environment.systemPackages =
+    with pkgs;
     [
       # Development Build Tools
       autoconf
@@ -9,7 +16,9 @@
       pkg-config
       cmake
       gnumake
-    ] ++ lib.optionals pkgs.stdenv.isLinux [ gcc ] ++ [
+    ]
+    ++ lib.optionals pkgs.stdenv.isLinux [ gcc ]
+    ++ [
       openssl
       iconv
       libiconv

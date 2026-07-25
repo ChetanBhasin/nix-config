@@ -17,29 +17,47 @@
     };
 
     # Other sources
-    flake-utils = { url = "github:numtide/flake-utils"; };
+    flake-utils = {
+      url = "github:numtide/flake-utils";
+    };
     devshell = {
       url = "github:numtide/devshell";
-      inputs = { nixpkgs.follows = "nixpkgs"; };
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+      };
     };
 
-    jj-starship = { url = "github:dmmulroy/jj-starship"; };
+    jj-starship = {
+      url = "github:dmmulroy/jj-starship";
+    };
 
   };
 
-  outputs = inputs@{ nixpkgs, darwin, home-manager, determinate, ... }:
+  outputs =
+    inputs@{
+      nixpkgs,
+      darwin,
+      home-manager,
+      determinate,
+      ...
+    }:
     let
       nixpkgsConfig = {
-        config = { allowUnfree = true; };
+        config = {
+          allowUnfree = true;
+        };
         overlays = [
-          (final: _prev:
+          (
+            final: _prev:
             let
               system = final.stdenv.hostPlatform.system;
               packages = inputs.jj-starship.packages.${system};
-            in {
+            in
+            {
               jj-starship = packages.jj-starship;
               jj-starship-no-git = packages.jj-starship-no-git;
-            })
+            }
+          )
           (_final: prev: {
             lazyjj = prev.lazyjj.overrideAttrs (old: {
               postInstall = (old.postInstall or "") + ''
@@ -65,14 +83,16 @@
               '';
             });
           })
-          (final: prev:
+          (
+            final: prev:
             let
               rapidfuzzOverride = pyFinal: pyPrev: {
                 rapidfuzz = pyPrev.rapidfuzz.overridePythonAttrs (old: {
                   # RapidFuzz's C++ extension doesn't currently build on aarch64-darwin with
                   # this nixpkgs snapshot, so allow the pure-Python fallback on Darwin.
-                  env = (old.env or { }) // prev.lib.optionalAttrs
-                    prev.stdenv.hostPlatform.isDarwin {
+                  env =
+                    (old.env or { })
+                    // prev.lib.optionalAttrs prev.stdenv.hostPlatform.isDarwin {
                       RAPIDFUZZ_BUILD_EXTENSION = 0;
                     };
 
@@ -80,8 +100,9 @@
 
                   # Work around RapidFuzz CMake configure failures on Darwin where
                   # `CMAKE_CXX_COMPILER_{AR,RANLIB}` are not auto-detected (CMake 4.x).
-                  preBuild = (old.preBuild or "") + prev.lib.optionalString
-                    prev.stdenv.hostPlatform.isDarwin ''
+                  preBuild =
+                    (old.preBuild or "")
+                    + prev.lib.optionalString prev.stdenv.hostPlatform.isDarwin ''
                       if [[ "''${CMAKE_ARGS:-}" != *"CMAKE_CXX_COMPILER_AR"* ]]; then
                         export CMAKE_ARGS="''${CMAKE_ARGS:-} -DCMAKE_CXX_COMPILER_AR=$AR -DCMAKE_CXX_COMPILER_RANLIB=$RANLIB"
                       fi
@@ -98,13 +119,14 @@
                   ];
                 });
               };
-            in {
+            in
+            {
               # Keep these fixes scoped to the Python 3.13 package set. Overriding
               # nixpkgs' global Python aliases changes the Darwin stdenv and Clang
               # derivations, preventing them from using the official binary cache.
-              python313Packages =
-                prev.python313Packages.overrideScope rapidfuzzOverride;
-            })
+              python313Packages = prev.python313Packages.overrideScope rapidfuzzOverride;
+            }
+          )
         ];
       };
       darwinModules = { user, host }: [
@@ -118,8 +140,11 @@
             customSettings = {
               auto-optimise-store = true;
               builders-use-substitutes = true;
-              experimental-features =
-                [ "nix-command" "flakes" "external-builders" ];
+              experimental-features = [
+                "nix-command"
+                "flakes"
+                "external-builders"
+              ];
               substituters = [
                 "https://cache.nixos.org/"
                 "https://nix-community.cachix.org"
@@ -127,7 +152,11 @@
               ];
 
               # Trust your admin group (and this user) so restricted settings from flakes are honored.
-              trusted-users = [ "root" "@admin" user ];
+              trusted-users = [
+                "root"
+                "@admin"
+                user
+              ];
               trusted-public-keys = [
                 "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
                 "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
@@ -174,7 +203,8 @@
           };
         }
       ];
-    in {
+    in
+    {
       # Standalone Home Manager modules for use in other flakes
       # Usage: inputs.nix-config.homeManagerModules.neovim
       homeManagerModules = import ./modules/homeManager;

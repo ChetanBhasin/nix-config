@@ -1,4 +1,10 @@
-{ self, pkgs, lib, ... }: {
+{
+  self,
+  pkgs,
+  lib,
+  ...
+}:
+{
   virtualisation.containers.enable = true;
   virtualisation = {
     podman = {
@@ -11,7 +17,10 @@
   };
   virtualisation.containers.containersConf.settings = {
     # podman seems to not work with systemd-resolved
-    containers.dns_servers = [ "8.8.8.8" "8.8.4.4" ];
+    containers.dns_servers = [
+      "8.8.8.8"
+      "8.8.4.4"
+    ];
   };
 
   # Useful otherdevelopment tools

@@ -1,7 +1,14 @@
-{ config, pkgs, lib, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 with lib;
-let cfg = config.home-config-manager;
-in {
+let
+  cfg = config.home-config-manager;
+in
+{
   options.home-config-manager = {
     includeFonts = lib.mkEnableOption "fonts";
     isDarwin = lib.mkEnableOption "include darwin configuration";
@@ -9,12 +16,20 @@ in {
     enableProf = lib.mkEnableOption "enable professional packages";
   };
 
-  imports = [ ./defaultPrograms ./vscode ./zsh ./neovim ./tmux ./darwin ];
+  imports = [
+    ./defaultPrograms
+    ./vscode
+    ./zsh
+    ./neovim
+    ./tmux
+    ./darwin
+  ];
 
   config = {
     fonts.fontconfig = lib.mkIf cfg.includeFonts { enable = true; };
 
-    home.packages = with pkgs;
+    home.packages =
+      with pkgs;
       [
         # User-specific CLI tools
         hl-log-viewer
@@ -83,10 +98,12 @@ in {
         # File format utilities (user-specific)
         sqlx-cli
 
-      ] ++ lib.optionals cfg.includeFonts [
+      ]
+      ++ lib.optionals cfg.includeFonts [
         nerd-fonts.jetbrains-mono
         nerd-fonts.symbols-only
-      ] ++ lib.optionals cfg.enableExtras [
+      ]
+      ++ lib.optionals cfg.enableExtras [
         # Extra packages when enableExtras is true
         beamPackages.elixir
         beamPackages.rebar3
@@ -94,11 +111,13 @@ in {
         ngrok
         flyctl
         nodenv
-      ] ++ lib.optionals pkgs.stdenv.isDarwin [
+      ]
+      ++ lib.optionals pkgs.stdenv.isDarwin [
         # Darwin-specific packages that need special handling
         pam-reattach
         libiconv
-      ] ++ lib.optionals pkgs.stdenv.isLinux [
+      ]
+      ++ lib.optionals pkgs.stdenv.isLinux [
         # Linux-specific packages
         systemd
       ];

@@ -2,7 +2,8 @@
 let
   # Keep escape-sequence keybindings independent of TOML string quoting.
   esc = builtins.fromJSON ''"\u001b"'';
-in {
+in
+{
   programs.direnv.enable = true;
   programs.direnv.enableZshIntegration = true;
   programs.direnv.nix-direnv.enable = true;
@@ -190,7 +191,9 @@ in {
         unfocused_hollow = true;
       };
 
-      selection = { save_to_clipboard = true; };
+      selection = {
+        save_to_clipboard = true;
+      };
 
       scrolling = {
         history = 10000;
