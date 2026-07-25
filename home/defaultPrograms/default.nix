@@ -22,6 +22,7 @@ in {
 
       # Custom format - directory and git first, then languages
       format = builtins.concatStringsSep "" [
+        "$time"
         "$directory"
         "$custom"
         "$nix_shell"
@@ -133,7 +134,7 @@ in {
 
       # Time (disabled by default)
       time = {
-        disabled = true;
+        disabled = false;
         format = "[$time]($style) ";
         style = "bold dimmed white";
       };
