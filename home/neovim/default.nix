@@ -1,5 +1,15 @@
-{ config, pkgs, lib, ... }:
-with lib; {
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
+
+let
+  bazelLsp = pkgs.callPackage ../../packages/bazel-lsp.nix { };
+in
+with lib;
+{
   config = {
     programs.neovim = {
       enable = true;
@@ -10,34 +20,40 @@ with lib; {
       withNodeJs = true;
       withPython3 = true;
       withRuby = false;
-      extraPackages = with pkgs;
-        [
-          lua
-          lua-language-server
-          terraform-lsp
-          deadnix
-          statix
-          nixd
-          nixfmt # Nix formatter for nixd
-          taplo
-          yamllint
-          go
-          gopls # Go language server
-          ctags
-          stylua
-          ruff
-          ripgrep
-          gzip
-          nerd-fonts.jetbrains-mono
-          # Python debugging
-          python313Packages.debugpy
-          # Version control TUIs
-          lazygit
-          lazyjj
-          dockerfile-language-server
-          typescript-language-server
-          yaml-language-server
-        ];
+      extraPackages = with pkgs; [
+        lua
+        lua-language-server
+        terraform-lsp
+        awk-language-server
+        gawk # AWK formatter used by Conform
+        bazelLsp
+        bazelisk # Bazel backend used by bazel-lsp
+        buildifier
+        just-lsp
+        deadnix
+        statix
+        nixd
+        nixfmt # Nix formatter for nixd
+        taplo
+        yamllint
+        go
+        gopls # Go language server
+        just # Formatter/runtime used by just-lsp
+        ctags
+        stylua
+        ruff
+        ripgrep
+        gzip
+        nerd-fonts.jetbrains-mono
+        # Python debugging
+        python313Packages.debugpy
+        # Version control TUIs
+        lazygit
+        lazyjj
+        dockerfile-language-server
+        typescript-language-server
+        yaml-language-server
+      ];
       plugins = with pkgs.vimPlugins; [
         plenary-nvim
         vim-cool
@@ -78,6 +94,8 @@ with lib; {
         mini-nvim
         conform-nvim
         nvim-lspconfig
+        lsp_signature-nvim
+        nvim-lint
         # Snippet engine (replaced vim-vsnip with LuaSnip)
         luasnip
         friendly-snippets
@@ -86,21 +104,13 @@ with lib; {
         nvim-cmp
         cmp-nvim-lsp
         cmp_luasnip # LuaSnip completion source
-        cmp-nvim-lua
-        cmp-buffer
         cmp-path
-        cmp-zsh
-        cmp-git
-        cmp-tmux
-        cmp-spell
-        cmp-clippy
-        cmp-treesitter
         # Debug Adapter Protocol
         nvim-dap
         nvim-dap-python
         nvim-dap-ui
-        (nvim-treesitter.withPlugins (p:
-          with p; [
+        (nvim-treesitter.withPlugins (
+          p: with p; [
             astro
             awk
             bash
@@ -156,6 +166,7 @@ with lib; {
             json5
             jsonnet
             julia
+            just
             kconfig
             kotlin
             latex
@@ -237,7 +248,8 @@ with lib; {
             xml
             yaml
             zig
-          ]))
+          ]
+        ))
       ];
     };
 
