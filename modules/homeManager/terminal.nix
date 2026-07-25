@@ -224,9 +224,10 @@ in {
         enableZshIntegration = cfg.enableZsh;
         settings = {
           add_newline = true;
-          scan_timeout = 10;
+          scan_timeout = 5;
 
           format = builtins.concatStringsSep "" [
+            "$time"
             "$directory"
             "$custom"
             "$nix_shell"
@@ -327,7 +328,7 @@ in {
           };
 
           time = {
-            disabled = true;
+            disabled = false;
             format = "[$time]($style) ";
             style = "bold dimmed white";
           };
