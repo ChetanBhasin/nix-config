@@ -7,7 +7,10 @@
     theme = "nord";
 
     # Hugh-specific applications
-    extraBrews = [ "cloudflared" "flyctl" ];
+    extraBrews = [
+      "cloudflared"
+      "flyctl"
+    ];
 
     extraCasks = [
       "1password"

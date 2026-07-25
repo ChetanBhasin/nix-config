@@ -1,13 +1,20 @@
 # Standalone NeoVim module for Home Manager
 # Can be imported by other flakes via: inputs.nix-config.homeManagerModules.neovim
-{ config, pkgs, lib, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 
 let
   cfg = config.cb.neovim;
+  bazelLsp = pkgs.callPackage ../../packages/bazel-lsp.nix { };
 
   # Path to the neovim lua config directory (relative to this module)
   nvimConfigPath = ../../home/neovim/config;
-in {
+in
+{
   options.cb.neovim = {
     enable = lib.mkEnableOption "Chetan's NeoVim configuration";
 
@@ -38,8 +45,7 @@ in {
     enableTmuxIntegration = lib.mkOption {
       type = lib.types.bool;
       default = true;
-      description =
-        "Enable vim-tmux-navigator for seamless tmux/vim navigation";
+      description = "Enable vim-tmux-navigator for seamless tmux/vim navigation";
     };
 
     extraPackages = lib.mkOption {
@@ -55,11 +61,9 @@ in {
     };
 
     treesitterGrammars = lib.mkOption {
-      type = lib.types.either (lib.types.enum [ "all" ])
-        (lib.types.listOf lib.types.str);
+      type = lib.types.either (lib.types.enum [ "all" ]) (lib.types.listOf lib.types.str);
       default = "all";
-      description =
-        "Treesitter grammars to install. Use 'all' for comprehensive language support or a list of specific grammars.";
+      description = "Treesitter grammars to install. Use 'all' for comprehensive language support or a list of specific grammars.";
     };
   };
 
@@ -74,7 +78,8 @@ in {
       withPython3 = cfg.withPython3;
       withRuby = cfg.withRuby;
 
-      extraPackages = with pkgs;
+      extraPackages =
+        with pkgs;
         [
           # Lua ecosystem
           lua
@@ -89,12 +94,19 @@ in {
 
           # Language servers
           terraform-lsp
+          awk-language-server
+          gawk # AWK formatter used by Conform
+          bazelLsp
+          bazelisk # Bazel backend used by bazel-lsp
+          buildifier
+          just-lsp
           taplo
           yamllint
           gopls
 
           # Languages
           go
+          just # Formatter/runtime used by just-lsp
 
           # Utilities
           ctags
@@ -112,9 +124,11 @@ in {
           dockerfile-language-server
           typescript-language-server
           yaml-language-server
-        ] ++ cfg.extraPackages;
+        ]
+        ++ cfg.extraPackages;
 
-      plugins = with pkgs.vimPlugins;
+      plugins =
+        with pkgs.vimPlugins;
         [
           # Core utilities
           plenary-nvim
@@ -169,6 +183,8 @@ in {
 
           # LSP
           nvim-lspconfig
+          lsp_signature-nvim
+          nvim-lint
           mason-nvim
           mason-lspconfig-nvim
 
@@ -180,15 +196,7 @@ in {
           nvim-cmp
           cmp-nvim-lsp
           cmp_luasnip
-          cmp-nvim-lua
-          cmp-buffer
           cmp-path
-          cmp-zsh
-          cmp-git
-          cmp-tmux
-          cmp-spell
-          cmp-clippy
-          cmp-treesitter
 
           # Debug Adapter Protocol
           nvim-dap
@@ -201,9 +209,11 @@ in {
         ]
         # Treesitter with comprehensive language support
         ++ [
-          (nvim-treesitter.withPlugins (p:
+          (nvim-treesitter.withPlugins (
+            p:
             if cfg.treesitterGrammars == "all" then
-              with p; [
+              with p;
+              [
                 astro
                 awk
                 bash
@@ -259,6 +269,7 @@ in {
                 json5
                 jsonnet
                 julia
+                just
                 kconfig
                 kotlin
                 latex
@@ -342,8 +353,10 @@ in {
                 zig
               ]
             else
-              builtins.map (name: p.${name}) cfg.treesitterGrammars))
-        ] ++ cfg.extraPlugins;
+              builtins.map (name: p.${name}) cfg.treesitterGrammars
+          ))
+        ]
+        ++ cfg.extraPlugins;
     };
 
     # Link the NeoVim lua configuration

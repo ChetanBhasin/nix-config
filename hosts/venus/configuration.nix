@@ -1,7 +1,10 @@
 { config, pkgs, ... }:
 
 {
-  imports = [ ./server.nix ../../systemPackages ];
+  imports = [
+    ./server.nix
+    ../../systemPackages
+  ];
 
   time.timeZone = "Europe/Berlin";
   i18n.defaultLocale = "en_US.UTF-8";
@@ -15,8 +18,14 @@
   users.users.chetan = {
     isNormalUser = true;
     description = "Chetan";
-    extraGroups = [ "networkmanager" "wheel" ];
-    packages = with pkgs; [ neovim k3d ];
+    extraGroups = [
+      "networkmanager"
+      "wheel"
+    ];
+    packages = with pkgs; [
+      neovim
+      k3d
+    ];
   };
 
   networking.networkmanager.enable = true;
