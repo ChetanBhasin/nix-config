@@ -93,20 +93,15 @@ cmp.setup({
         end, { "i", "s" }),
     }),
 
-    -- Completion sources
+    -- Keep identifier completion grounded in the active language server.
+    -- Snippets and paths remain available as clearly labelled fallbacks, but
+    -- shell history, buffer words, and Treesitter symbols must not masquerade
+    -- as APIs supported by the current project.
     sources = cmp.config.sources({
-        { name = "nvim_lsp", keyword_length = 2 },
-        { name = "luasnip", keyword_length = 2 },
-        { name = "nvim_lua", keyword_length = 2 },
-        { name = "treesitter", keyword_length = 2 },
-        { name = "path" },
+        { name = "nvim_lsp", keyword_length = 1 },
     }, {
-        { name = "buffer", keyword_length = 3 },
-        { name = "git" },
-        { name = "tmux" },
-        { name = "zsh" },
-        { name = "clippy" },
-        { name = "spell" },
+        { name = "luasnip", keyword_length = 2 },
+        { name = "path" },
     }),
 
     -- Window styling
@@ -132,15 +127,7 @@ cmp.setup({
                 local menu_icon = {
                     nvim_lsp = "[LSP]",
                     luasnip = "[Snippet]",
-                    nvim_lua = "[Lua]",
-                    treesitter = "[TS]",
-                    buffer = "[Buffer]",
                     path = "[Path]",
-                    git = "[Git]",
-                    tmux = "[Tmux]",
-                    zsh = "[Zsh]",
-                    clippy = "[Clippy]",
-                    spell = "[Spell]",
                 }
                 vim_item.menu = menu_icon[entry.source.name] or "[Unknown]"
                 return vim_item

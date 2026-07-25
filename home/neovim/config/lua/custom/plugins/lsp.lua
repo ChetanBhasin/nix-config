@@ -166,6 +166,28 @@ vim.lsp.config('bashls', {
     on_attach = on_attach,
 })
 
+-- AWK
+vim.lsp.config('awk_ls', {
+    capabilities = lsp_capabilities,
+    on_attach = on_attach,
+})
+
+-- Bazel/Starlark
+vim.lsp.config('bazel_lsp', {
+    cmd = { 'bazel-lsp', '--bazel', 'bazelisk' },
+    filetypes = { 'bzl' },
+    root_markers = { 'MODULE.bazel', 'WORKSPACE.bazel', 'WORKSPACE' },
+    capabilities = lsp_capabilities,
+    on_attach = on_attach,
+})
+
+-- Justfiles
+vim.lsp.config('just', {
+    capabilities = lsp_capabilities,
+    on_attach = on_attach,
+    root_markers = { 'justfile', 'Justfile', '.jj', '.git' },
+})
+
 -- Go language server with inlay hints
 vim.lsp.config('gopls', {
     capabilities = lsp_capabilities,
@@ -209,6 +231,9 @@ local servers = {
     'dockerls',
     'lua_ls',
     'bashls',
+    'awk_ls',
+    'bazel_lsp',
+    'just',
     'gopls',
 }
 

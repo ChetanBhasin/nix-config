@@ -1,5 +1,7 @@
 -- Mason Setup
 require("mason").setup({
+    -- Prefer tools pinned by Nix; keep Mason packages as a fallback.
+    PATH = "append",
     ui = {
         icons = {
             package_installed = "✅",
