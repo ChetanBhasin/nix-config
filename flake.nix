@@ -185,23 +185,26 @@
         (./. + "/hosts/${host}/configuration.nix")
         # `home-manager` module
         home-manager.nixosModules.home-manager
-        {
-          nixpkgs = nixpkgsConfig;
-          users.users.${user}.shell = nixpkgs.zsh;
-          # `home-manager` config
-          users.users.${user} = {
-            home = "/home/${user}";
-            isNormalUser = true;
-            group = "${user}";
-            extraGroups = [ "wheel" ];
-          };
-          users.groups.${user} = { };
-          home-manager = {
-            useGlobalPkgs = true;
-            useUserPackages = true;
-            users.${user} = import (./. + "/hosts/${host}/home.nix");
-          };
-        }
+        (
+          { pkgs, ... }:
+          {
+            nixpkgs = nixpkgsConfig;
+            # `home-manager` config
+            users.users.${user} = {
+              home = "/home/${user}";
+              isNormalUser = true;
+              group = "${user}";
+              extraGroups = [ "wheel" ];
+              shell = pkgs.zsh;
+            };
+            users.groups.${user} = { };
+            home-manager = {
+              useGlobalPkgs = true;
+              useUserPackages = true;
+              users.${user} = import (./. + "/hosts/${host}/home.nix");
+            };
+          }
+        )
       ];
     in
     {
@@ -223,6 +226,17 @@
           modules = darwinModules {
             user = "chetan";
             host = "markus";
+          };
+          specialArgs = { inherit inputs nixpkgs; };
+        };
+      };
+
+      nixosConfigurations = {
+        boris = nixpkgs.lib.nixosSystem {
+          system = "x86_64-linux";
+          modules = nixosModules {
+            user = "chetan";
+            host = "boris";
           };
           specialArgs = { inherit inputs nixpkgs; };
         };
