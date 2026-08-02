@@ -93,7 +93,23 @@ in
 
   # SDDM starts the Bigscreen session in the user's home. Keep this explicit
   # so the directory is also recreated if it is ever absent at boot.
-  systemd.tmpfiles.rules = [ "d /home/media 0750 media media -" ];
+  systemd = {
+    sleep.settings.Sleep = {
+      AllowHibernation = "no";
+      AllowHybridSleep = "no";
+      AllowSuspend = "no";
+      AllowSuspendThenHibernate = "no";
+    };
+    tmpfiles.rules = [ "d /home/media 0750 media media -" ];
+  };
+  services.logind.settings.Login = {
+    HandleHibernateKey = "ignore";
+    HandleLidSwitch = "ignore";
+    HandleLidSwitchDocked = "ignore";
+    HandleLidSwitchExternalPower = "ignore";
+    HandleSuspendKey = "ignore";
+    IdleAction = "ignore";
+  };
 
   services.openssh = {
     enable = true;
@@ -153,7 +169,10 @@ in
     pcscd.enable = true;
     power-profiles-daemon.enable = true;
     printing.enable = true;
-    tailscale.enable = true;
+    tailscale = {
+      enable = true;
+      extraSetFlags = [ "--accept-routes=false" ];
+    };
   };
 
   programs = {
