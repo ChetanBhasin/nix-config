@@ -17,7 +17,7 @@
       cmake
       gnumake
     ]
-    ++ lib.optionals pkgs.stdenv.isLinux [ gcc ]
+    ++ lib.optionals pkgs.stdenv.hostPlatform.isLinux [ gcc ]
     ++ [
       openssl
       iconv

@@ -17,21 +17,20 @@ let
   # Keep escape-sequence keybindings independent of TOML string quoting.
   esc = builtins.fromJSON ''"\u001b"'';
 
-  # Platform-agnostic "Super" key modifier
-  # macOS: Command (Cmd), Linux: Control+Shift (Ctrl+number doesn't produce unique keycodes)
-  superMod = if pkgs.stdenv.isDarwin then "Command" else "Control|Shift";
-
-  # Generate tmux window switching keybindings (Super+1-9)
-  # Sends escape sequences that tmux binds to select-window
-  tmuxWindowBindings = builtins.genList (
+  # Encode the physical platform shortcut with the standard CSI-u protocol.
+  # Tmux normalizes Super+number to Alt+number, which would collide with the
+  # session shortcuts, so both platforms deliberately emit Ctrl+Shift+number.
+  multiplexerTabMod = if pkgs.stdenv.hostPlatform.isDarwin then "Command" else "Control|Shift";
+  multiplexerTabBindings = builtins.genList (
     n:
     let
       num = n + 1;
+      codepoint = 49 + n;
     in
     {
       key = "Key${toString num}";
-      mods = superMod;
-      chars = "${esc}[${toString num};3P";
+      mods = multiplexerTabMod;
+      chars = "${esc}[${toString codepoint};6u";
     }
   ) 9;
 in
@@ -149,7 +148,7 @@ in
                 pkgs.libiconv
                 pkgs.poppler
               ]
-              ++ lib.optionals pkgs.stdenv.isDarwin [ pkgs.darwin.libcxx ]
+              ++ lib.optionals pkgs.stdenv.hostPlatform.isDarwin [ pkgs.darwin.libcxx ]
             );
             PKG_CONFIG_PATH = "$PKG_CONFIG_PATH:${pkgs.rdkafka}/lib/pkgconfig:${pkgs.libiconv}/lib/pkgconfig:${pkgs.leptonica}/lib/pkgconfig/:${pkgs.tesseract}/lib/pkgconfig";
           };
@@ -182,7 +181,7 @@ in
         # Symlink shell configuration files
         home.file.".sources".source = shellScriptsPath + "/sources.sh";
         home.file.".sources_platform".source =
-          if pkgs.stdenv.isDarwin then
+          if pkgs.stdenv.hostPlatform.isDarwin then
             shellScriptsPath + "/sources_darwin.sh"
           else
             shellScriptsPath + "/sources_linux.sh";
@@ -393,7 +392,7 @@ in
               decorations = "Buttonless";
               opacity = 1.0;
             }
-            // lib.optionalAttrs pkgs.stdenv.isDarwin {
+            // lib.optionalAttrs pkgs.stdenv.hostPlatform.isDarwin {
               option_as_alt = "OnlyLeft";
             };
 
@@ -451,7 +450,7 @@ in
                 }
               ]
               # macOS-specific bindings (standard Cmd shortcuts)
-              ++ lib.optionals pkgs.stdenv.isDarwin [
+              ++ lib.optionals pkgs.stdenv.hostPlatform.isDarwin [
                 {
                   key = "K";
                   mods = "Command";
@@ -493,8 +492,8 @@ in
                   action = "ResetFontSize";
                 }
               ]
-              # Tmux window navigation: Super+1-9 (Cmd on macOS, Ctrl+Shift on Linux)
-              ++ tmuxWindowBindings;
+              # Direct tab/window navigation: Cmd+1-9 on Darwin, Ctrl+Shift+1-9 elsewhere.
+              ++ multiplexerTabBindings;
           };
         };
       })

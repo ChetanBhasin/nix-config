@@ -2,6 +2,23 @@
 let
   # Keep escape-sequence keybindings independent of TOML string quoting.
   esc = builtins.fromJSON ''"\u001b"'';
+
+  # Encode the physical platform shortcut with the standard CSI-u protocol.
+  # Tmux normalizes Super+number to Alt+number, which would collide with the
+  # session shortcuts, so both platforms deliberately emit Ctrl+Shift+number.
+  multiplexerTabMod = if pkgs.stdenv.hostPlatform.isDarwin then "Command" else "Control|Shift";
+  multiplexerTabBindings = builtins.genList (
+    n:
+    let
+      num = n + 1;
+      codepoint = 49 + n;
+    in
+    {
+      key = "Key${toString num}";
+      mods = multiplexerTabMod;
+      chars = "${esc}[${toString codepoint};6u";
+    }
+  ) 9;
 in
 {
   programs.direnv.enable = true;
@@ -250,53 +267,9 @@ in
           mods = "Command";
           action = "ResetFontSize";
         }
-        # Tmux window navigation: Super+1-9 (sends escape sequences to tmux)
-        {
-          key = "Key1";
-          mods = "Command";
-          chars = "${esc}[1;3P";
-        }
-        {
-          key = "Key2";
-          mods = "Command";
-          chars = "${esc}[2;3P";
-        }
-        {
-          key = "Key3";
-          mods = "Command";
-          chars = "${esc}[3;3P";
-        }
-        {
-          key = "Key4";
-          mods = "Command";
-          chars = "${esc}[4;3P";
-        }
-        {
-          key = "Key5";
-          mods = "Command";
-          chars = "${esc}[5;3P";
-        }
-        {
-          key = "Key6";
-          mods = "Command";
-          chars = "${esc}[6;3P";
-        }
-        {
-          key = "Key7";
-          mods = "Command";
-          chars = "${esc}[7;3P";
-        }
-        {
-          key = "Key8";
-          mods = "Command";
-          chars = "${esc}[8;3P";
-        }
-        {
-          key = "Key9";
-          mods = "Command";
-          chars = "${esc}[9;3P";
-        }
-      ];
+      ]
+      # Direct tab/window navigation: Cmd+1-9 on Darwin, Ctrl+Shift+1-9 elsewhere.
+      ++ multiplexerTabBindings;
     };
   };
 }

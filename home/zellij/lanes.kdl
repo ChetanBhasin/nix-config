@@ -1,0 +1,254 @@
+layout {
+    default_tab_template {
+        pane size=1 borderless=true {
+            plugin location="zjstatus" {
+                format_left   "{mode}#[fg=#504945]| #[fg=#fabd2f,bold] {session}"
+                format_center "{tabs}"
+                format_right  "#[fg=#504945]|{datetime}"
+                format_space  ""
+
+                mode_normal       "#[fg=#928374] NORMAL  Ctrl-Space commands "
+                mode_locked       "#[fg=#fb4934,bold] PASSTHROUGH #[fg=#928374] Ctrl-g return "
+                mode_tmux         "#[bg=#fabd2f,fg=#282828,bold] COMMANDS #[bg=#282828,fg=#928374] ? help · Esc return "
+                mode_pane         "#[fg=#d3869b,bold] PANE "
+                mode_tab          "#[fg=#83a598,bold] TAB "
+                mode_session      "#[fg=#fe8019,bold] SESSION "
+                mode_resize       "#[fg=#8ec07c,bold] RESIZE "
+                mode_scroll       "#[fg=#b8bb26,bold] SCROLL "
+                mode_enter_search "#[fg=#b8bb26,bold] SEARCH #[fg=#928374] type query · Enter confirm · Esc cancel "
+                mode_search       "#[fg=#b8bb26,bold] SEARCH "
+                mode_rename_tab   "#[fg=#83a598,bold] RENAME TAB #[fg=#928374] Enter save · Esc cancel "
+                mode_rename_pane  "#[fg=#d3869b,bold] RENAME PANE #[fg=#928374] Enter save · Esc cancel "
+                mode_move         "#[fg=#d79921,bold] GIT "
+                mode_prompt       "#[fg=#fe8019,bold] PROMPT "
+
+                tab_normal   "#[fg=#928374] {index}:{name}{fullscreen_indicator}{sync_indicator}{bell_indicator} "
+                tab_active   "#[fg=#fabd2f,bold] {index}:{name} #[fg=#fe8019]{focused_pane_title}{fullscreen_indicator}{sync_indicator}{bell_indicator} "
+                tab_normal_bell "#[fg=#fe8019,bold] {index}:{name}{fullscreen_indicator}{sync_indicator}{bell_indicator} "
+                tab_normal_flashing_bell "#[bg=#fe8019,fg=#282828,bold] {index}:{name}{fullscreen_indicator}{sync_indicator}{bell_indicator} #[bg=#282828]"
+                tab_fullscreen_indicator " #[fg=#fe8019]FULL"
+                tab_sync_indicator       " #[fg=#8ec07c]SYNC"
+                // A quiet orange dot keeps acknowledged attention visible;
+                // the ringing bell is reserved for the active flash state.
+                tab_bell_indicator       " #[fg=#fe8019,bold]●"
+                tab_flashing_bell_indicator " #[fg=#282828,bold]󰂠"
+
+                datetime          " #[fg=#b8bb26]{format} "
+                datetime_format   "%a %d %b  %H:%M"
+                datetime_timezone "Europe/Berlin"
+            }
+        }
+        children;
+    }
+
+    tab { pane; }
+
+    // The one canonical tiled layout: equal-width vertical lanes with panes
+    // stacked top-to-bottom inside each lane. exact_panes includes zjstatus.
+    swap_tiled_layout name="lanes" {
+        // 2 terminals: [1, 1]
+        tab exact_panes=3 {
+            pane split_direction="vertical" {
+                pane
+                pane
+            }
+        }
+
+        // 3 terminals: [1, 2]
+        tab exact_panes=4 {
+            pane split_direction="vertical" {
+                pane
+                pane split_direction="horizontal" {
+                    pane
+                    pane
+                }
+            }
+        }
+
+        // 4 terminals: [2, 2]
+        tab exact_panes=5 {
+            pane split_direction="vertical" {
+                pane split_direction="horizontal" {
+                    pane
+                    pane
+                }
+                pane split_direction="horizontal" {
+                    pane
+                    pane
+                }
+            }
+        }
+
+        // 5 terminals: [2, 3]
+        tab exact_panes=6 {
+            pane split_direction="vertical" {
+                pane split_direction="horizontal" {
+                    pane
+                    pane
+                }
+                pane split_direction="horizontal" {
+                    pane
+                    pane
+                    pane
+                }
+            }
+        }
+
+        // 6 terminals: [3, 3]
+        tab exact_panes=7 {
+            pane split_direction="vertical" {
+                pane split_direction="horizontal" {
+                    pane
+                    pane
+                    pane
+                }
+                pane split_direction="horizontal" {
+                    pane
+                    pane
+                    pane
+                }
+            }
+        }
+
+        // 7 terminals: [2, 2, 3]
+        tab exact_panes=8 {
+            pane split_direction="vertical" {
+                pane split_direction="horizontal" {
+                    pane
+                    pane
+                }
+                pane split_direction="horizontal" {
+                    pane
+                    pane
+                }
+                pane split_direction="horizontal" {
+                    pane
+                    pane
+                    pane
+                }
+            }
+        }
+
+        // 8 terminals: [2, 3, 3]
+        tab exact_panes=9 {
+            pane split_direction="vertical" {
+                pane split_direction="horizontal" {
+                    pane
+                    pane
+                }
+                pane split_direction="horizontal" {
+                    pane
+                    pane
+                    pane
+                }
+                pane split_direction="horizontal" {
+                    pane
+                    pane
+                    pane
+                }
+            }
+        }
+
+        // 9 terminals: [3, 3, 3]
+        tab exact_panes=10 {
+            pane split_direction="vertical" {
+                pane split_direction="horizontal" {
+                    pane
+                    pane
+                    pane
+                }
+                pane split_direction="horizontal" {
+                    pane
+                    pane
+                    pane
+                }
+                pane split_direction="horizontal" {
+                    pane
+                    pane
+                    pane
+                }
+            }
+        }
+
+        // 10 terminals: [3, 3, 4]
+        tab exact_panes=11 {
+            pane split_direction="vertical" {
+                pane split_direction="horizontal" {
+                    pane
+                    pane
+                    pane
+                }
+                pane split_direction="horizontal" {
+                    pane
+                    pane
+                    pane
+                }
+                pane split_direction="horizontal" {
+                    pane
+                    pane
+                    pane
+                    pane
+                }
+            }
+        }
+
+        // 11+ terminals: keep three lanes and grow the left one as needed.
+        tab min_panes=12 {
+            pane split_direction="vertical" {
+                pane split_direction="horizontal" { children; }
+                pane split_direction="horizontal" {
+                    pane
+                    pane
+                    pane
+                    pane
+                }
+                pane split_direction="horizontal" {
+                    pane
+                    pane
+                    pane
+                    pane
+                }
+            }
+        }
+    }
+
+    swap_floating_layout name="staggered" {
+        floating_panes
+    }
+
+    swap_floating_layout name="enlarged" {
+        floating_panes max_panes=10 {
+            pane { x "5%"; y 1; width "90%"; height "90%"; }
+            pane { x "5%"; y 2; width "90%"; height "90%"; }
+            pane { x "5%"; y 3; width "90%"; height "90%"; }
+            pane { x "5%"; y 4; width "90%"; height "90%"; }
+            pane { x "5%"; y 5; width "90%"; height "90%"; }
+            pane { x "5%"; y 6; width "90%"; height "90%"; }
+            pane { x "5%"; y 7; width "90%"; height "90%"; }
+            pane { x "5%"; y 8; width "90%"; height "90%"; }
+            pane { x "5%"; y 9; width "90%"; height "90%"; }
+            pane { x 10; y 10; width "90%"; height "90%"; }
+        }
+    }
+
+    swap_floating_layout name="spread" {
+        floating_panes max_panes=1 {
+            pane { y "50%"; x "50%"; }
+        }
+        floating_panes max_panes=2 {
+            pane { x "1%"; y "25%"; width "45%"; }
+            pane { x "50%"; y "25%"; width "45%"; }
+        }
+        floating_panes max_panes=3 {
+            pane { y "55%"; width "45%"; height "45%"; }
+            pane { x "1%"; y "1%"; width "45%"; }
+            pane { x "50%"; y "1%"; width "45%"; }
+        }
+        floating_panes max_panes=4 {
+            pane { x "1%"; y "55%"; width "45%"; height "45%"; }
+            pane { x "50%"; y "55%"; width "45%"; height "45%"; }
+            pane { x "1%"; y "1%"; width "45%"; height "45%"; }
+            pane { x "50%"; y "1%"; width "45%"; height "45%"; }
+        }
+    }
+}

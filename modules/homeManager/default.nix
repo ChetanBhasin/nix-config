@@ -5,12 +5,14 @@
 #   inputs.nix-config.homeManagerModules.neovim   # Just neovim
 #   inputs.nix-config.homeManagerModules.terminal # Just terminal (zsh, fzf, starship, etc.)
 #   inputs.nix-config.homeManagerModules.tmux     # Just tmux
+#   inputs.nix-config.homeManagerModules.zellij   # Just zellij
 #   inputs.nix-config.homeManagerModules.default  # All modules combined
 {
   # Individual modules
   neovim = import ./neovim.nix;
   terminal = import ./terminal.nix;
   tmux = import ./tmux.nix;
+  zellij = import ./zellij.nix;
 
   # Combined module that imports all
   default = { ... }: {
@@ -18,6 +20,7 @@
       ./neovim.nix
       ./terminal.nix
       ./tmux.nix
+      ./zellij.nix
     ];
   };
 }

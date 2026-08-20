@@ -45,7 +45,7 @@ in
     enableTmuxIntegration = lib.mkOption {
       type = lib.types.bool;
       default = true;
-      description = "Enable vim-tmux-navigator for seamless tmux/vim navigation";
+      description = "Enable smart-splits for seamless Neovim and multiplexer navigation";
     };
 
     extraPackages = lib.mkOption {
@@ -203,9 +203,9 @@ in
           nvim-dap-python
           nvim-dap-ui
         ]
-        # Tmux integration (optional)
+        # Multiplexer integration (option name retained for compatibility)
         ++ lib.optionals cfg.enableTmuxIntegration [
-          vim-tmux-navigator
+          smart-splits-nvim
         ]
         # Treesitter with comprehensive language support
         ++ [

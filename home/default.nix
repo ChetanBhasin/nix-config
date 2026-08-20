@@ -22,6 +22,7 @@ in
     ./zsh
     ./neovim
     ./tmux
+    ./zellij
     ./darwin
   ];
 
@@ -112,12 +113,12 @@ in
         flyctl
         nodenv
       ]
-      ++ lib.optionals pkgs.stdenv.isDarwin [
+      ++ lib.optionals pkgs.stdenv.hostPlatform.isDarwin [
         # Darwin-specific packages that need special handling
         pam-reattach
         libiconv
       ]
-      ++ lib.optionals pkgs.stdenv.isLinux [
+      ++ lib.optionals pkgs.stdenv.hostPlatform.isLinux [
         # Linux-specific packages
         systemd
       ];

@@ -73,15 +73,6 @@ bindkey -M vicmd 'k' history-substring-search-up
 bindkey -M vicmd 'j' history-substring-search-down
 
 # ===============================================
-# VIM-TMUX-NAVIGATOR INTEGRATION
-# ===============================================
-
-# Smart pane switching with awareness of Vim splits
-# See: https://github.com/christoomey/vim-tmux-navigator
-is_vim="ps -o state= -o comm= -t '#{pane_tty}' \
-    | grep -iqE '^[^TXZ ]+ +(\\S+\\/)?g?(view|l?n?vim?x?|fzf)(diff)?$'"
-
-# ===============================================
 # FZF-POWERED FUNCTIONS
 # ===============================================
 

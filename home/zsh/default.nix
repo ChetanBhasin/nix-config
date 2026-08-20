@@ -34,7 +34,7 @@
           pkgs.libiconv
           pkgs.poppler
         ]
-        ++ lib.optionals pkgs.stdenv.isDarwin [ pkgs.darwin.libcxx ]
+        ++ lib.optionals pkgs.stdenv.hostPlatform.isDarwin [ pkgs.darwin.libcxx ]
       );
       PKG_CONFIG_PATH = "$PKG_CONFIG_PATH:${pkgs.rdkafka}/lib/pkgconfig:${pkgs.libiconv}/lib/pkgconfig:${pkgs.leptonica}/lib/pkgconfig/:${pkgs.tesseract}/lib/pkgconfig";
     };
@@ -114,5 +114,5 @@
   # Symlink sources files to home directory
   home.file.".sources".source = ./sources.sh;
   home.file.".sources_platform".source =
-    if pkgs.stdenv.isDarwin then ./sources_darwin.sh else ./sources_linux.sh;
+    if pkgs.stdenv.hostPlatform.isDarwin then ./sources_darwin.sh else ./sources_linux.sh;
 }

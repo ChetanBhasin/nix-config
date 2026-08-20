@@ -12,9 +12,6 @@
 vim.opt.nu = true
 vim.opt.relativenumber = true
 
--- Share the default register with the system clipboard
-vim.opt.clipboard = "unnamedplus"
-
 -- Tab configuration
 vim.opt.tabstop = 4
 vim.opt.softtabstop = 4
@@ -49,7 +46,7 @@ vim.opt.colorcolumn = "120"
 
 -- All keybindings are now centralized in keymaps.lua
 -- This provides better organization and consistency
-require('custom.keymaps')
+require("custom.keymaps")
 
 -- ═══════════════════════════════════════════════════════════════════════════════
 -- 📝 NOTES
