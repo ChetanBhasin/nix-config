@@ -10,6 +10,7 @@
 
 let
   cfg = config.cb.terminal;
+  theme = import ../theme/gruvbox-night.nix;
 
   # Paths to shell scripts (relative to this module)
   shellScriptsPath = ../../home/zsh;
@@ -198,9 +199,9 @@ in
             "--layout=reverse"
             "--border"
             "--inline-info"
-            "--color=dark"
-            "--color=fg:-1,bg:-1,hl:#c678dd,fg+:#ffffff,bg+:#4b5263,hl+:#d858fe"
-            "--color=info:#98c379,prompt:#61afef,pointer:#be5046,marker:#e5c07b,spinner:#61afef,header:#61afef"
+          ]
+          ++ theme.fzf
+          ++ [
             # Vim-style navigation
             "--bind=alt-j:down,alt-k:up"
             "--bind=alt-h:backward-char,alt-l:forward-char"
@@ -271,88 +272,97 @@ in
             };
 
             character = {
-              success_symbol = "[➜](bold green)";
-              error_symbol = "[➜](bold red)";
-              vicmd_symbol = "[](bold green)";
+              success_symbol = "[➜](bold fg:${theme.base0B})";
+              error_symbol = "[➜](bold fg:${theme.base08})";
+              vicmd_symbol = "[](bold fg:${theme.base0B})";
             };
 
             directory = {
               truncation_length = 3;
               truncate_to_repo = true;
-              style = "bold cyan";
+              style = "bold fg:${theme.base0A}";
             };
 
             nix_shell = {
               symbol = "❄️ ";
-              style = "bold blue";
+              style = "bold fg:${theme.base0D}";
               format = "[$symbol$state( \\($name\\))]($style) ";
             };
 
             cmd_duration = {
               min_time = 2000;
               show_milliseconds = false;
-              style = "bold yellow";
+              style = "bold fg:${theme.base0A}";
               format = "[⏱ $duration]($style) ";
             };
 
             jobs = {
               symbol = "✦";
-              style = "bold blue";
+              style = "bold fg:${theme.base0D}";
               threshold = 1;
               format = "[$symbol$number]($style) ";
             };
 
             rust = {
               symbol = "rs ";
-              style = "bold red";
+              style = "bold fg:${theme.base08}";
               format = "[$symbol$version]($style) ";
             };
 
             python = {
               symbol = "py ";
-              style = "bold yellow";
+              style = "bold fg:${theme.base0A}";
               format = "[$symbol$version]($style) ";
             };
 
             nodejs = {
               symbol = "node ";
-              style = "bold green";
+              style = "bold fg:${theme.base0B}";
               format = "[$symbol$version]($style) ";
             };
 
             golang = {
               symbol = "go ";
-              style = "bold cyan";
+              style = "bold fg:${theme.base0C}";
               format = "[$symbol$version]($style) ";
             };
 
             kubernetes = {
               disabled = false;
               symbol = "☸ ";
-              style = "dimmed blue";
+              style = "dimmed fg:${theme.base0D}";
               format = "[$symbol$context]($style) ";
             };
 
             aws = {
               symbol = "aws:";
-              style = "dimmed yellow";
+              style = "dimmed fg:${theme.base0A}";
               format = "[$symbol$profile]($style) ";
             };
 
             docker_context = {
               symbol = "docker:";
-              style = "bold blue";
+              style = "bold fg:${theme.base0D}";
               format = "[$symbol$context]($style) ";
             };
 
             time = {
               disabled = false;
               format = "[$time]($style) ";
-              style = "bold dimmed white";
+              style = "bold dimmed fg:${theme.base03}";
             };
           };
         };
       })
+
+      # Keep syntax-highlighted shell previews on the same palette.
+      {
+        programs.bat = {
+          enable = true;
+          config.theme = theme.name;
+          themes.${theme.name}.src = pkgs.writeText "${theme.name}.tmTheme" theme.bat;
+        };
+      }
 
       # Direnv
       (lib.mkIf cfg.enableDirenv {
@@ -375,9 +385,9 @@ in
       (lib.mkIf cfg.enableAlacritty {
         programs.alacritty = {
           enable = true;
-          # Use gruvbox_dark theme from alacritty-theme package
-          theme = "gruvbox_dark";
           settings = {
+            colors = theme.alacritty;
+
             # Window configuration
             window = {
               dimensions = {

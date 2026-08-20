@@ -1,0 +1,129 @@
+// Gruvbox Night: muted accents with a deliberately obvious focused frame.
+themes {
+    gruvbox-night {
+        text_unselected {
+            base 189 174 147
+            background 29 32 33
+            emphasis_0 213 138 84
+            emphasis_1 116 159 160
+            emphasis_2 163 173 98
+            emphasis_3 183 127 145
+        }
+        text_selected {
+            base 213 196 161
+            background 60 56 54
+            emphasis_0 213 138 84
+            emphasis_1 116 159 160
+            emphasis_2 163 173 98
+            emphasis_3 183 127 145
+        }
+        ribbon_selected {
+            base 29 32 33
+            background 201 162 87
+            emphasis_0 214 107 100
+            emphasis_1 213 138 84
+            emphasis_2 183 127 145
+            emphasis_3 116 159 160
+        }
+        ribbon_unselected {
+            base 189 174 147
+            background 40 40 40
+            emphasis_0 214 107 100
+            emphasis_1 213 196 161
+            emphasis_2 116 159 160
+            emphasis_3 183 127 145
+        }
+        table_title {
+            base 201 162 87
+            background 29 32 33
+            emphasis_0 213 138 84
+            emphasis_1 116 159 160
+            emphasis_2 163 173 98
+            emphasis_3 183 127 145
+        }
+        table_cell_selected {
+            base 213 196 161
+            background 60 56 54
+            emphasis_0 213 138 84
+            emphasis_1 116 159 160
+            emphasis_2 163 173 98
+            emphasis_3 183 127 145
+        }
+        table_cell_unselected {
+            base 189 174 147
+            background 29 32 33
+            emphasis_0 213 138 84
+            emphasis_1 116 159 160
+            emphasis_2 163 173 98
+            emphasis_3 183 127 145
+        }
+        list_selected {
+            base 213 196 161
+            background 60 56 54
+            emphasis_0 213 138 84
+            emphasis_1 116 159 160
+            emphasis_2 163 173 98
+            emphasis_3 183 127 145
+        }
+        list_unselected {
+            base 189 174 147
+            background 29 32 33
+            emphasis_0 213 138 84
+            emphasis_1 116 159 160
+            emphasis_2 163 173 98
+            emphasis_3 183 127 145
+        }
+        frame_unselected {
+            base 80 73 69
+            background 29 32 33
+            emphasis_0 213 138 84
+            emphasis_1 116 159 160
+            emphasis_2 183 127 145
+            emphasis_3 29 32 33
+        }
+        frame_selected {
+            base 201 162 87
+            background 29 32 33
+            emphasis_0 213 138 84
+            emphasis_1 116 159 160
+            emphasis_2 183 127 145
+            emphasis_3 29 32 33
+        }
+        frame_highlight {
+            base 213 138 84
+            background 29 32 33
+            emphasis_0 183 127 145
+            emphasis_1 213 138 84
+            emphasis_2 201 162 87
+            emphasis_3 213 138 84
+        }
+        exit_code_success {
+            base 163 173 98
+            background 29 32 33
+            emphasis_0 127 169 138
+            emphasis_1 60 56 54
+            emphasis_2 183 127 145
+            emphasis_3 116 159 160
+        }
+        exit_code_error {
+            base 214 107 100
+            background 29 32 33
+            emphasis_0 201 162 87
+            emphasis_1 29 32 33
+            emphasis_2 29 32 33
+            emphasis_3 29 32 33
+        }
+        multiplayer_user_colors {
+            player_1 183 127 145
+            player_2 116 159 160
+            player_3 127 169 138
+            player_4 201 162 87
+            player_5 163 173 98
+            player_6 213 138 84
+            player_7 214 107 100
+            player_8 189 174 147
+            player_9 213 196 161
+            player_10 148 134 118
+        }
+    }
+}

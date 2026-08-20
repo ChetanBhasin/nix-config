@@ -281,7 +281,7 @@ in
         default_mode = "normal";
         default_shell = "${pkgs.zsh}/bin/zsh";
 
-        theme = "gruvbox-orange";
+        theme = "gruvbox-night";
         pane_frames = true;
         mouse_mode = true;
         # Familiar tiled-pane creation always uses the canonical vertical lanes;
@@ -313,7 +313,7 @@ in
       # Raw KDL keeps the plugin alias, UI options, and key map readable while
       # avoiding Home Manager's automatic headless plugin loading.
       extraConfig = ''
-        ${builtins.readFile (zellijConfigPath + "/gruvbox-orange.kdl")}
+        ${builtins.readFile (zellijConfigPath + "/gruvbox-night.kdl")}
 
         plugins {
             zjstatus location="file:${config.home.homeDirectory}/.config/zellij/plugins/zjstatus.wasm"

@@ -36,14 +36,6 @@
       # Vimium/easymotion-like hints for quick text selection
       tmux-thumbs
 
-      # Theme
-      {
-        plugin = gruvbox;
-        extraConfig = ''
-          set -g @tmux-gruvbox 'dark'
-          set -g @tmux-gruvbox-statusbar-alpha 'true'
-        '';
-      }
     ];
 
     # Shell integration - use system zsh which is in /etc/shells

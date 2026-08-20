@@ -1,134 +1,110 @@
--- ═══════════════════════════════════════════════════════════════════════════════
--- 🎨 ENHANCED COLOR CONFIGURATION
--- ═══════════════════════════════════════════════════════════════════════════════
+-- Gruvbox Night: a lower-saturation Base16 Gruvbox Dark Hard variant.
+-- The palette keeps the hard background while softening ordinary text and
+-- accents for long sessions in low light.
 
 local colors = {
-    bg0 = "#282828",
-    bg1 = "#3c3836",
-    bg2 = "#504945",
-    bg3 = "#665c54",
-    bg4 = "#7c6f64",
-    fg0 = "#fbf1c7",
-    fg1 = "#ebdbb2",
-    fg2 = "#d5c4a1",
-    fg3 = "#bdae93",
-    fg4 = "#a89984",
-    gray = "#928374",
-    red = "#fb4934",
-    green = "#b8bb26",
-    yellow = "#fabd2f",
-    blue = "#83a598",
-    purple = "#d3869b",
-    aqua = "#8ec07c",
-    orange = "#fe8019",
+    base00 = "#1d2021",
+    base01 = "#282828",
+    base02 = "#3c3836",
+    base03 = "#948676",
+    base04 = "#a89984",
+    base05 = "#bdae93",
+    base06 = "#d5c4a1",
+    base07 = "#ebdbb2",
+    base08 = "#d66b64",
+    base09 = "#d58a54",
+    base0A = "#c9a257",
+    base0B = "#a3ad62",
+    base0C = "#7fa98a",
+    base0D = "#749fa0",
+    base0E = "#b77f91",
+    base0F = "#b47b57",
 }
 
-function DefineColors(scheme)
-    vim.o.background = "dark"
-    local color_scheme = scheme or "gruvbox"
-    vim.cmd.colorscheme(color_scheme)
-
-    -- Enhanced transparency with better contrast
-    vim.api.nvim_set_hl(0, "Normal", { bg = "NONE" })
-    vim.api.nvim_set_hl(0, "NormalFloat", { bg = "NONE" })
-    vim.api.nvim_set_hl(0, "SignColumn", { bg = "NONE" })
-    vim.api.nvim_set_hl(0, "EndOfBuffer", { bg = "NONE" })
-
-    -- Better cursor line
-    vim.api.nvim_set_hl(0, "CursorLine", { bg = colors.bg1 })
-    vim.api.nvim_set_hl(0, "CursorLineNr", { fg = colors.yellow, bg = "NONE", bold = true })
-
-    -- Enhanced search highlighting
-    vim.api.nvim_set_hl(0, "Search", { bg = colors.yellow, fg = colors.bg0, bold = true })
-    vim.api.nvim_set_hl(0, "IncSearch", { bg = colors.orange, fg = colors.bg0, bold = true })
-
-    -- Better visual selection
-    vim.api.nvim_set_hl(0, "Visual", { bg = colors.bg3 })
-
-    -- Enhanced fold styling
-    vim.api.nvim_set_hl(0, "Folded", { bg = colors.bg1, fg = colors.fg3, italic = true })
-    vim.api.nvim_set_hl(0, "FoldColumn", { bg = "NONE", fg = colors.gray })
+local function highlight(name, value)
+    vim.api.nvim_set_hl(0, name, value)
 end
 
-require("gruvbox").setup {
-    transparent_mode = true,
-    terminal_colors = true,
-    contrast = "",
-    dim_inactive = false,
-    undercurl = true,
-    underline = true,
-    bold = true,
-    strikethrough = true,
-    invert_selection = false,
-    invert_signs = false,
-    invert_tabline = false,
-    inverse = true,
-    italic = {
-        strings = false,
-        emphasis = true,
-        comments = true,
-        operators = false,
-        folds = true,
-    },
-    overrides = {
-        NormalFloat = { bg = "NONE" },
-        FloatBorder = { fg = colors.bg4, bg = "NONE" },
+function DefineColors()
+    vim.o.background = "dark"
+    require("base16-colorscheme").setup(colors)
+    vim.g.colors_name = "gruvbox-night"
 
-        Pmenu = { bg = colors.bg1, fg = colors.fg1 },
-        PmenuSel = { bg = colors.bg2, fg = colors.fg0, bold = true },
-        PmenuSbar = { bg = colors.bg2 },
-        PmenuThumb = { bg = colors.bg4 },
+    -- Keep ordinary surfaces quiet and opaque so perceived contrast remains
+    -- stable regardless of the terminal or multiplexer behind Neovim.
+    highlight("Normal", { fg = colors.base05, bg = colors.base00 })
+    highlight("NormalNC", { fg = colors.base04, bg = colors.base00 })
+    highlight("NormalFloat", { fg = colors.base05, bg = colors.base01 })
+    highlight("SignColumn", { bg = colors.base00 })
+    highlight("EndOfBuffer", { fg = colors.base00, bg = colors.base00 })
+    highlight("FloatBorder", { fg = colors.base03, bg = colors.base01 })
+    highlight("WinSeparator", { fg = colors.base02, bg = colors.base00 })
+    highlight("VertSplit", { fg = colors.base02, bg = colors.base00 })
 
-        TelescopeBorder = { fg = colors.blue, bg = "NONE" },
-        TelescopeSelection = { bg = colors.bg1, bold = true },
-        TelescopeMatching = { fg = colors.orange, bold = true },
-        TelescopePromptPrefix = { fg = colors.purple },
+    highlight("Comment", { fg = colors.base03, italic = true })
+    highlight("@comment", { link = "Comment" })
+    highlight("@lsp.type.comment", { link = "Comment" })
 
-        NvimTreeNormal = { bg = "NONE" },
-        NvimTreeEndOfBuffer = { bg = "NONE" },
-        NvimTreeRootFolder = { fg = colors.purple, bold = true },
-        NvimTreeFolderIcon = { fg = colors.blue },
-        NvimTreeFileIcon = { fg = colors.fg1 },
-        NvimTreeSpecialFile = { fg = colors.yellow, underline = true },
-        NvimTreeGitDirty = { fg = colors.yellow },
-        NvimTreeGitNew = { fg = colors.green },
-        NvimTreeGitDeleted = { fg = colors.red },
-        NvimTreeIndentMarker = { fg = colors.bg4 },
+    highlight("Pmenu", { fg = colors.base05, bg = colors.base01 })
+    highlight("PmenuSel", { fg = colors.base06, bg = colors.base02, bold = true })
+    highlight("LspSignatureActiveParameter", { fg = colors.base06, bg = colors.base02, bold = true })
 
-        LspReferenceText = { bg = colors.bg1 },
-        LspReferenceRead = { bg = colors.bg1 },
-        LspReferenceWrite = { bg = colors.bg1, bold = true },
+    highlight("CursorLine", { bg = colors.base01 })
+    highlight("CursorLineNr", { fg = colors.base0A, bg = colors.base01, bold = true })
+    highlight("LineNr", { fg = colors.base03, bg = colors.base00 })
 
-        DiagnosticError = { fg = colors.red },
-        DiagnosticWarn = { fg = colors.yellow },
-        DiagnosticInfo = { fg = colors.blue },
-        DiagnosticHint = { fg = colors.aqua },
-        DiagnosticVirtualTextError = { fg = colors.red, bg = "NONE", italic = true },
-        DiagnosticVirtualTextWarn = { fg = colors.yellow, bg = "NONE", italic = true },
-        DiagnosticVirtualTextInfo = { fg = colors.blue, bg = "NONE", italic = true },
-        DiagnosticVirtualTextHint = { fg = colors.aqua, bg = "NONE", italic = true },
+    highlight("Search", { bg = colors.base0A, fg = colors.base00, bold = true })
+    highlight("IncSearch", { bg = colors.base09, fg = colors.base00, bold = true })
+    highlight("Visual", { bg = colors.base02 })
 
-        LspInlayHint = { fg = colors.gray, bg = "NONE", italic = true },
+    highlight("Folded", { bg = colors.base01, fg = colors.base03 })
+    highlight("FoldColumn", { bg = colors.base00, fg = colors.base03 })
 
-        LineNr = { fg = colors.bg4 },
-        CursorLineNr = { fg = colors.yellow, bold = true },
+    highlight("TelescopeBorder", { fg = colors.base03, bg = colors.base00 })
+    highlight("TelescopeSelection", { bg = colors.base02, bold = true })
+    highlight("TelescopeMatching", { fg = colors.base09, bold = true })
+    highlight("TelescopePromptPrefix", { fg = colors.base0E })
 
-        GitSignsAdd = { fg = colors.green },
-        GitSignsChange = { fg = colors.yellow },
-        GitSignsDelete = { fg = colors.red },
+    highlight("NvimTreeNormal", { fg = colors.base05, bg = colors.base00 })
+    highlight("NvimTreeEndOfBuffer", { fg = colors.base00, bg = colors.base00 })
+    highlight("NvimTreeRootFolder", { fg = colors.base0E, bold = true })
+    highlight("NvimTreeFolderIcon", { fg = colors.base0D })
+    highlight("NvimTreeFileIcon", { fg = colors.base05 })
+    highlight("NvimTreeSpecialFile", { fg = colors.base0A, underline = true })
+    highlight("NvimTreeGitDirty", { fg = colors.base0A })
+    highlight("NvimTreeGitNew", { fg = colors.base0B })
+    highlight("NvimTreeGitDeleted", { fg = colors.base08 })
+    highlight("NvimTreeIndentMarker", { fg = colors.base02 })
 
-        IndentBlanklineChar = { fg = colors.bg1 },
-        IndentBlanklineContextChar = { fg = colors.bg3 },
+    highlight("LspReferenceText", { bg = colors.base01 })
+    highlight("LspReferenceRead", { bg = colors.base01 })
+    highlight("LspReferenceWrite", { bg = colors.base02, bold = true })
+    highlight("LspInlayHint", { fg = colors.base03, bg = colors.base00, italic = true })
 
-        MarkdownHeadingDelimiter = { fg = colors.orange, bold = true },
-        MarkdownH1 = { fg = colors.red, bold = true },
-        MarkdownH2 = { fg = colors.orange, bold = true },
-        MarkdownH3 = { fg = colors.yellow, bold = true },
-        MarkdownH4 = { fg = colors.green, bold = true },
-        MarkdownH5 = { fg = colors.blue, bold = true },
-        MarkdownH6 = { fg = colors.purple, bold = true },
+    highlight("DiagnosticError", { fg = colors.base08 })
+    highlight("DiagnosticWarn", { fg = colors.base0A })
+    highlight("DiagnosticInfo", { fg = colors.base0D })
+    highlight("DiagnosticHint", { fg = colors.base0C })
+    highlight("DiagnosticVirtualTextError", { fg = colors.base08, bg = colors.base00, italic = true })
+    highlight("DiagnosticVirtualTextWarn", { fg = colors.base0A, bg = colors.base00, italic = true })
+    highlight("DiagnosticVirtualTextInfo", { fg = colors.base0D, bg = colors.base00, italic = true })
+    highlight("DiagnosticVirtualTextHint", { fg = colors.base0C, bg = colors.base00, italic = true })
 
-        TermCursor = { fg = colors.yellow, bg = colors.yellow },
-        TermCursorNC = { fg = colors.gray, bg = colors.gray },
-    },
-}
+    highlight("GitSignsAdd", { fg = colors.base0B })
+    highlight("GitSignsChange", { fg = colors.base0A })
+    highlight("GitSignsDelete", { fg = colors.base08 })
+
+    highlight("IndentBlanklineChar", { fg = colors.base01 })
+    highlight("IndentBlanklineContextChar", { fg = colors.base03 })
+
+    highlight("MarkdownHeadingDelimiter", { fg = colors.base09, bold = true })
+    highlight("MarkdownH1", { fg = colors.base08, bold = true })
+    highlight("MarkdownH2", { fg = colors.base09, bold = true })
+    highlight("MarkdownH3", { fg = colors.base0A, bold = true })
+    highlight("MarkdownH4", { fg = colors.base0B, bold = true })
+    highlight("MarkdownH5", { fg = colors.base0D, bold = true })
+    highlight("MarkdownH6", { fg = colors.base0E, bold = true })
+
+    highlight("TermCursor", { fg = colors.base00, bg = colors.base05 })
+    highlight("TermCursorNC", { fg = colors.base03, bg = colors.base03 })
+end

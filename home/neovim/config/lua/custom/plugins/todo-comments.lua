@@ -50,14 +50,14 @@ todo.setup({
         exclude = {}, -- Filetypes to exclude
     },
 
-    -- Colors matching gruvbox dark theme
+    -- Colors matching the lower-saturation Gruvbox Night palette
     colors = {
-        error = { "DiagnosticError", "ErrorMsg", "#fb4934" },
-        warning = { "DiagnosticWarn", "WarningMsg", "#fabd2f" },
-        info = { "DiagnosticInfo", "#83a598" },
-        hint = { "DiagnosticHint", "#8ec07c" },
-        default = { "Identifier", "#d3869b" },
-        test = { "Identifier", "#fe8019" },
+        error = { "DiagnosticError", "ErrorMsg", "#d66b64" },
+        warning = { "DiagnosticWarn", "WarningMsg", "#c9a257" },
+        info = { "DiagnosticInfo", "#749fa0" },
+        hint = { "DiagnosticHint", "#7fa98a" },
+        default = { "Identifier", "#b77f91" },
+        test = { "Identifier", "#d58a54" },
     },
 
     -- Search configuration

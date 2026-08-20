@@ -72,7 +72,7 @@ with lib;
         bufferline-nvim
         dressing-nvim
         fidget-nvim
-        gruvbox-nvim
+        base16-nvim
         FTerm-nvim
         undotree
         # Visual enhancement plugins

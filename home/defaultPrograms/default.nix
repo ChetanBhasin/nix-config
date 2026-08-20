@@ -1,5 +1,7 @@
 { config, pkgs, ... }:
 let
+  theme = import ../../modules/theme/gruvbox-night.nix;
+
   # Keep escape-sequence keybindings independent of TOML string quoting.
   esc = builtins.fromJSON ''"\u001b"'';
 
@@ -60,16 +62,16 @@ in
 
       # Character/prompt
       character = {
-        success_symbol = "[➜](bold green)";
-        error_symbol = "[➜](bold red)";
-        vicmd_symbol = "[](bold green)";
+        success_symbol = "[➜](bold fg:${theme.base0B})";
+        error_symbol = "[➜](bold fg:${theme.base08})";
+        vicmd_symbol = "[](bold fg:${theme.base0B})";
       };
 
       # Directory
       directory = {
         truncation_length = 3;
         truncate_to_repo = true;
-        style = "bold cyan";
+        style = "bold fg:${theme.base0A}";
       };
 
       custom = {
@@ -83,7 +85,7 @@ in
       # Nix shell indicator
       nix_shell = {
         symbol = "❄️ ";
-        style = "bold blue";
+        style = "bold fg:${theme.base0D}";
         format = "[$symbol$state( \\($name\\))]($style) ";
       };
 
@@ -91,14 +93,14 @@ in
       cmd_duration = {
         min_time = 2000;
         show_milliseconds = false;
-        style = "bold yellow";
+        style = "bold fg:${theme.base0A}";
         format = "[⏱ $duration]($style) ";
       };
 
       # Jobs indicator
       jobs = {
         symbol = "✦";
-        style = "bold blue";
+        style = "bold fg:${theme.base0D}";
         threshold = 1;
         format = "[$symbol$number]($style) ";
       };
@@ -106,25 +108,25 @@ in
       # Language-specific modules (compact)
       rust = {
         symbol = "rs ";
-        style = "bold red";
+        style = "bold fg:${theme.base08}";
         format = "[$symbol$version]($style) ";
       };
 
       python = {
         symbol = "py ";
-        style = "bold yellow";
+        style = "bold fg:${theme.base0A}";
         format = "[$symbol$version]($style) ";
       };
 
       nodejs = {
         symbol = "node ";
-        style = "bold green";
+        style = "bold fg:${theme.base0B}";
         format = "[$symbol$version]($style) ";
       };
 
       golang = {
         symbol = "go ";
-        style = "bold cyan";
+        style = "bold fg:${theme.base0C}";
         format = "[$symbol$version]($style) ";
       };
 
@@ -132,21 +134,21 @@ in
       kubernetes = {
         disabled = false;
         symbol = "☸ ";
-        style = "dimmed blue";
+        style = "dimmed fg:${theme.base0D}";
         format = "[$symbol$context]($style) ";
       };
 
       # AWS - compact, right-aligned
       aws = {
         symbol = "aws:";
-        style = "dimmed yellow";
+        style = "dimmed fg:${theme.base0A}";
         format = "[$symbol$profile]($style) ";
       };
 
       # Docker
       docker_context = {
         symbol = "docker:";
-        style = "bold blue";
+        style = "bold fg:${theme.base0D}";
         format = "[$symbol$context]($style) ";
       };
 
@@ -154,17 +156,23 @@ in
       time = {
         disabled = false;
         format = "[$time]($style) ";
-        style = "bold dimmed white";
+        style = "bold dimmed fg:${theme.base03}";
       };
     };
+  };
+
+  programs.bat = {
+    enable = true;
+    config.theme = theme.name;
+    themes.${theme.name}.src = pkgs.writeText "${theme.name}.tmTheme" theme.bat;
   };
 
   # Alacritty terminal emulator, installed and configured via nix/home-manager.
   programs.alacritty = {
     enable = true;
-    # Use gruvbox_dark theme from alacritty-theme package
-    theme = "gruvbox_dark";
     settings = {
+      colors = theme.alacritty;
+
       window = {
         dimensions = {
           columns = 150;

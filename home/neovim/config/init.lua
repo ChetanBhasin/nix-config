@@ -61,7 +61,7 @@ vim.api.nvim_create_autocmd("VimEnter", {
 
 -- Core Configuration
 require("custom.colors")
-DefineColors("gruvbox")
+DefineColors()
 
 -- Visual Enhancement Plugins (load early for better experience)
 require("custom.plugins.alpha")

@@ -4,16 +4,16 @@
 
 -- Color scheme for consistent theming
 local colors = {
-    yellow = '#fabd2f',     -- gruvbox yellow
-    orange = '#fe8019',     -- gruvbox orange
-    background = "#282828", -- gruvbox bg0
-    surface = "#3c3836",    -- gruvbox bg1
-    grey = "#928374",       -- gruvbox gray
-    blue = "#83a598",       -- gruvbox blue
-    green = "#b8bb26",      -- gruvbox green
-    red = "#fb4934",        -- gruvbox red
-    purple = "#d3869b",     -- gruvbox purple
-    teal = "#8ec07c",       -- gruvbox aqua
+    yellow = '#c9a257',
+    orange = '#d58a54',
+    background = "#1d2021",
+    surface = "#282828",
+    grey = "#948676",
+    blue = "#749fa0",
+    green = "#a3ad62",
+    red = "#d66b64",
+    purple = "#b77f91",
+    teal = "#7fa98a",
 }
 
 -- Custom components with beautiful icons
@@ -79,7 +79,7 @@ end
 require('lualine').setup {
     options = {
         icons_enabled = true,
-        theme = 'gruvbox',
+        theme = 'auto',
         -- Beautiful powerline separators
         component_separators = { left = '󰿟', right = '󰿟' },
         section_separators = { left = '', right = '' },
