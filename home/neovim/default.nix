@@ -229,7 +229,6 @@ with lib;
             textproto
             thrift
             tlaplus
-            tmux
             todotxt
             toml
             tsv
