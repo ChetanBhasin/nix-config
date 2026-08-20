@@ -60,7 +60,7 @@ with lib;
         comment-nvim
         vim-smoothie
         nvim-autopairs # Replaced vim-closer with treesitter-aware autopairs
-        vim-tmux-navigator # Seamless navigation between tmux panes and vim splits
+        smart-splits-nvim # Seamless navigation across Neovim and multiplexer panes
         telescope-nvim
         telescope-ui-select-nvim
         telescope-fzf-native-nvim # Fast fuzzy finding
