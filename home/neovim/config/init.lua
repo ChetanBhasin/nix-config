@@ -43,6 +43,10 @@ end
 -- Share the default register with the system clipboard.
 vim.opt.clipboard = "unnamedplus"
 
+-- Plugins such as nvim-colorizer inspect this during setup, so enable true
+-- colour before loading any visual plugins.
+vim.opt.termguicolors = true
+
 -- Early error handling setup to prevent TreeSitter window ID issues
 vim.api.nvim_create_autocmd("VimEnter", {
 	callback = function()

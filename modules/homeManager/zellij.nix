@@ -10,6 +10,135 @@
 let
   cfg = config.cb.zellij;
   zellijConfigPath = ../../home/zellij;
+  zellijVersion = "0.45.0";
+  zellijSource = pkgs.fetchFromGitHub {
+    owner = "zellij-org";
+    repo = "zellij";
+    tag = "v${zellijVersion}";
+    hash = "sha256-1kS0DuF+mO60jf2UZTKhwZuekO31aoXIEytGuljzd08=";
+  };
+  zellijCargoHash = "sha256-ZwxoqdZ73/HvdkdNWOKW3Av6htI/vCFcJ0zVpSL1SuU=";
+  zellijBaseUnwrapped =
+    if lib.versionOlder pkgs.zellij.version zellijVersion then
+      pkgs.zellij-unwrapped.overrideAttrs (oldAttrs: {
+        version = zellijVersion;
+        src = zellijSource;
+        cargoHash = zellijCargoHash;
+        # buildRustPackage has already materialized cargoDeps by the time
+        # overrideAttrs runs, so rebuild it from the overridden source and hash.
+        cargoDeps = pkgs.rustPlatform.fetchCargoVendor {
+          name = "zellij-unwrapped-${zellijVersion}";
+          src = zellijSource;
+          hash = zellijCargoHash;
+        };
+
+        nativeBuildInputs = builtins.filter (input: input != pkgs.mandown) oldAttrs.nativeBuildInputs;
+
+        # v0.45.0 removed docs/MANPAGE.md, so replace rather than extend the
+        # pinned v0.44.3 install phase that invokes mandown on that file.
+        postInstall = lib.optionalString (pkgs.stdenv.buildPlatform.canExecute pkgs.stdenv.hostPlatform) ''
+          installShellCompletion --cmd zellij \
+            --bash <($out/bin/zellij setup --generate-completion bash) \
+            --fish <($out/bin/zellij setup --generate-completion fish) \
+            --zsh <($out/bin/zellij setup --generate-completion zsh)
+        '';
+      })
+    else
+      pkgs.zellij-unwrapped;
+  zellijUnwrapped = zellijBaseUnwrapped.overrideAttrs (oldAttrs: {
+    # Zellij 0.45 has no switch for its pane-frame scroll counters, while
+    # zjstatus already makes Scroll mode visible in the top status bar.
+    patches = (oldAttrs.patches or [ ]) ++ [
+      (zellijConfigPath + "/zellij-hide-pane-scroll-indicators.patch")
+    ];
+  });
+  zellij = pkgs.zellij.override { zellij-unwrapped = zellijUnwrapped; };
+  patchedZjstatus = pkgs.zellijPlugins.wrapper "zjstatus" (
+    pkgs.zellijPlugins.zjstatus.unwrapped.overrideAttrs (oldAttrs: {
+      patches = (oldAttrs.patches or [ ]) ++ [
+        (zellijConfigPath + "/zjstatus-focused-pane-title.patch")
+      ];
+    })
+  );
+  zellijBatteryStatus = pkgs.writeShellApplication {
+    name = "zellij-battery-status";
+    text =
+      (
+        if pkgs.stdenv.hostPlatform.isDarwin then
+          ''
+            if ! battery_info="$(/usr/bin/pmset -g batt 2>/dev/null)"; then
+              exit 0
+            fi
+            [[ "$battery_info" =~ ([0-9]{1,3})% ]] || exit 0
+            percentage="''${BASH_REMATCH[1]}"
+
+            case "$battery_info" in
+              *"; charging;"*|*"; finishing charge;"*) status="charging" ;;
+              *"; charged;"*) status="full" ;;
+              *"; AC attached;"*|*"; attached;"*) status="attached" ;;
+              *"; discharging;"*) status="discharging" ;;
+              *) status="unknown" ;;
+            esac
+          ''
+        else if pkgs.stdenv.hostPlatform.isLinux then
+          ''
+            battery=""
+            for candidate in /sys/class/power_supply/*; do
+              [[ -r "$candidate/type" && -r "$candidate/capacity" ]] || continue
+              IFS= read -r battery_type < "$candidate/type" || continue
+              [[ "$battery_type" == "Battery" ]] || continue
+              battery="$candidate"
+              break
+            done
+            [[ -n "$battery" ]] || exit 0
+
+            IFS= read -r percentage < "$battery/capacity" || exit 0
+            raw_status="unknown"
+            if [[ -r "$battery/status" ]]; then
+              IFS= read -r raw_status < "$battery/status" || raw_status="unknown"
+            fi
+
+            case "''${raw_status,,}" in
+              charging) status="charging" ;;
+              full) status="full" ;;
+              "not charging") status="attached" ;;
+              discharging) status="discharging" ;;
+              *) status="unknown" ;;
+            esac
+          ''
+        else
+          ''
+            exit 0
+          ''
+      )
+      + ''
+        [[ "$percentage" =~ ^[0-9]+$ ]] || exit 0
+        percentage=$((10#$percentage))
+        (( percentage >= 0 && percentage <= 100 )) || exit 0
+
+        case "$status" in
+          charging|attached) icon="󰂄" ;;
+          full) icon="󰁹" ;;
+          unknown) icon="󰂑" ;;
+          *)
+            if (( percentage >= 95 )); then icon="󰁹"
+            elif (( percentage >= 80 )); then icon="󰂁"
+            elif (( percentage >= 65 )); then icon="󰁿"
+            elif (( percentage >= 50 )); then icon="󰁾"
+            elif (( percentage >= 35 )); then icon="󰁽"
+            elif (( percentage >= 20 )); then icon="󰁼"
+            elif (( percentage > 5 )); then icon="󰁻"
+            else icon="󰂎"
+            fi
+            ;;
+        esac
+
+        printf '%s %d%%\n' "$icon" "$percentage"
+      '';
+  };
+  zellijLayout = pkgs.replaceVars (zellijConfigPath + "/lanes.kdl") {
+    zellijBatteryCommand = "${zellijBatteryStatus}/bin/zellij-battery-status";
+  };
   vimZellijNavigator = pkgs.fetchurl {
     url = "https://github.com/hiasr/vim-zellij-navigator/releases/download/0.3.0/vim-zellij-navigator.wasm";
     hash = "sha256-d+Wi9i98GmmMryV0ST1ddVh+D9h3z7o0xIyvcxwkxY0=";
@@ -96,7 +225,7 @@ let
   };
   zellijSendToPane = pkgs.writeShellApplication {
     name = "zellij-send-to-pane";
-    runtimeInputs = [ pkgs.zellij ];
+    runtimeInputs = [ zellij ];
     text = ''
       usage() {
         printf '%s\n' \
@@ -183,7 +312,7 @@ let
     runtimeInputs = [
       pkgs.coreutils
       pkgs.fzf
-      pkgs.zellij
+      zellij
     ];
     text = ''
       fail() {
@@ -265,7 +394,7 @@ in
   config = lib.mkIf cfg.enable {
     programs.zellij = {
       enable = true;
-      package = pkgs.zellij;
+      package = zellij;
 
       # Starting Zellij remains an explicit choice while tmux is the default.
       enableBashIntegration = false;
@@ -274,7 +403,7 @@ in
       attachExistingSession = false;
       exitShellOnExit = false;
 
-      layouts.lanes = zellijConfigPath + "/lanes.kdl";
+      layouts.lanes = zellijLayout;
 
       settings = {
         default_layout = "lanes";
@@ -283,6 +412,8 @@ in
 
         theme = "gruvbox-night";
         pane_frames = true;
+        # Zellij 0.45 defaults to title-only separators; retain full pane boxes.
+        pane_frame_style = "full";
         mouse_mode = true;
         # Familiar tiled-pane creation always uses the canonical vertical lanes;
         # deliberate manual resize/break operations can still be normalized.
@@ -336,7 +467,7 @@ in
       '';
     };
 
-    xdg.configFile."zellij/plugins/zjstatus.wasm".source = pkgs.zellijPlugins.zjstatus;
+    xdg.configFile."zellij/plugins/zjstatus.wasm".source = patchedZjstatus;
     xdg.configFile."zellij/plugins/vim-zellij-navigator.wasm".source = vimZellijNavigator;
     xdg.configFile."zellij/plugins/zextract.wasm".source = zextract;
     xdg.configFile."zellij/zextract.kdl".text = ''

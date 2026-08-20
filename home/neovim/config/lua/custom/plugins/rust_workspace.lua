@@ -642,11 +642,6 @@ function M.root_dir_for_file(file_name, default_root_dir)
         end
     end
 
-    file_name = normalize(file_name)
-    if file_name then
-        return vim.fs.dirname(file_name)
-    end
-
     return nil
 end
 

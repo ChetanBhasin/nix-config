@@ -1,0 +1,147 @@
+diff --git a/src/bin/zjstatus.rs b/src/bin/zjstatus.rs
+index d13aac0..2daedc2 100644
+--- a/src/bin/zjstatus.rs
++++ b/src/bin/zjstatus.rs
+@@ -10,6 +10,7 @@ use zjstatus::{
+     frames, pipe,
+     widgets::{
+         command::{CommandResult, CommandWidget},
+         datetime::DateTimeWidget,
++        focused_pane_title::FocusedPaneTitleWidget,
+         mode::ModeWidget,
+         notification::NotificationWidget,
+@@ -392,6 +393,10 @@ fn register_widgets(configuration: &BTreeMap<String, String>) -> BTreeMap<String,
+         "datetime".to_owned(),
+         Arc::new(DateTimeWidget::new(configuration)),
+     );
++    widget_map.insert(
++        "focused_pane_title".to_owned(),
++        Arc::new(FocusedPaneTitleWidget::new(configuration)),
++    );
+     widget_map.insert("pipe".to_owned(), Arc::new(PipeWidget::new(configuration)));
+     widget_map.insert(
+         "swap_layout".to_owned(),
+diff --git a/src/config.rs b/src/config.rs
+index 2b48c65..8e8f72a 100644
+--- a/src/config.rs
++++ b/src/config.rs
+@@ -62,5 +62,6 @@ pub fn event_mask_from_widget_name(name: &str) -> u8 {
+         "command" => UpdateEventMask::Always as u8,
+         "datetime" => UpdateEventMask::Always as u8,
++        "focused_pane_title" => UpdateEventMask::Tab as u8,
+         "mode" => UpdateEventMask::Mode as u8,
+         "notifications" => UpdateEventMask::Always as u8,
+         "session" => UpdateEventMask::Mode as u8,
+diff --git a/src/widgets/focused_pane_title.rs b/src/widgets/focused_pane_title.rs
+new file mode 100644
+index 0000000..6651c8a
+--- /dev/null
++++ b/src/widgets/focused_pane_title.rs
+@@ -0,0 +1,96 @@
++use std::collections::BTreeMap;
++
++use crate::{config::ZellijState, widgets::widget::Widget};
++
++const DEFAULT_MAX_LENGTH: usize = 28;
++
++pub struct FocusedPaneTitleWidget {
++    max_length: usize,
++}
++
++impl FocusedPaneTitleWidget {
++    pub fn new(config: &BTreeMap<String, String>) -> Self {
++        let max_length = config
++            .get("focused_pane_title_max_length")
++            .and_then(|value| value.parse::<usize>().ok())
++            .filter(|value| *value > 0)
++            .unwrap_or(DEFAULT_MAX_LENGTH);
++
++        Self { max_length }
++    }
++}
++
++impl Widget for FocusedPaneTitleWidget {
++    fn process(&self, _name: &str, state: &ZellijState) -> String {
++        let title = state
++            .tabs
++            .iter()
++            .find(|tab| tab.active)
++            .and_then(|tab| state.panes.panes.get(&tab.position))
++            .and_then(|panes| panes.iter().find(|pane| pane.is_focused))
++            .map(|pane| pane.title.as_str())
++            .unwrap_or_default();
++
++        console::truncate_str(title, self.max_length, "…").into_owned()
++    }
++
++    fn process_click(&self, _name: &str, _state: &ZellijState, _pos: usize) {}
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++    use zellij_tile::prelude::{PaneInfo, PaneManifest, TabInfo};
++
++    fn state_with_title(title: &str) -> ZellijState {
++        let tab = TabInfo {
++            active: true,
++            position: 2,
++            ..TabInfo::default()
++        };
++        let pane = PaneInfo {
++            is_focused: true,
++            title: title.to_owned(),
++            ..PaneInfo::default()
++        };
++        let mut panes = PaneManifest::default();
++        panes.panes.insert(tab.position, vec![pane]);
++
++        ZellijState {
++            tabs: vec![tab],
++            panes,
++            ..ZellijState::default()
++        }
++    }
++
++    #[test]
++    fn renders_the_focused_pane_in_the_active_tab() {
++        let widget = FocusedPaneTitleWidget::new(&BTreeMap::new());
++
++        assert_eq!(
++            widget.process("focused_pane_title", &state_with_title("editor")),
++            "editor"
++        );
++    }
++
++    #[test]
++    fn truncates_to_the_configured_display_width() {
++        let config = BTreeMap::from([("focused_pane_title_max_length".to_owned(), "8".to_owned())]);
++        let widget = FocusedPaneTitleWidget::new(&config);
++
++        assert_eq!(
++            widget.process("focused_pane_title", &state_with_title("a very long title")),
++            "a very …"
++        );
++    }
++
++    #[test]
++    fn renders_empty_without_an_active_focused_pane() {
++        let widget = FocusedPaneTitleWidget::new(&BTreeMap::new());
++
++        assert_eq!(
++            widget.process("focused_pane_title", &ZellijState::default()),
++            ""
++        );
++    }
++}
+diff --git a/src/widgets/mod.rs b/src/widgets/mod.rs
+index eb7a249..67e95bf 100644
+--- a/src/widgets/mod.rs
++++ b/src/widgets/mod.rs
+@@ -1,5 +1,6 @@
+ pub mod command;
+ pub mod datetime;
++pub mod focused_pane_title;
+ pub mod mode;
+ pub mod notification;
+ pub mod pipe;

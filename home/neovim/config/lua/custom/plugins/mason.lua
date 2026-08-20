@@ -11,8 +11,9 @@ require("mason").setup({
     }
 })
 require("mason-lspconfig").setup({
-    -- Enable automatic installation of essential language servers
-    automatic_installation = true,
+    -- lsp.lua explicitly enables the curated server set, while rustaceanvim
+    -- owns rust-analyzer. Avoid mason-lspconfig starting duplicate clients.
+    automatic_enable = false,
     ensure_installed = {
         -- Core language servers
         -- rust_analyzer is handled by rustaceanvim (not Mason)
@@ -27,25 +28,6 @@ require("mason-lspconfig").setup({
         "bashls",                 -- Bash
         "gopls",                  -- Go
         "dockerls",               -- Docker
-    },
-    handlers = {
-        -- Default handler for most LSP servers
-        function(server_name)
-            -- Skip servers that are handled elsewhere
-            if server_name == "rust_analyzer" then -- handled by rustaceanvim
-                return
-            end
-            if server_name == "nixd" then -- installed via Nix, configured manually
-                return
-            end
-            -- Python LSPs are configured manually in lsp.lua to avoid duplicates
-            if server_name == "basedpyright" or server_name == "pyright" or server_name == "ruff" then
-                return
-            end
-            require("lspconfig")[server_name].setup({
-                capabilities = require('cmp_nvim_lsp').default_capabilities(),
-            })
-        end,
     },
 })
 

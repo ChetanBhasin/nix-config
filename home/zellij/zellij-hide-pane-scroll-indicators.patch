@@ -1,0 +1,65 @@
+diff --git a/zellij-server/src/ui/pane_boundaries_frame.rs b/zellij-server/src/ui/pane_boundaries_frame.rs
+--- a/zellij-server/src/ui/pane_boundaries_frame.rs
++++ b/zellij-server/src/ui/pane_boundaries_frame.rs
+@@ -266,32 +266,9 @@ impl PaneFrame {
+     }
+     fn render_scroll_indication(
+         &self,
+-        max_length: usize,
++        _max_length: usize,
+     ) -> Option<(Vec<TerminalCharacter>, usize)> {
+-        let prefix = " SCROLL: ";
+-        let full_indication = format!(" {}/{} ", self.scroll_position.0, self.scroll_position.1);
+-        let short_indication = format!(" {} ", self.scroll_position.0);
+-        let full_indication_len = full_indication.chars().count();
+-        let short_indication_len = short_indication.chars().count();
+-        let prefix_len = prefix.chars().count();
+-        if prefix_len + full_indication_len <= max_length {
+-            Some((
+-                foreground_color(&format!("{}{}", prefix, full_indication), self.color),
+-                prefix_len + full_indication_len,
+-            ))
+-        } else if full_indication_len <= max_length {
+-            Some((
+-                foreground_color(&full_indication, self.color),
+-                full_indication_len,
+-            ))
+-        } else if short_indication_len <= max_length {
+-            Some((
+-                foreground_color(&short_indication, self.color),
+-                short_indication_len,
+-            ))
+-        } else {
+-            None
+-        }
++        None
+     }
+     fn render_pinned_indication(
+         &self,
+@@ -916,25 +893,8 @@ impl PaneFrame {
+     }
+     fn bracketed_scroll_indicator(
+         &self,
+-        max_length: usize,
++        _max_length: usize,
+     ) -> Option<(Vec<TerminalCharacter>, usize)> {
+-        let has_scroll = self.scroll_position.0 > 0 || self.scroll_position.1 > 0;
+-        if !(has_scroll && self.is_selectable) {
+-            return None;
+-        }
+-        let full_indication = format!(
+-            "SCROLL: {}/{}",
+-            self.scroll_position.0, self.scroll_position.1
+-        );
+-        let (full_part, full_length) = self.bracketed_title_part(&full_indication);
+-        if full_length <= max_length {
+-            return Some((full_part, full_length));
+-        }
+-        let short_indication = format!("{}/{}", self.scroll_position.0, self.scroll_position.1);
+-        let (short_part, short_length) = self.bracketed_title_part(&short_indication);
+-        if short_length <= max_length {
+-            return Some((short_part, short_length));
+-        }
+         None
+     }
+     fn bracketed_focus_indicator(
