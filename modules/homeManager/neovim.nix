@@ -151,7 +151,7 @@ in
           # UI enhancements
           lualine-nvim
           bufferline-nvim
-          gruvbox-nvim
+          base16-nvim
           alpha-nvim
           indent-blankline-nvim
           rainbow-delimiters-nvim

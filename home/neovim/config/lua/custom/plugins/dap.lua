@@ -138,7 +138,7 @@ vim.fn.sign_define("DapBreakpointRejected", {
 })
 
 -- Highlight for stopped line
-vim.api.nvim_set_hl(0, "DapStoppedLine", { bg = "#3d4220" })
+vim.api.nvim_set_hl(0, "DapStoppedLine", { bg = "#3c3836" })
 
 -- Note: All keybindings are centralized in keymaps.lua for discoverability via Legendary
 -- See: <leader>? to search all keybindings

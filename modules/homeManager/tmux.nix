@@ -96,14 +96,6 @@ in
           # Clipboard
           yank
 
-          # Theme
-          {
-            plugin = gruvbox;
-            extraConfig = ''
-              set -g @tmux-gruvbox 'dark'
-              set -g @tmux-gruvbox-statusbar-alpha 'true'
-            '';
-          }
         ]
         # Vim integration
         ++ lib.optionals cfg.enableVimIntegration [

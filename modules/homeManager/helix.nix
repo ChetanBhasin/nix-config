@@ -9,6 +9,7 @@
 
 let
   cfg = config.cb.helix;
+  theme = import ../theme/gruvbox-night.nix;
   bazelLsp = pkgs.callPackage ../../packages/bazel-lsp.nix { };
 
   ruffHelixFormat = pkgs.writeShellApplication {
@@ -90,7 +91,7 @@ in
         ++ cfg.extraPackages;
 
       settings = {
-        theme = "gruvbox";
+        theme = theme.name;
 
         editor = {
           default-yank-register = "+";
@@ -160,6 +161,83 @@ in
           space."?" = "no_op";
           # Zellij owns bare C-h/j/k/l. Helix's native C-w window mode keeps
           # plain h/j/k/l available for moving between internal views.
+        };
+      };
+
+      themes.${theme.name} = {
+        inherits = "base16_default_dark";
+
+        # Keep comments calm in low light and make editor surfaces distinct
+        # without putting saturated accents behind ordinary text.
+        "comment" = {
+          fg = "base03";
+          modifiers = [ "italic" ];
+        };
+        "ui.background" = {
+          bg = "base00";
+        };
+        "ui.window" = {
+          fg = "inactive-border";
+        };
+        "ui.menu.selected" = {
+          fg = "base06";
+          bg = "base02";
+          modifiers = [ "bold" ];
+        };
+        "ui.statusline.normal" = {
+          fg = "base05";
+          bg = "base01";
+          modifiers = [ "bold" ];
+        };
+        "ui.statusline.insert" = {
+          fg = "base00";
+          bg = "base0D";
+          modifiers = [ "bold" ];
+        };
+        "ui.statusline.select" = {
+          fg = "base00";
+          bg = "base09";
+          modifiers = [ "bold" ];
+        };
+
+        "diagnostic.error".underline = {
+          color = "base08";
+          style = "curl";
+        };
+        "diagnostic.warning".underline = {
+          color = "base0A";
+          style = "curl";
+        };
+        "diagnostic.info".underline = {
+          color = "base0D";
+          style = "curl";
+        };
+        "diagnostic.hint".underline = {
+          color = "base0C";
+          style = "curl";
+        };
+
+        palette = {
+          inherit (theme)
+            base00
+            base01
+            base02
+            base03
+            base04
+            base05
+            base06
+            base07
+            base08
+            base09
+            base0A
+            base0B
+            base0C
+            base0D
+            base0E
+            base0F
+            ;
+          "active-border" = theme.activeBorder;
+          "inactive-border" = theme.inactiveBorder;
         };
       };
 
