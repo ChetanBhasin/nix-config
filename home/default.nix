@@ -21,6 +21,7 @@ in
     ./vscode
     ./zsh
     ./neovim
+    ./helix
     ./tmux
     ./zellij
     ./darwin
