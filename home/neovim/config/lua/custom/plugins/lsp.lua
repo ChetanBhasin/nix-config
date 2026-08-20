@@ -276,8 +276,13 @@ vim.api.nvim_create_autocmd("CursorHold", {
 -- Note: LspInlayHint highlight is configured in colors.lua for consistency
 
 -- Configure LSP hover window
-vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, {
+local default_hover_handler = vim.lsp.handlers["textDocument/hover"]
+local hover_config = {
     border = "rounded",
     focusable = true,
     close_events = { "CursorMoved", "BufLeave", "InsertEnter" },
-})
+}
+
+vim.lsp.handlers["textDocument/hover"] = function(err, result, ctx, config)
+    return default_hover_handler(err, result, ctx, vim.tbl_deep_extend("force", config or {}, hover_config))
+end
