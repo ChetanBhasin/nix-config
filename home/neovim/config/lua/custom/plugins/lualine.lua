@@ -8,11 +8,11 @@ local colors = {
     orange = '#d58a54',
     background = "#1d2021",
     surface = "#282828",
-    grey = "#948676",
-    blue = "#749fa0",
+    grey = "#aea089",
+    blue = "#84a9b2",
     green = "#a3ad62",
-    red = "#d66b64",
-    purple = "#b77f91",
+    red = "#db7e75",
+    purple = "#c38da0",
     teal = "#7fa98a",
 }
 

@@ -1,28 +1,28 @@
-# A lower-saturation night variant of Base16 Gruvbox Dark Hard.
+# A daylight-readable night variant of Base16 Gruvbox Dark Hard.
 # The hard background comes from Jon Gjengset's Base16 setup; the foreground
-# ladder and accents are deliberately softened for long sessions in low light.
+# ladder is lifted for daylight while the accents remain subdued.
 rec {
   name = "gruvbox-night";
 
   base00 = "#1d2021";
   base01 = "#282828";
   base02 = "#3c3836";
-  base03 = "#948676";
-  base04 = "#a89984";
-  base05 = "#bdae93";
-  base06 = "#d5c4a1";
+  base03 = "#aea089";
+  base04 = "#bcae94";
+  base05 = "#d0c0a0";
+  base06 = "#dfcfaa";
   base07 = "#ebdbb2";
 
-  # Softer accents: each stays readable on base00 while avoiding Gruvbox's
+  # Subdued accents: each stays readable on base00 while avoiding Gruvbox's
   # high-saturation bright variants.
-  base08 = "#d66b64";
+  base08 = "#db7e75";
   base09 = "#d58a54";
   base0A = "#c9a257";
   base0B = "#a3ad62";
   base0C = "#7fa98a";
-  base0D = "#749fa0";
-  base0E = "#b77f91";
-  base0F = "#b47b57";
+  base0D = "#84a9b2";
+  base0E = "#c38da0";
+  base0F = "#b9916b";
 
   inactiveBorder = "#504945";
   activeBorder = base0A;
