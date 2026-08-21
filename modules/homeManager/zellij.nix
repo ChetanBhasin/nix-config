@@ -50,6 +50,8 @@ let
     # zjstatus already makes Scroll mode visible in the top status bar.
     patches = (oldAttrs.patches or [ ]) ++ [
       (zellijConfigPath + "/zellij-hide-pane-scroll-indicators.patch")
+      (zellijConfigPath + "/zellij-prefer-vertical-pane-fill.patch")
+      (zellijConfigPath + "/zellij-session-manager-vim-navigation.patch")
     ];
   });
   zellij = pkgs.zellij.override { zellij-unwrapped = zellijUnwrapped; };
@@ -166,7 +168,7 @@ let
         $'COMMAND\t1..9 / ,\tSelect or rename tab'
         $'COMMAND\th/j/k/l\tFocus pane'
         $'COMMAND\t; / o\tPrevious or next pane'
-        $'COMMAND\t|\tAdd pane using lanes layout'
+        $'COMMAND\t| / -\tSplit focused pane right / below'
         $'COMMAND\tz / x\tFullscreen or close pane'
         $'COMMAND\tSpace\tNormalize panes to lanes layout'
         $'COMMAND\tm / t\tToggle mouse or pane frames'
@@ -175,7 +177,8 @@ let
         $'COMMAND\tT / ?\tExtract text or show this help'
 
         $'PANE\th/j/k/l\tFocus pane'
-        $'PANE\t| / x / z\tAdd, close, or fullscreen pane'
+        $'PANE\t| / -\tSplit focused pane right / below'
+        $'PANE\tx / z\tClose or fullscreen pane'
         $'PANE\tm / r\tGroup pane or enter resize mode'
         $'PANE\tL\tNormalize panes to lanes layout'
         $'PANE\tw / e\tShow floats or float/embed pane'
@@ -415,9 +418,9 @@ in
         # Zellij 0.45 defaults to title-only separators; retain full pane boxes.
         pane_frame_style = "full";
         mouse_mode = true;
-        # Familiar tiled-pane creation always uses the canonical vertical lanes;
-        # deliberate manual resize/break operations can still be normalized.
-        auto_layout = true;
+        # Directional splits define lane ownership. Keep closure local to that
+        # topology; Ctrl-Space Space / pane-mode L remains an explicit reflow.
+        auto_layout = false;
         stacked_resize = false;
         visual_bell = true;
 

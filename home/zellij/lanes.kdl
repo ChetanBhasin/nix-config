@@ -59,8 +59,9 @@ layout {
 
     tab { pane; }
 
-    // The one canonical tiled layout: equal-width vertical lanes with panes
-    // stacked top-to-bottom inside each lane. exact_panes includes zjstatus.
+    // Explicit whole-tab normalizer: equal-width vertical lanes with panes
+    // stacked top-to-bottom inside each lane. Normal pane creation and closure
+    // preserve the manual split topology. exact_panes includes zjstatus.
     swap_tiled_layout name="lanes" {
         // 2 terminals: [1, 1]
         tab exact_panes=3 {
