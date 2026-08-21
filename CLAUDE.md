@@ -26,7 +26,7 @@ This is a cross-platform Nix configuration supporting both macOS (Darwin) and Li
 
 **Modularity Strategy**:
 - Shared packages are centralized to avoid duplication
-- Platform-specific packages use conditional logic (`lib.optionals pkgs.stdenv.isDarwin`)
+- Platform-specific packages use conditional logic (`lib.optionals pkgs.stdenv.hostPlatform.isDarwin`)
 - Homebrew is minimized - only used when packages lack aarch64-darwin support in nixpkgs
 
 ## Common Commands
@@ -109,7 +109,7 @@ The repository exports standalone Home Manager modules via `homeManagerModules` 
 - Modules are self-contained and can be used independently
 - Each module has an `enable` option (defaults to `false`) for explicit opt-in
 - Config files are referenced via relative paths from the module files
-- Platform-specific behavior handled via `pkgs.stdenv.isDarwin` checks
+- Platform-specific behavior handled via `pkgs.stdenv.hostPlatform.isDarwin` checks
 
 **Relationship with `home/` Directory**:
 - `home/` contains the internal configuration used by `darwinConfigurations`

@@ -7,6 +7,7 @@
 #   inputs.nix-config.homeManagerModules.terminal # Just terminal (zsh, fzf, starship, etc.)
 #   inputs.nix-config.homeManagerModules.tmux     # Just tmux
 #   inputs.nix-config.homeManagerModules.zellij   # Just zellij
+#   inputs.nix-config.homeManagerModules.omp      # Just Oh My Pi
 #   inputs.nix-config.homeManagerModules.default  # All modules combined
 {
   # Individual modules
@@ -15,6 +16,7 @@
   terminal = import ./terminal.nix;
   tmux = import ./tmux.nix;
   zellij = import ./zellij.nix;
+  omp = import ./omp.nix;
 
   # Combined module that imports all
   default = { ... }: {
@@ -24,6 +26,7 @@
       ./terminal.nix
       ./tmux.nix
       ./zellij.nix
+      ./omp.nix
     ];
   };
 }

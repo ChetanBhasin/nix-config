@@ -1,6 +1,6 @@
 # Exportable Home Manager Modules
 
-This repository exports standalone Home Manager modules that can be used in your own Nix flake configurations. These modules provide battle-tested configurations for NeoVim, terminal tools, and tmux.
+This repository exports standalone Home Manager modules that can be used in your own Nix flake configurations. These modules provide battle-tested configurations for editors, terminal tools, multiplexers, and Oh My Pi.
 
 ## Quick Start
 
@@ -24,10 +24,12 @@ Add this repository as a flake input and import the modules you need:
         cb-config.homeManagerModules.neovim
         cb-config.homeManagerModules.terminal
         cb-config.homeManagerModules.tmux
+        cb-config.homeManagerModules.omp
         {
           cb.neovim.enable = true;
           cb.terminal.enable = true;
           cb.tmux.enable = true;
+          cb.omp.enable = true;
         }
       ];
     };
@@ -214,9 +216,52 @@ Modern tmux configuration with session management, FZF integration, and Gruvbox 
 
 ---
 
+### `homeManagerModules.omp`
+
+Oh My Pi coding agent, packaged from checksummed upstream release binaries and configured for the rest of this environment.
+
+#### Options
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `cb.omp.enable` | boolean | `false` | Enable Oh My Pi and its managed configuration |
+| `cb.omp.package` | package | pinned OMP release | Override the installed OMP package |
+| `cb.omp.enableLspTooling` | boolean | `true` | Install the curated language-server toolchain |
+| `cb.omp.settings` | YAML-compatible attributes | `{}` | Recursively override the opinionated OMP settings |
+| `cb.omp.extraPackages` | list of packages | `[]` | Add tools to OMP's shell environment |
+
+#### Included Features
+
+- Gruvbox Night UI and compact, non-transparent status line
+- Jujutsu-first working conventions without replacing repository `AGENTS.md` files
+- Built-in OMP LSP discovery plus explicit Bazel, Just, and TOML servers
+- Nix-managed updates, with OMP's own update notification disabled
+- Writable runtime settings: `/settings` changes last until the next Home Manager activation restores the declared config
+
+#### Example
+
+```nix
+{
+  cb.omp = {
+    enable = true;
+
+    settings = {
+      startup.quiet = false;
+      statusLine.preset = "full";
+    };
+
+    extraPackages = with pkgs; [ kubectl ];
+  };
+}
+```
+
+After the first activation, run `omp setup` to connect a provider and choose a default model. Inside OMP, `/hotkeys` shows the active bindings, `/model` changes models, and `/settings` exposes runtime preferences.
+
+---
+
 ### `homeManagerModules.default`
 
-Convenience module that imports all three modules (neovim, terminal, tmux).
+Convenience module that imports all exported Home Manager modules.
 
 ```nix
 {
@@ -225,6 +270,7 @@ Convenience module that imports all three modules (neovim, terminal, tmux).
   cb.neovim.enable = true;
   cb.terminal.enable = true;
   cb.tmux.enable = true;
+  cb.omp.enable = true;
 }
 ```
 
@@ -235,7 +281,7 @@ All modules support both macOS (Darwin) and Linux:
 - **macOS**: Uses pbcopy for clipboard, includes SDK paths for native compilation
 - **Linux**: Uses wl-copy/xclip for clipboard, appropriate paths for Linux
 
-Platform-specific behavior is handled automatically via `pkgs.stdenv.isDarwin` checks.
+Platform-specific behavior is handled automatically via `pkgs.stdenv.hostPlatform` checks.
 
 ## Customization Tips
 
@@ -291,10 +337,12 @@ The terminal module uses starship. To customize further, you can override after 
               cb-config.homeManagerModules.neovim
               cb-config.homeManagerModules.terminal
               cb-config.homeManagerModules.tmux
+              cb-config.homeManagerModules.omp
             ];
             cb.neovim.enable = true;
             cb.terminal.enable = true;
             cb.tmux.enable = true;
+            cb.omp.enable = true;
           };
         }
       ];
