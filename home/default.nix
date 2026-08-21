@@ -24,6 +24,7 @@ in
     ./helix
     ./tmux
     ./zellij
+    ./omp
     ./darwin
   ];
 

@@ -99,6 +99,110 @@ rec {
     "--color=info:${base0B},prompt:${base0D},pointer:${base08},marker:${base0A},spinner:${base0D},header:${base0D},border:${base03}"
   ];
 
+  # Oh My Pi resolves color values through this vars table. Keep the full UI
+  # on the same daylight-readable Gruvbox Night surfaces as the terminal and
+  # editors while reserving brighter accents for state and structure.
+  omp = {
+    name = name;
+
+    vars = {
+      background = base00;
+      surface = base01;
+      surfaceRaised = base02;
+      border = inactiveBorder;
+      dim = "#7c6f64";
+      muted = base03;
+      text = base05;
+      bright = base06;
+      red = base08;
+      orange = base09;
+      yellow = base0A;
+      green = base0B;
+      aqua = base0C;
+      blue = base0D;
+      purple = base0E;
+      brown = base0F;
+      toolErrorBg = "#322223";
+    };
+
+    colors = {
+      accent = "yellow";
+      border = "muted";
+      borderAccent = "yellow";
+      borderMuted = "border";
+      success = "green";
+      error = "red";
+      warning = "yellow";
+      muted = "muted";
+      dim = "dim";
+      text = "text";
+      thinkingText = "muted";
+      selectedBg = "surfaceRaised";
+      userMessageBg = "surface";
+      userMessageText = "bright";
+      customMessageBg = "surfaceRaised";
+      customMessageText = "text";
+      customMessageLabel = "purple";
+      toolPendingBg = "surface";
+      toolSuccessBg = "background";
+      toolErrorBg = "toolErrorBg";
+      toolText = "text";
+      toolTitle = "bright";
+      toolOutput = "muted";
+      mdHeading = "yellow";
+      mdLink = "blue";
+      mdLinkUrl = "muted";
+      mdCode = "purple";
+      mdCodeBlock = "bright";
+      mdCodeBlockBorder = "border";
+      mdQuote = "muted";
+      mdQuoteBorder = "border";
+      mdHr = "border";
+      mdListBullet = "orange";
+      toolDiffAdded = "green";
+      toolDiffRemoved = "red";
+      toolDiffContext = "muted";
+      link = "blue";
+      syntaxComment = "muted";
+      syntaxKeyword = "purple";
+      syntaxFunction = "blue";
+      syntaxVariable = "red";
+      syntaxString = "green";
+      syntaxNumber = "orange";
+      syntaxType = "yellow";
+      syntaxOperator = "aqua";
+      syntaxPunctuation = "muted";
+      thinkingOff = "border";
+      thinkingMinimal = "dim";
+      thinkingLow = "blue";
+      thinkingMedium = "aqua";
+      thinkingHigh = "yellow";
+      thinkingXhigh = "purple";
+      bashMode = "aqua";
+      pythonMode = "yellow";
+      statusLineBg = "surface";
+      statusLineSep = "border";
+      statusLineModel = "purple";
+      statusLinePath = "blue";
+      statusLineGitClean = "green";
+      statusLineGitDirty = "yellow";
+      statusLineContext = "aqua";
+      statusLineSpend = "blue";
+      statusLineStaged = "green";
+      statusLineDirty = "yellow";
+      statusLineUntracked = "orange";
+      statusLineOutput = "bright";
+      statusLineCost = "orange";
+      statusLineSubagents = "purple";
+    };
+
+    export = {
+      pageBg = base00;
+      cardBg = base01;
+      infoBg = base02;
+    };
+  };
+
   # Bat uses TextMate themes rather than Base16 tables, so keep its syntax
   # mapping here alongside the canonical palette instead of falling back to
   # Bat's brighter stock Gruvbox theme.

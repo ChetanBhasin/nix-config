@@ -21,7 +21,8 @@ A comprehensive Nix configuration for reproducible development environments acro
 
 - 🚀 **Modern Terminal Setup**: Zsh + FZF + Alacritty with enhanced productivity workflows
 - 🧠 **Powerful IDE**: Neovim with LSP, type annotations, smart navigation, and Claude AI integration
-- 🎯 **Tmux Configuration**: C-Space prefix, command palette, session management, and persistence
+- 🎯 **Terminal Multiplexers**: Zellij and tmux with discoverable bindings, session management, and persistence
+- 🤖 **Coding Agent**: Oh My Pi with a shared theme, Jujutsu conventions, and curated LSP tooling
 - 📦 **Package Management**: Nix + Home Manager for reproducible environments
 - 🔧 **Cross-Platform**: macOS (Darwin) and Linux (NixOS) support
 - 🎨 **Consistent Theming**: Gruvbox dark theme across all applications
@@ -43,14 +44,14 @@ A comprehensive Nix configuration for reproducible development environments acro
 
 3. **Apply configuration**:
    ```bash
-   make apply-darwin host=hugh  # Replace 'hugh' with your preferred host
+   make apply-darwin host=markus  # Replace 'markus' with your preferred host
    ```
 
 4. **Enjoy your new environment!** 🎉
 
 ## 🔌 Using as a Flake Input
 
-You can use the NeoVim, Terminal, and Tmux configurations in your own flake without adopting the entire configuration:
+You can use the editor, terminal, multiplexer, and coding-agent configurations in your own flake without adopting the entire configuration:
 
 ```nix
 {
@@ -70,6 +71,7 @@ You can use the NeoVim, Terminal, and Tmux configurations in your own flake with
         cb-config.homeManagerModules.neovim
         cb-config.homeManagerModules.terminal
         cb-config.homeManagerModules.tmux
+        cb-config.homeManagerModules.omp
 
         # Or import all at once
         # cb-config.homeManagerModules.default
@@ -79,6 +81,7 @@ You can use the NeoVim, Terminal, and Tmux configurations in your own flake with
           cb.neovim.enable = true;
           cb.terminal.enable = true;
           cb.tmux.enable = true;
+          cb.omp.enable = true;
         }
       ];
     };
@@ -93,6 +96,7 @@ You can use the NeoVim, Terminal, and Tmux configurations in your own flake with
 | `neovim` | Full NeoVim IDE with LSP, treesitter, and 50+ plugins | `cb.neovim.enable`, `cb.neovim.enableTmuxIntegration`, `cb.neovim.treesitterGrammars` |
 | `terminal` | Zsh + FZF + Starship + Direnv + Zoxide + Alacritty | `cb.terminal.enable`, `cb.terminal.enableFzf`, `cb.terminal.enableStarship`, `cb.terminal.viMode` |
 | `tmux` | Modern tmux with sessions, FZF, and Gruvbox dark theme | `cb.tmux.enable`, `cb.tmux.enableVimIntegration`, `cb.tmux.enableSessionPersistence` |
+| `omp` | Oh My Pi with Gruvbox Night, Jujutsu guidance, and LSP tooling | `cb.omp.enable`, `cb.omp.enableLspTooling`, `cb.omp.settings` |
 | `default` | All modules combined | All options from above |
 
 See [Module Options Documentation](docs/modules.md) for complete configuration options.
@@ -109,7 +113,7 @@ See [Module Options Documentation](docs/modules.md) for complete configuration o
 
 ```bash
 # Test configuration without applying
-nix build .#darwinConfigurations.hugh.system
+nix build .#darwinConfigurations.markus.system
 
 # Check flake
 nix flake check
