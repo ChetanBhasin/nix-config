@@ -63,6 +63,7 @@ in
         tokei # Code statistics
         hyperfine # Benchmarking
         sccache # Compilation cache
+        samply # Sampling profiler
 
         # Python ecosystem (user-specific)
         poetry
@@ -85,11 +86,16 @@ in
         # System Utilities (user-specific)
         cachix
         direnv
+        pv
+        tldr
+        watch
 
         # Other development tools (user-specific)
         gnuplot
         graphviz
         awscli2
+        kubelogin-oidc # Provides the kubectl oidc-login plugin
+        openbao
         gawk
         gettext
         gnupg
