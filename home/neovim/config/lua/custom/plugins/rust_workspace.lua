@@ -3,11 +3,11 @@ local M = {}
 local state_path = vim.fs.joinpath(vim.fn.stdpath("data"), "rust-linked-projects.json")
 
 local display_colors = {
-    fg1 = "#bdae93",
-    gray = "#948676",
+    fg1 = "#d0c0a0",
+    gray = "#aea089",
     green = "#a3ad62",
     yellow = "#c9a257",
-    blue = "#749fa0",
+    blue = "#84a9b2",
     aqua = "#7fa98a",
     orange = "#d58a54",
     bg4 = "#504945",

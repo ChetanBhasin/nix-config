@@ -1,24 +1,24 @@
--- Gruvbox Night: a lower-saturation Base16 Gruvbox Dark Hard variant.
--- The palette keeps the hard background while softening ordinary text and
--- accents for long sessions in low light.
+-- Gruvbox Night: a daylight-readable Base16 Gruvbox Dark Hard variant.
+-- The palette keeps the hard background, lifts the foreground ladder, and
+-- retains subdued accents.
 
 local colors = {
     base00 = "#1d2021",
     base01 = "#282828",
     base02 = "#3c3836",
-    base03 = "#948676",
-    base04 = "#a89984",
-    base05 = "#bdae93",
-    base06 = "#d5c4a1",
+    base03 = "#aea089",
+    base04 = "#bcae94",
+    base05 = "#d0c0a0",
+    base06 = "#dfcfaa",
     base07 = "#ebdbb2",
-    base08 = "#d66b64",
+    base08 = "#db7e75",
     base09 = "#d58a54",
     base0A = "#c9a257",
     base0B = "#a3ad62",
     base0C = "#7fa98a",
-    base0D = "#749fa0",
-    base0E = "#b77f91",
-    base0F = "#b47b57",
+    base0D = "#84a9b2",
+    base0E = "#c38da0",
+    base0F = "#b9916b",
 }
 
 local function highlight(name, value)
@@ -55,13 +55,13 @@ function DefineColors()
 
     highlight("Search", { bg = colors.base0A, fg = colors.base00, bold = true })
     highlight("IncSearch", { bg = colors.base09, fg = colors.base00, bold = true })
-    highlight("Visual", { bg = colors.base02 })
+    highlight("Visual", { fg = colors.base06, bg = colors.base02 })
 
     highlight("Folded", { bg = colors.base01, fg = colors.base03 })
     highlight("FoldColumn", { bg = colors.base00, fg = colors.base03 })
 
     highlight("TelescopeBorder", { fg = colors.base03, bg = colors.base00 })
-    highlight("TelescopeSelection", { bg = colors.base02, bold = true })
+    highlight("TelescopeSelection", { fg = colors.base06, bg = colors.base02, bold = true })
     highlight("TelescopeMatching", { fg = colors.base09, bold = true })
     highlight("TelescopePromptPrefix", { fg = colors.base0E })
 

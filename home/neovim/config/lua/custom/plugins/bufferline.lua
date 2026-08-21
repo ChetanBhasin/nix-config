@@ -4,6 +4,18 @@
 
 local bufferline = require('bufferline')
 
+local colors = {
+    base00 = "#1d2021",
+    base01 = "#282828",
+    base02 = "#3c3836",
+    base03 = "#aea089",
+    base04 = "#bcae94",
+    base05 = "#d0c0a0",
+    base06 = "#dfcfaa",
+    base0A = "#c9a257",
+    inactive_border = "#504945",
+}
+
 -- Build setup table first so we can optionally add highlights
 local setup_opts = {
     options = {
@@ -44,7 +56,7 @@ local setup_opts = {
         show_tab_indicators = true,
         show_duplicate_prefix = true,
         persist_buffer_sort = true,
-        separator_style = "slant",
+        separator_style = "thin",
         enforce_regular_tabs = false,
         always_show_bufferline = true,
         hover = {
@@ -91,12 +103,29 @@ local setup_opts = {
         offsets = {
             {
                 filetype = "NvimTree",
-                text = "📁 File Explorer",
+                text = "󰉋 Files",
                 text_align = "center",
                 separator = true
             }
         },
-    }
+    },
+    highlights = {
+        fill = { fg = colors.base03, bg = colors.base00 },
+        background = { fg = colors.base03, bg = colors.base00 },
+        buffer_visible = { fg = colors.base04, bg = colors.base00 },
+        buffer_selected = { fg = colors.base06, bg = colors.base01, bold = true, italic = false },
+        separator = { fg = colors.base02, bg = colors.base00 },
+        separator_visible = { fg = colors.base02, bg = colors.base00 },
+        separator_selected = { fg = colors.base02, bg = colors.base01 },
+        indicator_selected = { fg = colors.base0A, bg = colors.base01 },
+        close_button = { fg = colors.base03, bg = colors.base00 },
+        close_button_visible = { fg = colors.base04, bg = colors.base00 },
+        close_button_selected = { fg = colors.base05, bg = colors.base01 },
+        modified = { fg = colors.base0A, bg = colors.base00 },
+        modified_visible = { fg = colors.base0A, bg = colors.base00 },
+        modified_selected = { fg = colors.base0A, bg = colors.base01 },
+        offset_separator = { fg = colors.inactive_border, bg = colors.base00 },
+    },
 }
 
 bufferline.setup(setup_opts)
