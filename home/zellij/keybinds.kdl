@@ -82,8 +82,11 @@ keybinds clear-defaults=true {
         bind "9" { GoToTab 9; SwitchToMode "Normal"; }
         bind "," { SwitchToMode "RenameTab"; TabNameInput 0; }
         bind ";" { FocusPreviousPane; SwitchToMode "Normal"; }
-        // Always feed new tiled panes through the canonical lane layout.
-        bind "|" { NewPane; SwitchToMode "Normal"; }
+        // Match the tmux split model: `|` creates a pane to the right and `-`
+        // creates one below the focused pane. Directional splits keep manual
+        // lane ownership intact instead of invoking the automatic layout.
+        bind "|" { NewPane "Right"; SwitchToMode "Normal"; }
+        bind "-" { NewPane "Down"; SwitchToMode "Normal"; }
         bind "z" { ToggleFocusFullscreen; SwitchToMode "Normal"; }
         bind "x" { CloseFocus; SwitchToMode "Normal"; }
         bind "h" { MoveFocus "Left"; SwitchToMode "Normal"; }
@@ -102,6 +105,7 @@ keybinds clear-defaults=true {
             LaunchOrFocusPlugin "zellij:session-manager" {
                 floating true
                 move_to_focused_tab true
+                vim_mode true
             }
             SwitchToMode "Normal"
         }
@@ -201,7 +205,8 @@ keybinds clear-defaults=true {
         bind "j" { MoveFocus "Down"; }
         bind "k" { MoveFocus "Up"; }
         bind "l" { MoveFocus "Right"; }
-        bind "|" { NewPane; SwitchToMode "Normal"; }
+        bind "|" { NewPane "Right"; SwitchToMode "Normal"; }
+        bind "-" { NewPane "Down"; SwitchToMode "Normal"; }
         bind "x" { CloseFocus; SwitchToMode "Normal"; }
         bind "z" { ToggleFocusFullscreen; SwitchToMode "Normal"; }
         // Pane groups are Zellij's closest native equivalent to tmux marks.
@@ -270,6 +275,7 @@ keybinds clear-defaults=true {
             LaunchOrFocusPlugin "zellij:session-manager" {
                 floating true
                 move_to_focused_tab true
+                vim_mode true
             }
             SwitchToMode "Normal"
         }

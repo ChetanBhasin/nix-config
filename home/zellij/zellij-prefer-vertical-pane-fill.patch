@@ -1,0 +1,31 @@
+diff --git a/zellij-server/src/panes/tiled_panes/tiled_pane_grid.rs b/zellij-server/src/panes/tiled_panes/tiled_pane_grid.rs
+--- a/zellij-server/src/panes/tiled_panes/tiled_pane_grid.rs
++++ b/zellij-server/src/panes/tiled_panes/tiled_pane_grid.rs
+@@ -1275,19 +1275,22 @@ impl<'a> TiledPaneGrid<'a> {
+         None
+     }
+     fn find_panes_to_grow(&self, id: PaneId) -> Option<(Vec<PaneId>, SplitDirection)> {
++        // Preserve vertical lane ownership when a pane closes. For example,
++        // closing the bottom-right pane in a 2x2 grid should extend the pane
++        // above it, not let the bottom-left pane cross into the right lane.
+         if let Some(panes) = self
+-            .panes_to_the_left_between_aligning_borders(id)
+-            .or_else(|| self.panes_to_the_right_between_aligning_borders(id))
++            .panes_above_between_aligning_borders(id)
++            .or_else(|| self.panes_below_between_aligning_borders(id))
+         {
+-            return Some((panes, SplitDirection::Horizontal));
++            return Some((panes, SplitDirection::Vertical));
+         }
+ 
+         if let Some(panes) = self
+-            .panes_above_between_aligning_borders(id)
+-            .or_else(|| self.panes_below_between_aligning_borders(id))
++            .panes_to_the_left_between_aligning_borders(id)
++            .or_else(|| self.panes_to_the_right_between_aligning_borders(id))
+         {
+-            return Some((panes, SplitDirection::Vertical));
++            return Some((panes, SplitDirection::Horizontal));
+         }
+ 
+         None

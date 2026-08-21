@@ -1,0 +1,371 @@
+--- a/default-plugins/session-manager/src/main.rs
++++ b/default-plugins/session-manager/src/main.rs
+@@ -53,6 +53,7 @@
+     pub(crate) show_kill_all_sessions_warning: bool,
+     request_ids: Vec<String>,
+     is_web_client: bool,
++    vim_mode: bool,
+     current_session_last_saved_time: Option<u64>,
+     is_visible: bool,
+     refresh_timer_armed: bool,
+@@ -78,6 +79,11 @@
+             self.active_screen = ActiveScreen::SingleScreen;
+         }
+         self.single_screen_state.is_welcome_screen = self.is_welcome_screen;
++        self.vim_mode = configuration
++            .get("vim_mode")
++            .map(|v| v == "true")
++            .unwrap_or(false);
++        self.single_screen_state.vim_mode = self.vim_mode;
+         self.is_visible = true;
+         subscribe(&[
+             EventType::ModeUpdate,
+@@ -271,30 +277,31 @@
+                             let content_width = std::cmp::min(width, 90);
+                             let x_centered = x + (width.saturating_sub(content_width)) / 2;
+ 
+-                            let enter_action = if !self.single_screen_state.search_term.is_empty() {
+-                                if let Some(result) = self.single_screen_state.get_selected_result()
+-                                {
+-                                    match result {
+-                                        UnifiedSearchResult::ActiveSession { .. } => Some("Attach"),
+-                                        UnifiedSearchResult::ResurrectableSession { .. } => {
+-                                            Some("Resurrect")
+-                                        },
+-                                    }
+-                                } else {
+-                                    let typed = &self.single_screen_state.search_term;
+-                                    if self.sessions.has_session(typed) {
+-                                        Some("Attach")
+-                                    } else if self.resurrectable_sessions.has_session(typed) {
++                            let enter_action = if let Some(result) =
++                                self.single_screen_state.get_selected_result()
++                            {
++                                match result {
++                                    UnifiedSearchResult::ActiveSession { .. } => Some("Attach"),
++                                    UnifiedSearchResult::ResurrectableSession { .. } => {
+                                         Some("Resurrect")
+-                                    } else {
+-                                        Some("Create new")
+-                                    }
++                                    },
++                                }
++                            } else if !self.single_screen_state.search_term.is_empty() {
++                                let typed = &self.single_screen_state.search_term;
++                                if self.sessions.has_session(typed) {
++                                    Some("Attach")
++                                } else if self.resurrectable_sessions.has_session(typed) {
++                                    Some("Resurrect")
++                                } else {
++                                    Some("Create new")
+                                 }
+                             } else {
+                                 None
+                             };
+                             render_single_screen_prompt(
+                                 &self.single_screen_state.search_term,
++                                self.vim_mode,
++                                self.single_screen_state.search_input_active,
+                                 enter_action,
+                                 self.colors,
+                                 x_centered,
+@@ -414,6 +421,7 @@
+                 self.active_screen,
+                 width,
+                 self.colors,
++                self.vim_mode,
+                 help_x,
+                 rows.saturating_sub(1),
+             );
+@@ -426,7 +434,14 @@
+                 self.current_session_last_saved_time,
+             );
+         } else {
+-            let _ = render_controls_line(self.active_screen, width, self.colors, x, rows);
++            let _ = render_controls_line(
++                self.active_screen,
++                width,
++                self.colors,
++                self.vim_mode,
++                x,
++                rows,
++            );
+         }
+         if self.is_welcome_screen {
+             render_welcome_boundaries(rows, cols); // explicitly done in the end to override some
+@@ -827,10 +842,43 @@
+         }
+ 
+         match key.bare_key {
++            BareKey::Char('j')
++                if key.has_no_modifiers()
++                    && self.vim_mode
++                    && !self.single_screen_state.search_input_active =>
++            {
++                self.single_screen_state.move_selection_down();
++                should_render = true;
++            },
++            BareKey::Char('k')
++                if key.has_no_modifiers()
++                    && self.vim_mode
++                    && !self.single_screen_state.search_input_active =>
++            {
++                self.single_screen_state.move_selection_up();
++                should_render = true;
++            },
++            BareKey::Char('/')
++                if key.has_no_modifiers()
++                    && self.vim_mode
++                    && !self.single_screen_state.search_input_active =>
++            {
++                self.single_screen_state.search_input_active = true;
++                should_render = true;
++            },
++            BareKey::Char('q')
++                if key.has_no_modifiers()
++                    && self.vim_mode
++                    && !self.single_screen_state.search_input_active =>
++            {
++                if !self.is_welcome_screen {
++                    close_self();
++                }
++            },
+             BareKey::Char(character) if key.has_no_modifiers() => {
+                 if character == '\n' {
+                     self.handle_selection();
+-                } else {
++                } else if !self.vim_mode || self.single_screen_state.search_input_active {
+                     self.single_screen_state.search_term.push(character);
+                     self.single_screen_state.update_search_term(
+                         &self.sessions.session_ui_infos,
+@@ -840,12 +888,18 @@
+                 should_render = true;
+             },
+             BareKey::Backspace if key.has_no_modifiers() => {
+-                self.single_screen_state.search_term.pop();
+-                self.single_screen_state.update_search_term(
+-                    &self.sessions.session_ui_infos,
+-                    &self.resurrectable_sessions.all_resurrectable_sessions,
+-                );
+-                should_render = true;
++                if !self.vim_mode || self.single_screen_state.search_input_active {
++                    if self.vim_mode && self.single_screen_state.search_term.is_empty() {
++                        self.single_screen_state.search_input_active = false;
++                    } else {
++                        self.single_screen_state.search_term.pop();
++                        self.single_screen_state.update_search_term(
++                            &self.sessions.session_ui_infos,
++                            &self.resurrectable_sessions.all_resurrectable_sessions,
++                        );
++                    }
++                    should_render = true;
++                }
+             },
+             BareKey::Enter if key.has_no_modifiers() => {
+                 self.handle_selection();
+@@ -855,11 +909,22 @@
+                 self.single_screen_state.move_selection_down();
+                 should_render = true;
+             },
++            BareKey::Char('n') if key.has_modifiers(&[KeyModifier::Ctrl]) && self.vim_mode => {
++                self.single_screen_state.move_selection_down();
++                should_render = true;
++            },
+             BareKey::Up if key.has_no_modifiers() => {
+                 self.single_screen_state.move_selection_up();
+                 should_render = true;
+             },
+-            BareKey::Tab if key.has_no_modifiers() => {
++            BareKey::Char('p') if key.has_modifiers(&[KeyModifier::Ctrl]) && self.vim_mode => {
++                self.single_screen_state.move_selection_up();
++                should_render = true;
++            },
++            BareKey::Tab
++                if key.has_no_modifiers()
++                    && (!self.vim_mode || self.single_screen_state.search_input_active) =>
++            {
+                 self.single_screen_state.tab_complete(
+                     &self.sessions.session_ui_infos,
+                     &self.resurrectable_sessions.all_resurrectable_sessions,
+@@ -923,19 +988,34 @@
+                 }
+             },
+             BareKey::Char('c') if key.has_modifiers(&[KeyModifier::Ctrl]) => {
+-                if !self.single_screen_state.search_term.is_empty() {
++                if self.vim_mode && self.single_screen_state.search_input_active {
+                     self.single_screen_state.search_term.clear();
++                    self.single_screen_state.search_input_active = false;
+                     self.single_screen_state.update_search_term(
+                         &self.sessions.session_ui_infos,
+                         &self.resurrectable_sessions.all_resurrectable_sessions,
+                     );
++                } else if !self.single_screen_state.search_term.is_empty() {
++                    self.single_screen_state.search_term.clear();
++                    self.single_screen_state.update_search_term(
++                        &self.sessions.session_ui_infos,
++                        &self.resurrectable_sessions.all_resurrectable_sessions,
++                    );
+                 } else if !self.is_welcome_screen {
+                     close_self();
+                 }
+                 should_render = true;
+             },
+             BareKey::Esc if key.has_no_modifiers() => {
+-                if self.single_screen_state.selected_index.is_some() {
++                if self.vim_mode && self.single_screen_state.search_input_active {
++                    self.single_screen_state.search_term.clear();
++                    self.single_screen_state.search_input_active = false;
++                    self.single_screen_state.update_search_term(
++                        &self.sessions.session_ui_infos,
++                        &self.resurrectable_sessions.all_resurrectable_sessions,
++                    );
++                    should_render = true;
++                } else if !self.vim_mode && self.single_screen_state.selected_index.is_some() {
+                     self.single_screen_state.selected_index = None;
+                     should_render = true;
+                 } else if !self.is_welcome_screen {
+--- a/default-plugins/session-manager/src/single_screen.rs
++++ b/default-plugins/session-manager/src/single_screen.rs
+@@ -107,6 +107,8 @@
+     pub search_term: String,
+     pub unified_results: Vec<UnifiedSearchResult>,
+     pub selected_index: Option<usize>,
++    pub vim_mode: bool,
++    pub search_input_active: bool,
+     pub mode: SingleScreenMode,
+     pub layout_list: LayoutList,
+     pub new_session_folder: Option<PathBuf>,
+@@ -163,11 +165,25 @@
+     }
+ 
+     fn restore_selection(&mut self, previously_selected_name: Option<String>) {
+-        if let Some(prev_name) = previously_selected_name {
+-            self.selected_index = self
+-                .unified_results
+-                .iter()
+-                .position(|r| r.session_name() == prev_name);
++        match previously_selected_name {
++            Some(prev_name) => {
++                self.selected_index = self
++                    .unified_results
++                    .iter()
++                    .position(|r| r.session_name() == prev_name);
++            },
++            None if self.vim_mode && self.search_term.is_empty() => {
++                self.selected_index = self.unified_results.iter().position(|result| {
++                    !matches!(
++                        result,
++                        UnifiedSearchResult::ActiveSession {
++                            is_current_session: true,
++                            ..
++                        }
++                    )
++                });
++            },
++            None => {},
+         }
+     }
+ 
+@@ -735,6 +751,27 @@
+     }
+ 
+     #[test]
++    fn test_3_1a_vim_mode_selects_first_non_current_on_initial_update() {
++        let mut state = SingleScreenState::default();
++        state.vim_mode = true;
++        let active = vec![
++            make_active_session("current", 1, 1, 1, true, 100),
++            make_active_session("other-a", 1, 1, 1, false, 200),
++            make_active_session("other-b", 1, 1, 1, false, 300),
++        ];
++
++        state.update_search_term(&active, &[]);
++
++        assert_eq!(state.selected_index, Some(1));
++        assert_eq!(
++            state
++                .get_selected_result()
++                .map(|result| result.session_name()),
++            Some("other-a")
++        );
++    }
++
++    #[test]
+     fn test_3_2_down_from_last_wraps_to_first_non_current() {
+         let mut state = SingleScreenState::default();
+         setup_results_with_current(
+--- a/default-plugins/session-manager/src/ui/components.rs
++++ b/default-plugins/session-manager/src/ui/components.rs
+@@ -785,13 +785,25 @@
+ 
+ pub fn render_single_screen_prompt(
+     search_term: &str,
++    vim_mode: bool,
++    search_input_active: bool,
+     enter_action: Option<&str>,
+     colors: Colors,
+     x: usize,
+     y: usize,
+ ) {
+-    let prompt = colors.session_name_prompt("Session:");
+-    let search_term_display = colors.bold(&format!("{}_", search_term));
++    let prompt = colors.session_name_prompt(if vim_mode && search_input_active {
++        "Search:"
++    } else if vim_mode {
++        "Sessions:"
++    } else {
++        "Session:"
++    });
++    let search_term_display = if vim_mode && !search_input_active {
++        format!("{} - {}", colors.shortcuts("</>"), colors.bold("Search"))
++    } else {
++        colors.bold(&format!("{}_", search_term))
++    };
+     let enter_hint = match enter_action {
+         Some(action) => {
+             let enter_key = colors.shortcuts("<ENTER>");
+@@ -1444,6 +1456,7 @@
+     active_screen: ActiveScreen,
+     max_cols: usize,
+     colors: Colors,
++    vim_mode: bool,
+     x: usize,
+     y: usize,
+ ) -> usize {
+@@ -1506,6 +1519,36 @@
+             }
+         },
+         ActiveScreen::SingleScreen => {
++            if vim_mode {
++                let navigate = colors.shortcuts("<j/k>");
++                let navigate_text = colors.bold("Navigate");
++                let search = colors.shortcuts("</>");
++                let search_text = colors.bold("Search");
++                let enter = colors.shortcuts("<ENTER>");
++                let enter_text = colors.bold("Open");
++                let rename = colors.shortcuts("<Ctrl r>");
++                let rename_text = colors.bold("Rename");
++                let disconnect = colors.shortcuts("<Ctrl x>");
++                let disconnect_text = colors.bold("Disconnect");
++                let kill = colors.shortcuts("<Del>");
++                let kill_text = colors.bold("Kill/Delete");
++
++                if max_cols > 116 {
++                    print!(
++                        "\u{1b}[m\u{1b}[{y};{x}HHelp: {navigate} - {navigate_text}, {search} - {search_text}, {enter} - {enter_text}, {rename} - {rename_text}, {disconnect} - {disconnect_text}, {kill} - {kill_text}"
++                    );
++                    return HELP_PREFIX_LEN;
++                } else if max_cols > 57 {
++                    print!(
++                        "\u{1b}[m\u{1b}[{y};{x}HHelp: {navigate} - {navigate_text}, {search} - {search_text}, {enter} - {enter_text}"
++                    );
++                    return HELP_PREFIX_LEN;
++                } else if max_cols >= 19 {
++                    print!("\u{1b}[m\u{1b}[{y};{x}H{navigate}/{search}/{enter}");
++                    return 0;
++                }
++                return 0;
++            }
+             let rename = colors.shortcuts("<Ctrl r>");
+             let rename_text = colors.bold("Rename");
+             let disconnect = colors.shortcuts("<Ctrl x>");
