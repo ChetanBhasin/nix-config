@@ -37,6 +37,23 @@ let
     };
 
     shellPath = "${pkgs.zsh}/bin/zsh";
+
+    # Keep external Slack writes behind an explicit user confirmation even
+    # when OMP otherwise runs with its default yolo approval mode.
+    tools.approval = {
+      "mcp__slack_slack_slack_add_reaction" = "prompt";
+      "mcp__slack_slack_slack_create_canvas" = "prompt";
+      "mcp__slack_slack_slack_create_conversation" = "prompt";
+      "mcp__slack_slack_slack_schedule_message" = "prompt";
+      "mcp__slack_slack_slack_send_message" = "prompt";
+      "mcp__slack_slack_slack_send_message_draft" = "prompt";
+      "mcp__slack_slack_slack_update_canvas" = "prompt";
+    };
+
+    # Home Manager replaces this mutable file on activation, so persist the
+    # completed onboarding state instead of reopening setup every time.
+    dev.autoqaConsent = "denied";
+    setupVersion = 2;
   };
   resolvedSettings = lib.recursiveUpdate defaultSettings cfg.settings;
   configFile = yaml.generate "omp-config.yml" resolvedSettings;

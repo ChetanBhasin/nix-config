@@ -7,6 +7,8 @@
 with lib;
 let
   cfg = config.home-config-manager;
+  slackOfficialCli = pkgs.callPackage ../packages/slack-official-cli.nix { };
+  slackTui = pkgs.callPackage ../packages/slack-tui.nix { };
 in
 {
   options.home-config-manager = {
@@ -41,6 +43,8 @@ in
         gh
         k9s
         bitwarden-cli
+        slackOfficialCli
+        slackTui
 
         # User shell and terminal utilities
         zsh-completions
