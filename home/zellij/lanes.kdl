@@ -4,7 +4,7 @@ layout {
             plugin location="zjstatus" {
                 format_left   "{tabs}"
                 format_center ""
-                format_right  "#[fg=#d58a54]{focused_pane_title}{command_battery}{mode}{datetime}"
+                format_right  "#[fg=#d58a54]{focused_pane_title}{command_battery}{mode}{datetime}#[fg=#504945]| #[fg=#84a9b2,bold]{session} "
                 format_space  ""
                 // Keep the right-side context visible if unusually long tab
                 // names collide with it on a narrow terminal.
