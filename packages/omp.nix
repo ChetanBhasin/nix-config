@@ -1,6 +1,9 @@
 {
   fetchurl,
   lib,
+  musl,
+  patchelf,
+  pkgsMusl,
   stdenvNoCC,
 }:
 
@@ -28,6 +31,13 @@ let
       hash = "sha256-0dTqnU5ToXTS6xroEZ5XSbhN3EwHa/WZEGy/mHuI7OA=";
     };
   };
+  muslRuntime = pkgsMusl.stdenv.cc.cc.lib;
+  muslInterpreter =
+    {
+      "aarch64-linux" = "${musl}/lib/ld-musl-aarch64.so.1";
+      "x86_64-linux" = "${musl}/lib/ld-musl-x86_64.so.1";
+    }
+    .${system} or null;
   asset = assets.${system} or (throw "Oh My Pi does not provide a release binary for ${system}");
 in
 stdenvNoCC.mkDerivation {
@@ -40,11 +50,23 @@ stdenvNoCC.mkDerivation {
   };
 
   dontUnpack = true;
+  nativeBuildInputs = lib.optionals stdenvNoCC.hostPlatform.isLinux [ patchelf ];
 
   installPhase = ''
     runHook preInstall
     install -Dm755 "$src" "$out/bin/omp"
     runHook postInstall
+  '';
+  postInstall = lib.optionalString stdenvNoCC.hostPlatform.isLinux ''
+    patchelf \
+      --set-interpreter ${muslInterpreter} \
+      --set-rpath ${
+        lib.makeLibraryPath [
+          musl
+          muslRuntime
+        ]
+      } \
+      "$out/bin/omp"
   '';
 
   doInstallCheck = true;

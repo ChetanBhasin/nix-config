@@ -16,6 +16,7 @@ in
     isDarwin = lib.mkEnableOption "include darwin configuration";
     enableExtras = lib.mkEnableOption "enable extra packages";
     enableProf = lib.mkEnableOption "enable professional packages";
+    enableHyprland = lib.mkEnableOption "Hyprland desktop session";
   };
 
   imports = [
@@ -28,6 +29,7 @@ in
     ./zellij
     ./omp
     ./darwin
+    ./hyprland
   ];
 
   config = {

@@ -1,4 +1,9 @@
-{ config, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
   sshAuthorizedKeys = [
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGXQGdevTUYR59AYrbwcsPdu6qIsuPSRCcFEpG8YiXY8 chetan@chetan-mac.local"
@@ -28,6 +33,7 @@ in
 
   time.timeZone = "Europe/Berlin";
   i18n.defaultLocale = "en_US.UTF-8";
+  console.keyMap = "us";
 
   nix = {
     settings = {
@@ -70,46 +76,9 @@ in
       ];
       openssh.authorizedKeys.keys = sshAuthorizedKeys;
     };
-    media = {
-      isNormalUser = true;
-      description = "Media";
-      home = "/home/media";
-      createHome = true;
-      group = "media";
-      extraGroups = [
-        "audio"
-        "input"
-        "networkmanager"
-        "video"
-      ];
-      openssh.authorizedKeys.keys = sshAuthorizedKeys;
-    };
     root.openssh.authorizedKeys.keys = sshAuthorizedKeys;
   };
-  users.groups.media = { };
   users.groups.onepassword.gid = config.ids.gids.onepassword;
-
-  home-manager.users.media = import ./media.nix;
-
-  # SDDM starts the Bigscreen session in the user's home. Keep this explicit
-  # so the directory is also recreated if it is ever absent at boot.
-  systemd = {
-    sleep.settings.Sleep = {
-      AllowHibernation = "no";
-      AllowHybridSleep = "no";
-      AllowSuspend = "no";
-      AllowSuspendThenHibernate = "no";
-    };
-    tmpfiles.rules = [ "d /home/media 0750 media media -" ];
-  };
-  services.logind.settings.Login = {
-    HandleHibernateKey = "ignore";
-    HandleLidSwitch = "ignore";
-    HandleLidSwitchDocked = "ignore";
-    HandleLidSwitchExternalPower = "ignore";
-    HandleSuspendKey = "ignore";
-    IdleAction = "ignore";
-  };
 
   services.openssh = {
     enable = true;
@@ -121,21 +90,39 @@ in
     };
   };
 
-  services.displayManager = {
-    autoLogin = {
-      enable = true;
-      user = "media";
-    };
-    defaultSession = "plasma-bigscreen-wayland";
-    sessionPackages = [ pkgs.kdePackages.plasma-bigscreen ];
-    sddm.enable = true;
-  };
-  services.desktopManager.plasma6.enable = true;
-  services.udev.packages = [ pkgs.kdePackages.plasma-bigscreen ];
-  services.xserver = {
+  # Hyprland owns the graphical session. Enabling it here (rather than in
+  # home-manager) provides the capability-wrapped `Hyprland` binary, the
+  # wayland session entry greetd offers, the xdg portals, polkit and dconf.
+  programs.hyprland.enable = true;
+
+  # hyprlock authenticates through PAM; without this it silently falls back to
+  # `su`. The NixOS `programs.hyprlock` module is deliberately NOT used because
+  # it also enables a system-level hypridle user unit that would collide with
+  # the home-manager one.
+  security.pam.services.hyprlock = { };
+
+  # Minimal TTY greeter. The greeter is pinned to a single fixed session rather
+  # than pointed at the wayland-sessions directory: `programs.hyprland` also
+  # registers a `hyprland-uwsm` entry, and picking it would start a session
+  # UWSM cannot manage here (`programs.uwsm.waylandCompositors` is empty), so
+  # the user would land in a bare compositor with no bar, notifications or
+  # tray. `--remember-session` goes with it, being meaningless without a list.
+  # `Hyprland` stays unqualified on purpose: PATH resolves it to the
+  # /run/wrappers capability wrapper that grants the compositor SCHED_RR.
+  services.greetd = {
     enable = true;
-    xkb.layout = "us";
+    useTextGreeter = true;
+    settings.default_session.command = lib.concatStringsSep " " [
+      (lib.getExe pkgs.tuigreet)
+      "--time"
+      "--remember"
+      "--cmd Hyprland"
+    ];
   };
+
+  # `services.graphical-desktop` renders the localed keyboard config from these
+  # options, so the layout applies without an X server.
+  services.xserver.xkb.layout = "us";
 
   security = {
     rtkit.enable = true;
@@ -165,6 +152,9 @@ in
   };
 
   services = {
+    # blueman-mechanism, the privileged D-Bus/polkit helper the home-manager
+    # blueman-applet needs for pairing and rfkill.
+    blueman.enable = true;
     fwupd.enable = true;
     pcscd.enable = true;
     power-profiles-daemon.enable = true;
@@ -195,12 +185,15 @@ in
     };
   };
 
+  # The greeter and other surfaces outside home-manager's fontconfig need the
+  # desktop's face available system-wide.
+  fonts.packages = [ pkgs.nerd-fonts.jetbrains-mono ];
+
   environment = {
     systemPackages = with pkgs; [
       onePasswordPolkitPolicy
       cloudflared
       jdk
-      kdePackages.plasma-bigscreen
       podman-compose
       podman-tui
     ];

@@ -36,5 +36,6 @@
     isDarwin = false;
     enableExtras = true;
     enableProf = true;
+    enableHyprland = true;
   };
 }

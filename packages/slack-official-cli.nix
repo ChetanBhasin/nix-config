@@ -42,14 +42,14 @@ stdenvNoCC.mkDerivation {
 
   installPhase = ''
     runHook preInstall
-    install -Dm755 bin/slack "$out/bin/slack"
+    install -Dm755 bin/slack "$out/bin/slack-cli"
     runHook postInstall
   '';
 
   doInstallCheck = true;
   installCheckPhase = ''
     runHook preInstallCheck
-    test "$("$out/bin/slack" --version --skip-update --no-color)" = "Using slack v${version}"
+    test "$("$out/bin/slack-cli" --version --skip-update --no-color)" = "Using slack-cli v${version}"
     runHook postInstallCheck
   '';
 
@@ -58,7 +58,7 @@ stdenvNoCC.mkDerivation {
     homepage = "https://docs.slack.dev/tools/slack-cli/";
     changelog = "https://github.com/slackapi/slack-cli/releases/tag/v${version}";
     license = lib.licenses.asl20;
-    mainProgram = "slack";
+    mainProgram = "slack-cli";
     platforms = builtins.attrNames assets;
     sourceProvenance = [ lib.sourceTypes.binaryNativeCode ];
   };

@@ -36,12 +36,16 @@ This is a cross-platform Nix configuration supporting both macOS (Darwin) and Li
 # Build configuration for specific host
 make build-darwin host=hugh
 nix build .#darwinConfigurations.hugh.system
+make build-nixos host=boris
+nix build .#nixosConfigurations.boris.config.system.build.toplevel
 
 # Test configuration without applying
 nix eval .#darwinConfigurations.hugh.config.system.stateVersion
+nix eval .#nixosConfigurations.boris.config.system.stateVersion
 
-# Apply configuration 
+# Apply configuration
 make apply-darwin host=hugh
+make apply-nixos host=boris
 
 # Check flake validity
 nix flake check
@@ -52,7 +56,7 @@ nix flake update
 
 **Host Management**:
 - Available Darwin hosts: `hugh`, `markus`
-- Available Linux hosts: `venus` (server configuration)
+- Available Linux hosts: `boris` (NixOS Hyprland workstation)
 - Default host in Makefile: `hugh`
 
 ## Configuration Guidelines
