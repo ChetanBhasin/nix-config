@@ -11,6 +11,14 @@ let
   cfg = config.cb.helix;
   theme = import ../theme/gruvbox-night.nix;
   bazelLsp = pkgs.callPackage ../../packages/bazel-lsp.nix { };
+  rustGlancer = pkgs.callPackage ../../packages/rust-glancer.nix { };
+  rustServerPackage = if cfg.rustLsp == "rust-glancer" then rustGlancer else pkgs.rust-analyzer;
+
+  rustLanguage = {
+    name = "rust";
+    language-servers = [ cfg.rustLsp ];
+    auto-format = true;
+  };
 
   ruffHelixFormat = pkgs.writeShellApplication {
     name = "ruff-helix-format";
@@ -32,6 +40,15 @@ in
       description = "Set Helix as the default editor";
     };
 
+    rustLsp = lib.mkOption {
+      type = lib.types.enum [
+        "rust-analyzer"
+        "rust-glancer"
+      ];
+      default = "rust-glancer";
+      description = "Which Rust language server Helix should use for `.rs` files.";
+    };
+
     extraPackages = lib.mkOption {
       type = lib.types.listOf lib.types.package;
       default = [ ];
@@ -49,7 +66,7 @@ in
         with pkgs;
         [
           # Rust
-          rust-analyzer
+          rustServerPackage
           rustfmt
 
           # Nix
@@ -339,6 +356,11 @@ in
             };
           };
 
+          rust-glancer = {
+            command = "rust-glancer";
+            args = [ "lsp" ];
+          };
+
           typescript-language-server = {
             command = "typescript-language-server";
             args = [ "--stdio" ];
@@ -394,11 +416,7 @@ in
         };
 
         language = [
-          {
-            name = "rust";
-            language-servers = [ "rust-analyzer" ];
-            auto-format = true;
-          }
+          rustLanguage
           {
             name = "nix";
             language-servers = [ "nixd" ];

@@ -7,9 +7,20 @@
 
 let
   bazelLsp = pkgs.callPackage ../../packages/bazel-lsp.nix { };
+  cfg = config.cb.neovim;
+  rustGlancer = pkgs.callPackage ../../packages/rust-glancer.nix { };
 in
 with lib;
 {
+  options.cb.neovim.rustLsp = lib.mkOption {
+    type = lib.types.enum [
+      "rust-analyzer"
+      "rust-glancer"
+    ];
+    default = "rust-glancer";
+    description = "Which Rust language server Neovim (rustaceanvim) should use for `.rs` files.";
+  };
+
   config = {
     programs.neovim = {
       enable = true;
@@ -20,40 +31,43 @@ with lib;
       withNodeJs = true;
       withPython3 = true;
       withRuby = false;
-      extraPackages = with pkgs; [
-        lua
-        lua-language-server
-        terraform-lsp
-        awk-language-server
-        gawk # AWK formatter used by Conform
-        bazelLsp
-        bazelisk # Bazel backend used by bazel-lsp
-        buildifier
-        just-lsp
-        deadnix
-        statix
-        nixd
-        nixfmt # Nix formatter for nixd
-        taplo
-        yamllint
-        go
-        gopls # Go language server
-        just # Formatter/runtime used by just-lsp
-        ctags
-        stylua
-        ruff
-        ripgrep
-        gzip
-        nerd-fonts.jetbrains-mono
-        # Python debugging
-        python313Packages.debugpy
-        # Version control TUIs
-        lazygit
-        lazyjj
-        dockerfile-language-server
-        typescript-language-server
-        yaml-language-server
-      ];
+      extraPackages =
+        with pkgs;
+        [
+          lua
+          lua-language-server
+          terraform-lsp
+          awk-language-server
+          gawk # AWK formatter used by Conform
+          bazelLsp
+          bazelisk # Bazel backend used by bazel-lsp
+          buildifier
+          just-lsp
+          deadnix
+          statix
+          nixd
+          nixfmt # Nix formatter for nixd
+          taplo
+          yamllint
+          go
+          gopls # Go language server
+          just # Formatter/runtime used by just-lsp
+          ctags
+          stylua
+          ruff
+          ripgrep
+          gzip
+          nerd-fonts.jetbrains-mono
+          # Python debugging
+          python313Packages.debugpy
+          # Version control TUIs
+          lazygit
+          lazyjj
+          dockerfile-language-server
+          typescript-language-server
+          yaml-language-server
+        ]
+        ++ lib.optional (cfg.rustLsp == "rust-glancer") rustGlancer;
       plugins = with pkgs.vimPlugins; [
         plenary-nvim
         vim-cool
@@ -254,5 +268,10 @@ with lib;
 
     xdg.configFile."nvim".source = ./config;
     xdg.configFile."nvim".recursive = true;
+
+    # Nix-controlled selector read by lua/custom/plugins/rust.lua.
+    xdg.configFile."nvim/lua/custom/rust_lsp_choice.lua".text = ''
+      return "${cfg.rustLsp}"
+    '';
   };
 }
