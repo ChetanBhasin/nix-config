@@ -183,6 +183,7 @@
       nixosModules = { user, host }: [
         # Main `nixos` config
         (./. + "/hosts/${host}/configuration.nix")
+        determinate.nixosModules.default
         # `home-manager` module
         home-manager.nixosModules.home-manager
         (

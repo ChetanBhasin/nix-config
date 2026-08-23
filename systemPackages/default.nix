@@ -35,7 +35,6 @@
       argocd
       terraform
       opentofu
-      mise
       just
       doppler
       tea
