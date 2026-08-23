@@ -262,7 +262,7 @@ in
         "obsidian"
         "slack"
         "zen"
-        "logi-options+"
+        "openlogi"
         "google-chrome"
       ]
       ++ lib.optionals cfg.enableProf [ "thunderbird" ]
