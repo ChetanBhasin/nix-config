@@ -263,6 +263,7 @@ in
         "slack"
         "zen"
         "openlogi"
+        "vorssaint"
         "google-chrome"
       ]
       ++ lib.optionals cfg.enableProf [ "thunderbird" ]
