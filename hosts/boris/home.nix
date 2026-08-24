@@ -8,21 +8,7 @@
         polkitPolicyOwners = [ "chetan" ];
       })
       cryptomator
-      discord
-      firefox
-      google-chrome
-      lens
-      obsidian
-      proton-pass
       protonmail-bridge
-      protonmail-desktop
-      proton-vpn
-      signal-desktop
-      slack
-      spotify
-      telegram-desktop
-      vlc
-      yubioath-flutter
       zoom-us
     ];
     sessionVariables = {

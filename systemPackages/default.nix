@@ -20,8 +20,6 @@
     ++ lib.optionals pkgs.stdenv.hostPlatform.isLinux [ gcc ]
     ++ [
       openssl
-      iconv
-      libiconv
       libpq
 
       # Container and Infrastructure Tools
@@ -49,12 +47,9 @@
 
       # Database and API Tools
       amazon-ecr-credential-helper
-      rdkafka
       protobuf
       protox
       grpc
-      postgresql
-      redis
       httpie
 
       # Security and Network Tools
@@ -84,7 +79,6 @@
       yq
 
       # Image Processing
-      leptonica
       tesseract
       poppler
 

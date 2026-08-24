@@ -6,12 +6,6 @@
     enableProf = false;
     theme = "nord";
 
-    # Hugh-specific applications
-    extraBrews = [
-      "cloudflared"
-      "flyctl"
-    ];
-
     extraCasks = [
       "1password"
       "balenaetcher"
@@ -26,6 +20,8 @@
       "cryptomator"
     ];
   };
+
+  environment.systemPackages = with pkgs; [ cloudflared ];
 
   imports = [ ../../darwin ];
 }

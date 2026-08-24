@@ -35,6 +35,22 @@ in
   config = {
     fonts.fontconfig = lib.mkIf cfg.includeFonts { enable = true; };
 
+    programs.zen-browser = {
+      enable = true;
+      darwin.packageMode = "signed";
+      profiles.default = {
+        id = 0;
+        isDefault = true;
+        name = "Default";
+        path = "default";
+      };
+    }
+    // lib.optionalAttrs pkgs.stdenv.hostPlatform.isDarwin {
+      unwrappedPackage = pkgs.zen-browser;
+    };
+
+    home.file."${config.programs.zen-browser.configPath}/profiles.ini".force = true;
+
     home.packages =
       with pkgs;
       [
@@ -48,21 +64,25 @@ in
         slackOfficialCli
         slackTui
 
+        # Cross-platform desktop applications
+        firefox
+        google-chrome
+        lens
+        obsidian
+        slack
+
         # User shell and terminal utilities
         zsh-completions
         carapace
-        tmux
         jj-starship
 
         # Enhanced CLI Tools (user-specific)
         ripgrep # Better grep
-        bat # Better cat
         eza # Better ls
         fd # Better find
         dust # Better du
         duf # Better df
         procs # Better ps
-        fzf # Fuzzy finder
 
         # Development Utilities (user-specific)
         nixfmt
@@ -81,7 +101,6 @@ in
         poppler-utils
 
         # Compression and Archive Tools (user-specific)
-        zlib
         gzip
 
         # Version Control and Project Management (user-specific)
@@ -91,7 +110,6 @@ in
 
         # System Utilities (user-specific)
         cachix
-        direnv
         pv
         tldr
         watch
@@ -105,10 +123,7 @@ in
         gawk
         gettext
         gnupg
-        luajit
-        starship
         wasm-pack
-        readline
 
         # File format utilities (user-specific)
         sqlx-cli
@@ -126,15 +141,30 @@ in
         ngrok
         flyctl
         nodenv
+        discord
+        proton-pass
+        proton-vpn
+        protonmail-desktop
+        signal-desktop
+        spotify
+        telegram-desktop
+      ]
+      ++ lib.optionals (cfg.enableExtras && pkgs.stdenv.hostPlatform.isLinux) [
+        figma-linux
+        ticktick
+        yubioath-flutter
       ]
       ++ lib.optionals pkgs.stdenv.hostPlatform.isDarwin [
         # Darwin-specific packages that need special handling
         pam-reattach
         libiconv
+        vlc-bin
       ]
       ++ lib.optionals pkgs.stdenv.hostPlatform.isLinux [
         # Linux-specific packages
         systemd
+        vlc
+        openlogi
       ];
 
     home.stateVersion = "23.05";

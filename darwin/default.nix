@@ -57,6 +57,8 @@ in
       enableSSHSupport = true;
     };
 
+    services.tailscale.enable = true;
+
     security.pam.services.sudo_local.touchIdAuth = cfg.enableSudoTouch;
 
     system.defaults = {
@@ -229,6 +231,17 @@ in
       };
     };
 
+    environment.systemPackages =
+      with pkgs;
+      [
+        podman
+        docker-credential-helpers
+      ]
+      ++ lib.optionals cfg.enableProf [
+        krb5
+        rocksdb
+      ];
+
     homebrew = {
       enable = true;
       user = "chetan";
@@ -238,51 +251,24 @@ in
         extraFlags = [ "--force-cleanup" ];
       };
 
-      # Base brews (all hosts)
-      brews = [
-        "docker-credential-helper"
-        "podman"
-      ]
-      ++ lib.optionals cfg.enableProf [
-        "krb5"
-        "rocksdb"
-      ]
-      ++ lib.optionals cfg.enableExtras [ "nodenv" ]
-      ++ cfg.extraBrews;
+      brews = cfg.extraBrews;
 
       # Base casks (all hosts)
       casks = [
-        "tailscale-app"
-        "codex"
         "postico"
-        "lens"
-        "firefox"
         "hammerspoon"
-        "vlc"
-        "obsidian"
-        "slack"
-        "zen"
         "openlogi"
         "vorssaint"
-        "google-chrome"
       ]
       ++ lib.optionals cfg.enableProf [ "thunderbird" ]
       ++ lib.optionals cfg.enableExtras [
         "ticktick"
         "yubico-authenticator"
-        "telegram"
-        "signal"
-        "protonvpn"
         "proton-drive"
-        "proton-pass"
         "figma"
-        "discord"
-        "spotify"
         "caffeine"
         "monitorcontrol"
-        "proton-mail"
         "macfuse"
-        "oracle-jdk"
       ]
       ++ cfg.extraCasks;
     };

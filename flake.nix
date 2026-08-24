@@ -31,6 +31,17 @@
       url = "github:dmmulroy/jj-starship";
     };
 
+    mac-app-util = {
+      url = "github:hraban/mac-app-util";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    zen-browser = {
+      url = "github:0xc000022070/zen-browser-flake";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.home-manager.follows = "home-manager";
+    };
+
   };
 
   outputs =
@@ -56,9 +67,25 @@
             {
               jj-starship = packages.jj-starship;
               jj-starship-no-git = packages.jj-starship-no-git;
+              zen-browser =
+                let
+                  package = inputs.zen-browser.packages.${system}.default;
+                in
+                package.overrideAttrs (old: {
+                  postInstall =
+                    (old.postInstall or "")
+                    + final.lib.optionalString final.stdenv.hostPlatform.isDarwin ''
+                      substituteInPlace "$out/bin/zen-beta" \
+                        --replace-fail 'exec /usr/bin/open -na ' 'exec /usr/bin/open '
+                    '';
+                });
             }
           )
           (_final: prev: {
+            tmux = prev.tmux.overrideAttrs (old: {
+              configureFlags = (old.configureFlags or [ ]) ++ [ "--disable-jemalloc" ];
+            });
+
             lazyjj = prev.lazyjj.overrideAttrs (old: {
               postInstall = (old.postInstall or "") + ''
                 mv "$out/bin/lazyjj" "$out/bin/lazyjj-unwrapped"
@@ -176,6 +203,10 @@
           users.users.${user}.home = "/Users/${user}";
           home-manager = {
             useGlobalPkgs = true;
+            sharedModules = [
+              inputs.mac-app-util.homeManagerModules.default
+              inputs.zen-browser.homeModules.beta
+            ];
             users.${user} = import (./. + "/hosts/${host}/home.nix");
           };
         }
@@ -201,6 +232,7 @@
             users.groups.${user} = { };
             home-manager = {
               useGlobalPkgs = true;
+              sharedModules = [ inputs.zen-browser.homeModules.beta ];
               useUserPackages = true;
               users.${user} = import (./. + "/hosts/${host}/home.nix");
             };

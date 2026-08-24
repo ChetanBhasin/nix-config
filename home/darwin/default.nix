@@ -11,5 +11,10 @@ with lib;
       source = ./hammerspoon;
       recursive = true;
     };
+
+    targets.darwin = {
+      copyApps.enable = false;
+      linkApps.enable = true;
+    };
   };
 }
