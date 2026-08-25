@@ -21,7 +21,6 @@ in
 
   imports = [
     ./defaultPrograms
-    ./vscode
     ./zsh
     ./neovim
     ./helix
