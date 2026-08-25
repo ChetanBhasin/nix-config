@@ -1,6 +1,6 @@
 # Exportable Home Manager Modules
 
-This repository exports standalone Home Manager modules that can be used in your own Nix flake configurations. These modules provide battle-tested configurations for editors, terminal tools, multiplexers, and Oh My Pi.
+This repository exports standalone Home Manager modules that can be used in your own Nix flake configurations. These modules provide battle-tested configurations for editors, terminal tools, multiplexers, and the regular Pi coding agent.
 
 ## Quick Start
 
@@ -24,12 +24,12 @@ Add this repository as a flake input and import the modules you need:
         cb-config.homeManagerModules.neovim
         cb-config.homeManagerModules.terminal
         cb-config.homeManagerModules.tmux
-        cb-config.homeManagerModules.omp
+        cb-config.homeManagerModules.pi
         {
           cb.neovim.enable = true;
           cb.terminal.enable = true;
           cb.tmux.enable = true;
-          cb.omp.enable = true;
+          cb.pi.enable = true;
         }
       ];
     };
@@ -216,46 +216,39 @@ Modern tmux configuration with session management, FZF integration, and Gruvbox 
 
 ---
 
-### `homeManagerModules.omp`
+### `homeManagerModules.pi`
 
-Oh My Pi coding agent, packaged from checksummed upstream release binaries and configured for the rest of this environment.
+Regular Pi Coding Agent in package-only mode. Nix installs the locked Pi 0.84.2 binary, its wrapper toolchain, and `pi-config`; Pi and the user retain ownership of all live configuration and state.
 
 #### Options
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `cb.omp.enable` | boolean | `false` | Enable Oh My Pi and its managed configuration |
-| `cb.omp.package` | package | pinned OMP release | Override the installed OMP package |
-| `cb.omp.enableLspTooling` | boolean | `true` | Install the curated language-server toolchain |
-| `cb.omp.settings` | YAML-compatible attributes | `{}` | Recursively override the opinionated OMP settings |
-| `cb.omp.extraPackages` | list of packages | `[]` | Add tools to OMP's shell environment |
+| `cb.pi.enable` | boolean | `false` | Enable the package-only Pi configuration and install `pi-config` |
+| `cb.pi.package` | package | `pkgs.pi-coding-agent` (0.84.2 in the lock) | Override the installed Pi package |
+| `cb.pi.enableLspTooling` | boolean | `true` | Expose the curated language-server toolchain to Pi |
+| `cb.pi.extraPackages` | list of packages | `[]` | Add tools to Pi and its shell environment |
 
 #### Included Features
 
-- Gruvbox Night UI and compact, non-transparent status line
-- Jujutsu-first working conventions without replacing repository `AGENTS.md` files
-- Built-in OMP LSP discovery plus explicit Bazel, Just, and TOML servers
-- Nix-managed updates, with OMP's own update notification disabled
-- Writable runtime settings: `/settings` changes last until the next Home Manager activation restores the declared config
+- Regular Pi at its upstream default `~/.pi/agent` location
+- Node.js and Git in Pi's wrapper environment
+- Optional curated tooling for Rust, Nix, Python, Go, Lua, TypeScript, web formats, shell, infrastructure, Markdown, TOML, Just, Bazel, and Starlark
+- Explicit `pi-config capture` and `pi-config apply` synchronization for an optional, writable portable snapshot
+- A read-only activation preflight; Home Manager does not create, link, copy, delete, or redirect anything under a live `.pi` path
 
 #### Example
 
 ```nix
 {
-  cb.omp = {
+  cb.pi = {
     enable = true;
-
-    settings = {
-      startup.quiet = false;
-      statusLine.preset = "full";
-    };
-
     extraPackages = with pkgs; [ kubectl ];
   };
 }
 ```
 
-After the first activation, run `omp setup` to connect a provider and choose a default model. Inside OMP, `/hotkeys` shows the active bindings, `/model` changes models, and `/settings` exposes runtime preferences.
+All Pi settings, credentials, sessions, packages, and project-local resources remain ordinary writable application state. Run `pi-config doctor` after activation, then configure Pi normally. See the [Pi Configuration Guide](pi.md) before the first capture or apply and for the legacy migration steps.
 
 ---
 
@@ -270,7 +263,7 @@ Convenience module that imports all exported Home Manager modules.
   cb.neovim.enable = true;
   cb.terminal.enable = true;
   cb.tmux.enable = true;
-  cb.omp.enable = true;
+  cb.pi.enable = true;
 }
 ```
 
@@ -337,12 +330,12 @@ The terminal module uses starship. To customize further, you can override after 
               cb-config.homeManagerModules.neovim
               cb-config.homeManagerModules.terminal
               cb-config.homeManagerModules.tmux
-              cb-config.homeManagerModules.omp
+              cb-config.homeManagerModules.pi
             ];
             cb.neovim.enable = true;
             cb.terminal.enable = true;
             cb.tmux.enable = true;
-            cb.omp.enable = true;
+            cb.pi.enable = true;
           };
         }
       ];

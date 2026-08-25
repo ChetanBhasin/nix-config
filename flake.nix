@@ -245,6 +245,43 @@
       # Usage: inputs.nix-config.homeManagerModules.neovim
       homeManagerModules = import ./modules/homeManager;
 
+      checks =
+        nixpkgs.lib.genAttrs
+          [
+            "aarch64-darwin"
+            "aarch64-linux"
+            "x86_64-linux"
+          ]
+          (
+            system:
+            let
+              pkgs = import nixpkgs {
+                inherit system;
+                config.allowUnfree = true;
+              };
+              piModuleTest = import ./home/pi/tests/pi-module.nix {
+                inherit home-manager pkgs;
+              };
+            in
+            {
+              pi-config-unit =
+                pkgs.runCommand "pi-config-unit-tests"
+                  {
+                    nativeBuildInputs = [ pkgs.python3 ];
+                  }
+                  ''
+                    export PYTHONDONTWRITEBYTECODE=1
+                    python -m unittest discover \
+                      -s ${./home/pi}/tests \
+                      -p 'test_*.py' \
+                      -v
+                    touch "$out"
+                  '';
+
+              pi-home-manager-module = piModuleTest.check;
+            }
+          );
+
       darwinConfigurations = {
         hugh = darwin.lib.darwinSystem {
           system = "aarch64-darwin";

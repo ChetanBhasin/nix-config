@@ -27,7 +27,7 @@ in
     ./helix
     ./tmux
     ./zellij
-    ./omp
+    ./pi
     ./darwin
     ./hyprland
   ];
