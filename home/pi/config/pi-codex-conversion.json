@@ -1,0 +1,62 @@
+{
+  "compaction": {
+    "responsesCompaction": false,
+    "v2UserMessageRetention": 64
+  },
+  "executionMode": "normal",
+  "notebook": {
+    "maxHeapMiB": 4096
+  },
+  "openai": {
+    "cacheDiagnostics": "off",
+    "fast": false,
+    "forceCachedWebSockets": true,
+    "harnessIdentifierHeader": false,
+    "lunaCacheKeepaliveMinutes": 0,
+    "proxyResponsesLite": false,
+    "verbosity": "low",
+    "webSearchModel": "gpt-5.6-luna"
+  },
+  "prompt": {
+    "heavySystemPromptOverwrite": false
+  },
+  "scope": {
+    "additionalProviders": [],
+    "allProviders": "extras"
+  },
+  "tools": {
+    "applyPatchOnly": false,
+    "customRustBinariesDir": "",
+    "imageGeneration": false,
+    "imageGenerationOnly": true,
+    "viewImageFallback": true,
+    "viewImageOnly": true,
+    "webRun": false,
+    "webRunOnly": true
+  },
+  "ui": {
+    "backgroundShellCloseShortcut": "alt+r",
+    "backgroundShellNextShortcut": "alt+e",
+    "backgroundShellPrevShortcut": "alt+q",
+    "backgroundShellToggleShortcut": "alt+w",
+    "backgroundShellWidget": true,
+    "codeModeDetails": false,
+    "compactTools": true,
+    "statusLine": true,
+    "toolRenaming": true
+  },
+  "voice": {
+    "audioSetupCompleted": false,
+    "autoResumeRealtime": false,
+    "contextReasoning": "high",
+    "delegationAcknowledgements": true,
+    "dictationShortcut": "ctrl+alt+d",
+    "dictationShortcutMode": "push",
+    "forwardReasoningSummaries": true,
+    "muteShortcut": "ctrl+alt+m",
+    "realtimeShortcut": "ctrl+alt+space",
+    "serverShortcut": "ctrl+alt+g",
+    "v3Voice": "cove"
+  },
+  "voiceFeaturesOnly": true
+}

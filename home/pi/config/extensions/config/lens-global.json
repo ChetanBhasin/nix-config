@@ -1,0 +1,66 @@
+{
+  "actionableWarnings": {
+    "autoFix": {
+      "enabled": false,
+      "maxFixes": 0
+    },
+    "deltaOnly": true,
+    "enabled": false,
+    "includeLspCodeActions": false
+  },
+  "autofix": {
+    "enabled": false
+  },
+  "contextInjection": {
+    "enabled": false
+  },
+  "delta": {
+    "enabled": true
+  },
+  "format": {
+    "enabled": false,
+    "mode": "deferred"
+  },
+  "guard": {
+    "enabled": false
+  },
+  "ignore": [
+    ".devenv/**",
+    ".direnv/**",
+    ".jj/**",
+    "node_modules/**",
+    "result"
+  ],
+  "lens": {
+    "enabled": true
+  },
+  "lsp": {
+    "enabled": true
+  },
+  "opengrep": {
+    "enabled": false
+  },
+  "readGuard": {
+    "enabled": false
+  },
+  "tests": {
+    "enabled": false
+  },
+  "tools": {
+    "lazy": true
+  },
+  "turnEnd": {
+    "madge": {
+      "enabled": false
+    }
+  },
+  "turnSummary": {
+    "enabled": false
+  },
+  "ui": {
+    "compactToolLine": true
+  },
+  "widget": {
+    "visible": true
+  }
+}

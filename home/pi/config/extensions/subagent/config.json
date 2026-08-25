@@ -1,0 +1,51 @@
+{
+  "artifactDir": "session",
+  "asyncByDefault": false,
+  "asyncWidget": true,
+  "completionBatch": {
+    "debounceMs": 150,
+    "enabled": true,
+    "maxWaitMs": 1000,
+    "stragglerDebounceMs": 75,
+    "stragglerMaxWaitMs": 400,
+    "stragglerWindowMs": 2000
+  },
+  "defaultSubagentContext": "fresh",
+  "fleetView": true,
+  "fleetViewPlacement": "belowEditor",
+  "forceTopLevelAsync": false,
+  "globalConcurrencyLimit": 2,
+  "inlineToolDisplay": "summary",
+  "intercomBridge": {
+    "mode": "always",
+    "resultDelivery": false
+  },
+  "mainWindowRenderer": {
+    "compactResultMaxLines": 4,
+    "horizontalSpacing": 0
+  },
+  "maxActiveAsyncRunsPerSession": 2,
+  "maxSubagentDepth": 1,
+  "maxSubagentSpawnsPerRun": 8,
+  "maxSubagentSpawnsPerSession": 24,
+  "missions": {
+    "enabled": false,
+    "globalIndex": false,
+    "retainTerminal": 50
+  },
+  "orcaProgressTabs": {
+    "enabled": false
+  },
+  "parallel": {
+    "concurrency": 2,
+    "maxTasks": 4
+  },
+  "resultScanLogging": "activity",
+  "scheduledRuns": {
+    "enabled": false,
+    "maxPending": 20
+  },
+  "timeoutMs": 1800000,
+  "toolDescriptionMode": "compact",
+  "toolTimeoutMs": 600000
+}

@@ -2,5 +2,8 @@
 {
   imports = [ ../../modules/homeManager/pi.nix ];
 
-  cb.pi.enable = true;
+  cb.pi = {
+    enable = true;
+    enableWeb = true;
+  };
 }

@@ -1,0 +1,87 @@
+{
+  "$schema": "https://raw.githubusercontent.com/cortexkit/magic-context/master/assets/magic-context.schema.json",
+  "enabled": true,
+  "allow_home_project": false,
+  "auto_update": false,
+  "fail_closed_blocking": true,
+  "keep_subagents": false,
+  "prompt_surface": {
+    "default": "light"
+  },
+  "compaction": {
+    "enabled": true
+  },
+  "cache_ttl": "5m",
+  "execute_threshold_percentage": 65,
+  "history_budget_percentage": 0.15,
+  "protected_tags": 20,
+  "clear_reasoning_age": 50,
+  "commit_cluster_trigger": {
+    "enabled": false,
+    "min_clusters": 3
+  },
+  "system_prompt_injection": {
+    "enabled": true,
+    "skip_signatures": [
+      "<!-- magic-context: skip -->"
+    ]
+  },
+  "todowrite": {
+    "enabled": false,
+    "overlay": false
+  },
+  "historian": {
+    "pi": {
+      "model": {
+        "model": "openai-codex/gpt-5.6-terra",
+        "thinking_level": "medium"
+      },
+      "fallback_models": [
+        {
+          "model": "openai-codex/gpt-5.6-sol",
+          "thinking_level": "high"
+        }
+      ]
+    },
+    "two_pass": false
+  },
+  "dreamer": {
+    "disable": true,
+    "inject_docs": false
+  },
+  "embedding": {
+    "provider": "local",
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "local_dtype": "q8"
+  },
+  "memory": {
+    "enabled": true,
+    "injection_budget_tokens": 1000,
+    "auto_promote": true,
+    "retrieval_count_promotion_threshold": 3,
+    "auto_search": {
+      "enabled": true,
+      "score_threshold": 0.68,
+      "min_prompt_chars": 30
+    },
+    "git_commit_indexing": {
+      "enabled": false,
+      "since_days": 365,
+      "max_commits": 2000
+    }
+  },
+  "smart_drops": false,
+  "caveman_text_compression": {
+    "enabled": false,
+    "min_chars": 500
+  },
+  "temporal_awareness": true,
+  "storage": {
+    "enforce_private_permissions": true
+  },
+  "pi": {
+    "subagent_extensions": [
+      "npm/node_modules/@narumitw/pi-accounts/dist/index.ts"
+    ]
+  }
+}

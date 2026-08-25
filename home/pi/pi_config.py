@@ -28,6 +28,7 @@ FILE_NAMES = (
     "settings.json",
     "keybindings.json",
     "models.json",
+    "pi-codex-conversion.json",
     "AGENTS.md",
     "SYSTEM.md",
     "APPEND_SYSTEM.md",
@@ -400,7 +401,11 @@ def read_entry(
             if not value:
                 return None
             data = _canonical_json(value)
-    elif name in {"keybindings.json", "models.json"}:
+    elif name in {
+        "keybindings.json",
+        "models.json",
+        "pi-codex-conversion.json",
+    }:
         value = _read_json_object(data, path)
         if name == "models.json":
             validate_models(value)

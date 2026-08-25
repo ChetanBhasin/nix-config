@@ -1,0 +1,139 @@
+diff --git a/src/nativeServices/serviceDoctor.ts b/src/nativeServices/serviceDoctor.ts
+index 155ffef..890465f 100644
+--- a/src/nativeServices/serviceDoctor.ts
++++ b/src/nativeServices/serviceDoctor.ts
+@@ -537,18 +537,19 @@ function parseLaunchdDefinition(
+     };
+   }
+ 
+-  const arguments_ = plistStringArray(plist.get("ProgramArguments"));
+-  if (arguments_?.length !== 4 || arguments_[0] !== "/usr/bin/env" || arguments_[2] !== "-lc") {
+-    return { ok: false, message: `Installed ${definition.id} LaunchAgent has unrecognized ProgramArguments.` };
+-  }
+-  const shell = installedShell(arguments_[1] ?? "");
+-  if (!shell.ok) return shell;
+-
+   const rawEnvironment = plist.get("EnvironmentVariables");
+   const environment = rawEnvironment === undefined ? {} : plistStringDictionary(rawEnvironment);
+   if (environment === undefined) {
+     return { ok: false, message: `Installed ${definition.id} LaunchAgent has a malformed environment dictionary.` };
++  }
++
++  const arguments_ = plistStringArray(plist.get("ProgramArguments"));
++  const program = parseLaunchdProgramArguments(arguments_, environment);
++  if (program === undefined) {
++    return { ok: false, message: `Installed ${definition.id} LaunchAgent has unrecognized ProgramArguments.` };
+   }
++  const shell = installedShell(program.shellExecutable);
++  if (!shell.ok) return shell;
+ 
+   const rawWorkingDirectory = plist.get("WorkingDirectory");
+   const workingDirectory = rawWorkingDirectory === undefined ? null : plistStringValue(rawWorkingDirectory);
+@@ -563,11 +564,36 @@ function parseLaunchdDefinition(
+       shell: shell.value,
+       environment,
+       workingDirectory: workingDirectory ?? null,
+-      shellCommand: arguments_[3] ?? "",
++      shellCommand: program.shellCommand,
+     },
+   };
+ }
+ 
++interface ParsedLaunchdProgram {
++  shellExecutable: string;
++  shellCommand: string;
++}
++
++function parseLaunchdProgramArguments(
++  arguments_: readonly string[] | undefined,
++  environment: Readonly<Record<string, string>>,
++): ParsedLaunchdProgram | undefined {
++  if (arguments_?.length === 4 && arguments_[0] === "/usr/bin/env" && arguments_[2] === "-lc") {
++    return { shellExecutable: arguments_[1] ?? "", shellCommand: arguments_[3] ?? "" };
++  }
++
++  const homeManagerPrefix = "/bin/wait4path /nix/store && exec ";
++  const homeManagerCommand = arguments_?.length === 3
++    && arguments_[0] === "/bin/sh"
++    && arguments_[1] === "-c"
++    && arguments_[2]?.startsWith(homeManagerPrefix) === true
++    ? arguments_[2].slice(homeManagerPrefix.length)
++    : undefined;
++  const homeManagerShell = ownEnvironmentValue(environment, "SHELL");
++  if (homeManagerCommand === undefined || homeManagerCommand === "" || homeManagerShell === undefined) return undefined;
++  return { shellExecutable: homeManagerShell, shellCommand: homeManagerCommand };
++}
++
+ function installedShell(executable: string): InstalledNativeServiceInspection<NativeServiceShell> {
+   const name = posixPath.basename(executable).replace(/^-/, "");
+   if (name !== "bash" && name !== "zsh" && name !== "fish") {
+@@ -728,6 +754,7 @@ interface PlistXmlCursor {
+ 
+ const plistXmlDeclaration = '<?xml version="1.0" encoding="UTF-8"?>';
+ const plistDoctype = '<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">';
++const homeManagerPlistDoctype = '<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">';
+ const maximumPlistDepth = 32;
+ 
+ /** Parse the complete XML plist subset emitted by PI WEB, rejecting fragments and duplicate dictionary keys. */
+@@ -741,7 +768,7 @@ function parseLaunchdPlistDocument(contents: string): ReadonlyMap<string, Parsed
+   skipPlistWhitespace(cursor);
+   if (consumePlistToken(cursor, plistXmlDeclaration)) skipPlistWhitespace(cursor);
+   else if (cursor.contents.startsWith("<?xml", cursor.offset)) return undefined;
+-  if (consumePlistToken(cursor, plistDoctype)) skipPlistWhitespace(cursor);
++  if (consumePlistToken(cursor, plistDoctype) || consumePlistToken(cursor, homeManagerPlistDoctype)) skipPlistWhitespace(cursor);
+   else if (cursor.contents.startsWith("<!DOCTYPE", cursor.offset)) return undefined;
+   if (!consumePlistToken(cursor, '<plist version="1.0">')) return undefined;
+ 
+diff --git a/src/nativeServices/serviceDoctor.test.ts b/src/nativeServices/serviceDoctor.test.ts
+index 910709f..3048872 100644
+--- a/src/nativeServices/serviceDoctor.test.ts
++++ b/src/nativeServices/serviceDoctor.test.ts
+@@ -141,6 +141,48 @@ describe("installed native-service mode and definition inspection", () => {
+     expect(selectManagedNativeServiceConfig(plan.backend, renderedDefinitions(plan), "")).toEqual({
+       ok: true,
+       value: { source: "installed", configPath: "/home/user/config & dev.json" },
++    });
++  });
++
++  it("inspects a Home Manager wrapped production LaunchAgent", () => {
++    const homeManagerDefinition = (id: "sessiond" | "web", command: string): InstalledNativeServiceDefinition => ({
++      id,
++      contents: `<?xml version="1.0" encoding="UTF-8"?>
++<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
++<plist version="1.0">
++<dict>
++  <key>Label</key>
++  <string>com.pi-web.${id}</string>
++  <key>ProgramArguments</key>
++  <array>
++    <string>/bin/sh</string>
++    <string>-c</string>
++    <string>/bin/wait4path /nix/store &amp;&amp; exec ${command}</string>
++  </array>
++  <key>EnvironmentVariables</key>
++  <dict>
++    <key>PI_WEB_CONFIG</key>
++    <string>/home/user/config.json</string>
++    <key>SHELL</key>
++    <string>/bin/zsh</string>
++  </dict>
++</dict>
++</plist>`,
++    });
++    const definitions = [
++      homeManagerDefinition("sessiond", "/nix/store/sessiond/bin/pi-web-sessiond"),
++      homeManagerDefinition("web", "/nix/store/web/bin/pi-web-server"),
++    ];
++
++    expect(inspectInstalledProductionServiceContext(
++      { kind: "launchd", label: "LaunchAgents" },
++      definitions,
++    )).toEqual({
++      ok: true,
++      value: {
++        shell,
++        environment: { PI_WEB_CONFIG: "/home/user/config.json", SHELL: "/bin/zsh" },
++      },
+     });
+   });
+ 

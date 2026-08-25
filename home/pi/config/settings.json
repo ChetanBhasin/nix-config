@@ -1,0 +1,288 @@
+{
+  "defaultModel": "gpt-5.6-sol",
+  "defaultProjectTrust": "ask",
+  "defaultProvider": "openai-codex",
+  "defaultThinkingLevel": "high",
+  "doubleEscapeAction": "tree",
+  "enableInstallTelemetry": false,
+  "enabledModels": [
+    "openai-codex/gpt-5.6-luna:low",
+    "openai-codex/gpt-5.6-terra:high",
+    "openai-codex/gpt-5.6-sol:max"
+  ],
+  "fullscreenExitOutput": "transcript",
+  "fullscreenScrollbar": "auto",
+  "markdown": {
+    "mermaid": "streaming"
+  },
+  "packages": [
+    "npm:@narumitw/pi-accounts@0.49.10",
+    "npm:@howaboua/pi-codex-conversion@3.0.23",
+    "npm:@narumitw/pi-usage@0.52.2",
+    "npm:@juicesharp/rpiv-ask-user-question@2.7.1",
+    "npm:@juicesharp/rpiv-todo@2.7.1",
+    "npm:@narumitw/pi-btw@0.55.3",
+    "npm:pi-lens@4.1.2",
+    "npm:pi-hashline-edit-pro@2.7.0",
+    "npm:pi-agent-browser-native@0.5.0",
+    "npm:pi-subagents@0.56.0",
+    "npm:@cortexkit/pi-magic-context@0.40.0",
+    "npm:@earendil-works/pi-tui@0.84.3"
+  ],
+  "subagents": {
+    "agentOverrides": {
+      "delegate": {
+        "acceptanceRole": "read-only",
+        "defaultContext": "fresh",
+        "description": "Small fresh-context delegate; read-only unless explicitly rerouted to worker",
+        "extensions": [
+          "~/.pi/agent/npm/node_modules/@narumitw/pi-accounts/dist/index.ts",
+          "~/.pi/agent/npm/node_modules/pi-lens/dist/index.js"
+        ],
+        "inheritProjectContext": true,
+        "inheritSkills": false,
+        "model": "inherit",
+        "output": "delegate.md",
+        "outputMode": "file-only",
+        "systemPromptMode": "append",
+        "thinking": "medium",
+        "tools": [
+          "read",
+          "grep",
+          "find",
+          "ls",
+          "lens_diagnostics",
+          "lsp_diagnostics",
+          "project_report",
+          "module_report",
+          "read_symbol",
+          "read_enclosing",
+          "symbol_search",
+          "pi_lens_activate_tools",
+          "ast_grep_search",
+          "ast_grep_outline",
+          "ast_grep_dump",
+          "lsp_navigation"
+        ]
+      },
+      "oracle": {
+        "acceptanceRole": "read-only",
+        "defaultContext": "fresh",
+        "description": "Deep decision challenger; use context=fork only when conversation history is evidence",
+        "extensions": [
+          "~/.pi/agent/npm/node_modules/@narumitw/pi-accounts/dist/index.ts",
+          "~/.pi/agent/npm/node_modules/pi-lens/dist/index.js"
+        ],
+        "inheritProjectContext": true,
+        "inheritSkills": false,
+        "model": "openai-codex/gpt-5.6-sol",
+        "output": "oracle.md",
+        "outputMode": "file-only",
+        "systemPromptMode": "append",
+        "thinking": "max",
+        "tools": [
+          "read",
+          "grep",
+          "find",
+          "ls",
+          "lens_diagnostics",
+          "lsp_diagnostics",
+          "project_report",
+          "module_report",
+          "read_symbol",
+          "read_enclosing",
+          "symbol_search",
+          "pi_lens_activate_tools",
+          "ast_grep_search",
+          "ast_grep_outline",
+          "ast_grep_dump",
+          "lsp_navigation"
+        ]
+      },
+      "researcher": {
+        "acceptanceRole": "read-only",
+        "defaultContext": "fresh",
+        "description": "Fresh web researcher using Codex discovery and a real browser for verification",
+        "extensions": [
+          "~/.pi/agent/npm/node_modules/@narumitw/pi-accounts/dist/index.ts",
+          "~/.pi/agent/npm/node_modules/@howaboua/pi-codex-conversion/dist/index.js",
+          "~/.pi/agent/npm/node_modules/pi-agent-browser-native/dist/extensions/agent-browser/index.js"
+        ],
+        "inheritProjectContext": true,
+        "inheritSkills": false,
+        "model": "openai-codex/gpt-5.6-terra",
+        "output": "research.md",
+        "outputMode": "file-only",
+        "systemPromptMode": "append",
+        "thinking": "medium",
+        "tools": [
+          "read",
+          "web_run",
+          "view_image",
+          "agent_browser"
+        ]
+      },
+      "reviewer": {
+        "acceptanceRole": "read-only",
+        "defaultContext": "fresh",
+        "description": "Independent fresh-context reviewer with no mutation surface",
+        "extensions": [
+          "~/.pi/agent/npm/node_modules/@narumitw/pi-accounts/dist/index.ts",
+          "~/.pi/agent/npm/node_modules/pi-lens/dist/index.js"
+        ],
+        "inheritProjectContext": true,
+        "inheritSkills": false,
+        "model": "openai-codex/gpt-5.6-sol",
+        "output": "review.md",
+        "outputMode": "file-only",
+        "systemPromptMode": "append",
+        "thinking": "high",
+        "tools": [
+          "read",
+          "grep",
+          "find",
+          "ls",
+          "lens_diagnostics",
+          "lsp_diagnostics",
+          "project_report",
+          "module_report",
+          "read_symbol",
+          "read_enclosing",
+          "symbol_search",
+          "pi_lens_activate_tools",
+          "ast_grep_search",
+          "ast_grep_outline",
+          "ast_grep_dump",
+          "lsp_navigation"
+        ]
+      },
+      "scout": {
+        "acceptanceRole": "read-only",
+        "defaultContext": "fresh",
+        "description": "Fast fresh-context codebase reconnaissance through the Lens discovery funnel",
+        "extensions": [
+          "~/.pi/agent/npm/node_modules/@narumitw/pi-accounts/dist/index.ts",
+          "~/.pi/agent/npm/node_modules/pi-lens/dist/index.js"
+        ],
+        "inheritProjectContext": true,
+        "inheritSkills": false,
+        "model": "openai-codex/gpt-5.6-luna",
+        "output": "context.md",
+        "outputMode": "file-only",
+        "systemPromptMode": "append",
+        "thinking": "low",
+        "tools": [
+          "read",
+          "grep",
+          "find",
+          "ls",
+          "lens_diagnostics",
+          "lsp_diagnostics",
+          "project_report",
+          "module_report",
+          "read_symbol",
+          "read_enclosing",
+          "symbol_search",
+          "pi_lens_activate_tools",
+          "ast_grep_search",
+          "ast_grep_outline",
+          "ast_grep_dump",
+          "lsp_navigation"
+        ]
+      },
+      "worker": {
+        "acceptanceRole": "writer",
+        "defaultContext": "fresh",
+        "description": "The only writing role; Hashline mutations followed by explicit Lens diagnostics",
+        "extensions": [
+          "~/.pi/agent/npm/node_modules/@narumitw/pi-accounts/dist/index.ts",
+          "~/.pi/agent/npm/node_modules/pi-lens/dist/index.js",
+          "~/.pi/agent/npm/node_modules/pi-hashline-edit-pro/index.ts"
+        ],
+        "inheritProjectContext": true,
+        "inheritSkills": false,
+        "model": "openai-codex/gpt-5.6-terra",
+        "output": "implementation.md",
+        "outputMode": "file-only",
+        "systemPromptMode": "append",
+        "thinking": "high",
+        "tools": [
+          "read",
+          "grep",
+          "find",
+          "ls",
+          "bash",
+          "write",
+          "replace",
+          "insert",
+          "undo_last_change",
+          "lens_diagnostics",
+          "lsp_diagnostics",
+          "project_report",
+          "module_report",
+          "read_symbol",
+          "read_enclosing",
+          "symbol_search",
+          "pi_lens_activate_tools",
+          "ast_grep_search",
+          "ast_grep_outline",
+          "ast_grep_dump",
+          "lsp_navigation"
+        ]
+      }
+    },
+    "defaultExtensions": [
+      "~/.pi/agent/npm/node_modules/@narumitw/pi-accounts/dist/index.ts",
+      "~/.pi/agent/npm/node_modules/pi-lens/dist/index.js"
+    ],
+    "defaultModel": "inherit",
+    "defaultProvider": "openai-codex",
+    "defaultThinking": "medium",
+    "modelScope": {
+      "agents": {
+        "delegate": {
+          "allow": [
+            "inherit"
+          ]
+        },
+        "oracle": {
+          "allow": [
+            "openai-codex/gpt-5.6-sol"
+          ]
+        },
+        "researcher": {
+          "allow": [
+            "openai-codex/gpt-5.6-terra"
+          ]
+        },
+        "reviewer": {
+          "allow": [
+            "openai-codex/gpt-5.6-sol"
+          ]
+        },
+        "scout": {
+          "allow": [
+            "openai-codex/gpt-5.6-luna"
+          ]
+        },
+        "worker": {
+          "allow": [
+            "openai-codex/gpt-5.6-terra"
+          ]
+        }
+      },
+      "allow": [
+        "inherit",
+        "openai-codex/gpt-5.6-*"
+      ],
+      "enforce": true,
+      "strict": true
+    }
+  },
+  "terminal": {
+    "showTerminalProgress": true
+  },
+  "theme": "gruvbox-dark",
+  "treeFilterMode": "all",
+  "tuiMode": "fullscreen"
+}

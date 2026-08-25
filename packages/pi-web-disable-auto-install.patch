@@ -1,0 +1,17 @@
+diff --git a/src/server/knownAutoInstallPiPackages.ts b/src/server/knownAutoInstallPiPackages.ts
+index d21f2c9..4825f20 100644
+--- a/src/server/knownAutoInstallPiPackages.ts
++++ b/src/server/knownAutoInstallPiPackages.ts
+@@ -27,8 +27,4 @@
+-export const KNOWN_AUTO_INSTALLABLE_PI_PACKAGES: readonly KnownAutoInstallablePiPackage[] = [
+-  {
+-    id: "@jmfederico/pi-relay",
+-    label: "Relays",
+-    description: "Generic Relay method: /relay and /relay-worktree prompts and a relay skill for chaining independent pi sessions.",
+-    shippedPathSegments: ["dist", "pi-packages", "relays"],
+-  },
+-];
++// Nix owns fixed package policy. Do not let sessiond inject a path to its
++// current immutable store output into the user's portable Pi settings. Users
++// may still install a relay implementation explicitly if they choose one.
++export const KNOWN_AUTO_INSTALLABLE_PI_PACKAGES: readonly KnownAutoInstallablePiPackage[] = [];
