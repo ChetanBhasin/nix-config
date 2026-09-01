@@ -68,15 +68,7 @@ hs.hotkey.bind(winMgmt, "c", function()
 end)
 
 -- App Launchers
-hs.hotkey.bind(hyper, "b", function()
-  local zen = hs.application.get("app.zen-browser.zen")
-  if zen then
-    zen:activate()
-  else
-    local app = os.getenv("HOME") .. "/Applications/Home Manager Apps/Zen Browser (Beta).app"
-    hs.task.new("/usr/bin/open", nil, { app }):start()
-  end
-end)
+hs.hotkey.bind(hyper, "b", function() hs.application.launchOrFocus("Zen") end)
 hs.hotkey.bind(hyper, "t", function() hs.application.launchOrFocus("Alacritty") end)
 hs.hotkey.bind(hyper, "f", function() hs.application.launchOrFocus("Figma") end)
 hs.hotkey.bind(hyper, "e", function() hs.application.launchOrFocus("Signal") end)

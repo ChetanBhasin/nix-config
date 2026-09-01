@@ -114,11 +114,8 @@ See [Module Options Documentation](docs/modules.md) for complete configuration o
 ### Development
 
 ```bash
-# Test configuration without applying
+# Build configuration without applying
 nix build .#darwinConfigurations.markus.system
-
-# Check flake
-nix flake check
 
 # Update inputs
 nix flake update

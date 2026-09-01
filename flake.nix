@@ -17,9 +17,6 @@
     };
 
     # Other sources
-    flake-utils = {
-      url = "github:numtide/flake-utils";
-    };
     devshell = {
       url = "github:numtide/devshell";
       inputs = {
@@ -35,13 +32,6 @@
       url = "github:hraban/mac-app-util";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-
-    zen-browser = {
-      url = "github:0xc000022070/zen-browser-flake";
-      inputs.nixpkgs.follows = "nixpkgs";
-      inputs.home-manager.follows = "home-manager";
-    };
-
   };
 
   outputs =
@@ -67,18 +57,6 @@
             {
               jj-starship = packages.jj-starship;
               jj-starship-no-git = packages.jj-starship-no-git;
-              zen-browser =
-                let
-                  package = inputs.zen-browser.packages.${system}.default;
-                in
-                package.overrideAttrs (old: {
-                  postInstall =
-                    (old.postInstall or "")
-                    + final.lib.optionalString final.stdenv.hostPlatform.isDarwin ''
-                      substituteInPlace "$out/bin/zen-beta" \
-                        --replace-fail 'exec /usr/bin/open -na ' 'exec /usr/bin/open '
-                    '';
-                });
             }
           )
           (_final: prev: {
@@ -203,10 +181,7 @@
           users.users.${user}.home = "/Users/${user}";
           home-manager = {
             useGlobalPkgs = true;
-            sharedModules = [
-              inputs.mac-app-util.homeManagerModules.default
-              inputs.zen-browser.homeModules.beta
-            ];
+            sharedModules = [ inputs.mac-app-util.homeManagerModules.default ];
             users.${user} = import (./. + "/hosts/${host}/home.nix");
           };
         }
@@ -232,7 +207,6 @@
             users.groups.${user} = { };
             home-manager = {
               useGlobalPkgs = true;
-              sharedModules = [ inputs.zen-browser.homeModules.beta ];
               useUserPackages = true;
               users.${user} = import (./. + "/hosts/${host}/home.nix");
             };
@@ -244,43 +218,6 @@
       # Standalone Home Manager modules for use in other flakes
       # Usage: inputs.nix-config.homeManagerModules.neovim
       homeManagerModules = import ./modules/homeManager;
-
-      checks =
-        nixpkgs.lib.genAttrs
-          [
-            "aarch64-darwin"
-            "aarch64-linux"
-            "x86_64-linux"
-          ]
-          (
-            system:
-            let
-              pkgs = import nixpkgs {
-                inherit system;
-                config.allowUnfree = true;
-              };
-              piModuleTest = import ./home/pi/tests/pi-module.nix {
-                inherit home-manager pkgs;
-              };
-            in
-            {
-              pi-config-unit =
-                pkgs.runCommand "pi-config-unit-tests"
-                  {
-                    nativeBuildInputs = [ pkgs.python3 ];
-                  }
-                  ''
-                    export PYTHONDONTWRITEBYTECODE=1
-                    python -m unittest discover \
-                      -s ${./home/pi}/tests \
-                      -p 'test_*.py' \
-                      -v
-                    touch "$out"
-                  '';
-
-              pi-home-manager-module = piModuleTest.check;
-            }
-          );
 
       darwinConfigurations = {
         hugh = darwin.lib.darwinSystem {

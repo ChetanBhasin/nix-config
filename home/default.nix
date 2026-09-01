@@ -34,22 +34,6 @@ in
   config = {
     fonts.fontconfig = lib.mkIf cfg.includeFonts { enable = true; };
 
-    programs.zen-browser = {
-      enable = true;
-      darwin.packageMode = "signed";
-      profiles.default = {
-        id = 0;
-        isDefault = true;
-        name = "Default";
-        path = "default";
-      };
-    }
-    // lib.optionalAttrs pkgs.stdenv.hostPlatform.isDarwin {
-      unwrappedPackage = pkgs.zen-browser;
-    };
-
-    home.file."${config.programs.zen-browser.configPath}/profiles.ini".force = true;
-
     home.packages =
       with pkgs;
       [

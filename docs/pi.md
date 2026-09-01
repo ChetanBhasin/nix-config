@@ -29,7 +29,7 @@ The portable package graph contains 12 exact npm pins. PI WEB is intentionally a
 
 Runtime responsibilities are non-overlapping:
 
-- **Lens** owns symbols, navigation, AST search, repository reports, and explicit diagnostics. Its install, context-injection, autoformat, autofix, read-guard, tests, and mutation hooks are disabled. It resolves only Nix-provided tools and language servers.
+- **Lens** owns symbols, navigation, AST search, repository reports, and explicit diagnostics. Its install, context-injection, autoformat, autofix, read-guard, tests, and mutation hooks are disabled. The wrapper adds Lens-owned hard-disable flags only after the mutable Lens extension exists, so a fresh Pi installation can start before its npm tree is hydrated. It resolves only Nix-provided tools and language servers.
 - **Hashline** replaces `read` and `grep`, disables built-in `edit`, and supplies anchored `replace`, `insert`, and undo. The built-in `write` remains available for whole-file creation/overwrite and Hashline returns fresh anchors afterward. Codex `apply_patch`/command adapters and Lens mutation tools remain inactive.
 - **Codex conversion** is captured in `pi-codex-conversion.json` as extras-only. It supplies `web_run`, `view_image`, image generation, and voice; structured adapter mode, Code/Notebook Mode, `apply_patch`, heavy prompt replacement, and Responses compaction are disabled.
 - **Magic Context** runs only in the parent. Its database, embeddings, model cache, and indexes stay local. Child processes receive `MAGIC_CONTEXT_PI_SUBAGENT=1` and explicit extension allowlists.

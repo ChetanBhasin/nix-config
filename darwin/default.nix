@@ -57,8 +57,6 @@ in
       enableSSHSupport = true;
     };
 
-    services.tailscale.enable = true;
-
     security.pam.services.sudo_local.touchIdAuth = cfg.enableSudoTouch;
 
     system.defaults = {
@@ -255,10 +253,12 @@ in
 
       # Base casks (all hosts)
       casks = [
+        "tailscale-app"
+        "codex"
+        "zen"
         "postico"
         "hammerspoon"
         "openlogi"
-        "vorssaint"
       ]
       ++ lib.optionals cfg.enableProf [ "thunderbird" ]
       ++ lib.optionals cfg.enableExtras [

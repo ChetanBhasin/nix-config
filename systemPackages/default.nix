@@ -17,7 +17,10 @@
       cmake
       gnumake
     ]
-    ++ lib.optionals pkgs.stdenv.hostPlatform.isLinux [ gcc ]
+    ++ lib.optionals pkgs.stdenv.hostPlatform.isLinux [
+      gcc
+      codex # Homebrew-managed on Darwin.
+    ]
     ++ [
       openssl
       libpq
@@ -63,7 +66,6 @@
       gnutar
 
       claude-code
-      codex
       opencode
 
       # Git and Version Control
