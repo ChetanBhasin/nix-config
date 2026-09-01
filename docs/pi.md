@@ -25,7 +25,7 @@ The wrapper always includes Node.js, Git, agent-browser, ast-grep, and a Nix-own
 
 ## Track B policy
 
-The portable package graph contains 12 exact npm pins. PI WEB is intentionally absent because Nix packages and services it independently. `@narumitw/pi-btw@0.55.3` replaces the former Juicesharp BTW package, and `@earendil-works/pi-tui@0.84.3` satisfies Magic Context's Pi-matched peer without a store path in settings.
+The portable package graph contains 14 exact npm pins. PI WEB is intentionally absent because Nix packages and services it independently. `@narumitw/pi-btw@0.55.3` replaces the former Juicesharp BTW package. `pi-footer@0.5.1` owns the statusline, while `@earendil-works/pi-coding-agent@0.84.3` and `@earendil-works/pi-tui@0.84.3` satisfy its runtime peers at the same version as the Nix-owned Pi executable.
 
 Runtime responsibilities are non-overlapping:
 
@@ -35,6 +35,7 @@ Runtime responsibilities are non-overlapping:
 - **Magic Context** runs only in the parent. Its database, embeddings, model cache, and indexes stay local. Child processes receive `MAGIC_CONTEXT_PI_SUBAGENT=1` and explicit extension allowlists.
 - **Subagents** start fresh by default, hand back files rather than transcripts, allow one writer, cap depth at 1 and concurrency at 2, and enforce run/session spawn budgets of 8/24.
 - **Browser automation** uses `pi-agent-browser-native` over exact `agent-browser` 0.34.0 and a Nix-owned Chrome/Chromium executable. It uses neither MCP nor a downloaded browser.
+- **Footer** uses `pi-footer` with the checked-in `extensions/pi-footer.json` layout. It owns only Pi's footer, keeps the native header and editor, follows the Gruvbox theme through Pi semantic colors, and leaves all extension statuses visible on a secondary row.
 
 ## Portable projection
 
@@ -210,6 +211,7 @@ After activation, synchronization, and reload, run:
 /lens-health
 /subagents-doctor
 /ctx-status
+/footer
 ```
 
 Then, outside Pi:
@@ -229,6 +231,7 @@ Expected invariants:
 - Active mutation tools exclude built-in `edit`, Codex `apply_patch`/`exec_command`, Notebook Mode, and Lens `ast_grep_replace`; Hashline supplies anchored reads and edits.
 - `/subagents-doctor` reports depth 1 policy, 2 active async slots, run fan-out 8, session budget 24, and explicit role allowlists.
 - `/ctx-status` opens the production database at migration v81 after every old Pi harness has reloaded.
+- `/footer` previews a one-line Nerd Font statusline with project and Git state on the left; model, thinking, context, and token usage on the right; and active extension statuses on a secondary row. Exit without saving unless intentionally changing the checked-in layout.
 - browser doctor reports agent-browser 0.34.0 and the smoke test uses Nix Chrome/Chromium.
 - PI WEB reports both services current and `/api/config` reports `spawnSessions=false`, `subsessions=false`, `askUser=true`, and `environmentFacts=true`.
 - both `pi-config status` panels are `equal`, `pi-config diff` is empty, and neither portable source nor live portable settings contains `/nix/store`.

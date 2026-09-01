@@ -1,4 +1,5 @@
 {
+  autoPatchelfHook,
   fetchurl,
   lib,
   stdenvNoCC,
@@ -30,6 +31,7 @@ stdenvNoCC.mkDerivation {
   sourceRoot = "package";
   dontBuild = true;
 
+  nativeBuildInputs = lib.optionals stdenvNoCC.hostPlatform.isLinux [ autoPatchelfHook ];
   installPhase = ''
     runHook preInstall
     install -Dm755 "bin/${binary}" "$out/bin/agent-browser"

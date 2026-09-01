@@ -27,7 +27,9 @@
     "npm:pi-agent-browser-native@0.5.0",
     "npm:pi-subagents@0.56.0",
     "npm:@cortexkit/pi-magic-context@0.40.0",
-    "npm:@earendil-works/pi-tui@0.84.3"
+    "npm:@earendil-works/pi-coding-agent@0.84.3",
+    "npm:@earendil-works/pi-tui@0.84.3",
+    "npm:pi-footer@0.5.1"
   ],
   "subagents": {
     "agentOverrides": {
