@@ -1,0 +1,51 @@
+{
+  "providers": {
+    "hetzner": {
+      "api": "openai-completions",
+      "apiKey": "$HETZNER_INFERENCE_API_KEY",
+      "baseUrl": "https://inference.hetzner.com/api/v1",
+      "compat": {
+        "maxTokensField": "max_tokens",
+        "supportsDeveloperRole": false,
+        "supportsReasoningEffort": false,
+        "supportsStore": false
+      },
+      "models": [
+        {
+          "contextWindow": 229376,
+          "cost": {
+            "cacheRead": 0,
+            "cacheWrite": 0,
+            "input": 0,
+            "output": 0
+          },
+          "id": "Qwen3.8-27B",
+          "input": [
+            "text",
+            "image"
+          ],
+          "maxTokens": 32768,
+          "name": "Qwen3.8 27B (Hetzner)",
+          "reasoning": true
+        },
+        {
+          "contextWindow": 229376,
+          "cost": {
+            "cacheRead": 0,
+            "cacheWrite": 0,
+            "input": 0,
+            "output": 0
+          },
+          "id": "Qwen/Qwen3.6-35B-A3B-FP8",
+          "input": [
+            "text",
+            "image"
+          ],
+          "maxTokens": 32768,
+          "name": "Qwen3.6 35B A3B FP8 (Hetzner)",
+          "reasoning": true
+        }
+      ]
+    }
+  }
+}
