@@ -21,7 +21,7 @@
       {
         "id": "git-branch",
         "type": "git-branch",
-        "enabled": true,
+        "enabled": false,
         "options": {
           "raw": false,
           "hideWhenEmpty": true,
@@ -109,7 +109,7 @@
       {
         "id": "session-tokens",
         "type": "tokens",
-        "enabled": true,
+        "enabled": false,
         "options": {
           "raw": false,
           "icon": "",

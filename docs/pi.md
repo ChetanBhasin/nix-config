@@ -25,7 +25,7 @@ The wrapper always includes Node.js, Git, agent-browser, ast-grep, and a Nix-own
 
 ## Track B policy
 
-The portable package graph contains 14 exact npm pins. PI WEB is intentionally absent because Nix packages and services it independently. `@narumitw/pi-btw@0.55.3` replaces the former Juicesharp BTW package. `pi-footer@0.5.1` owns the statusline, while `@earendil-works/pi-coding-agent@0.84.3` and `@earendil-works/pi-tui@0.84.3` satisfy its runtime peers at the same version as the Nix-owned Pi executable.
+The portable package graph contains 13 exact npm pins. PI WEB is intentionally absent because Nix packages and services it independently. `@narumitw/pi-btw@0.55.3` replaces the former Juicesharp BTW package. `pi-footer@0.5.1` owns the statusline; Pi's extension loader supplies its coding-agent and TUI runtime imports from the Nix-owned Pi process, while the existing `@earendil-works/pi-tui@0.84.3` pin remains for Magic Context's peer dependency.
 
 Runtime responsibilities are non-overlapping:
 
