@@ -197,7 +197,7 @@ in
           fg = "inactive-border";
         };
         "ui.menu.selected" = {
-          fg = "base06";
+          fg = "base0A";
           bg = "base02";
           modifiers = [ "bold" ];
         };
@@ -206,14 +206,22 @@ in
           bg = "base01";
           modifiers = [ "bold" ];
         };
+        "ui.cursor" = {
+          fg = "base00";
+          bg = "base0A";
+        };
+        "ui.cursor.primary" = {
+          fg = "base00";
+          bg = "base0A";
+        };
         "ui.statusline.insert" = {
           fg = "base00";
-          bg = "base0D";
+          bg = "base0A";
           modifiers = [ "bold" ];
         };
         "ui.statusline.select" = {
           fg = "base00";
-          bg = "base09";
+          bg = "base0A";
           modifiers = [ "bold" ];
         };
 

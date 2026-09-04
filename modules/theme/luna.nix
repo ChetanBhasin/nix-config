@@ -3,10 +3,11 @@
 #
 # Luna's near-black background and bright foreground are softened to a neutral
 # surface ladder with gentler normal-text contrast. Its semantic accent hues
-# remain unchanged. Traditional Base16 slot semantics keep warnings amber,
-# functions blue, and errors red across every consumer (Helix, Waybar,
-# Starship, Alacritty, and others); Neovim applies the same local palette via
-# luna.nvim's supported on_colors hook while retaining upstream integrations.
+# remain unchanged. Amber is the primary interaction accent for active/focused UI
+# chrome, while traditional Base16 slot semantics keep functions blue and errors
+# red across every consumer (Helix, Waybar, Starship, Alacritty, and others).
+# Neovim applies the same local palette via luna.nvim's supported on_colors hook
+# while retaining upstream integrations.
 rec {
   name = "luna";
 
@@ -40,8 +41,10 @@ rec {
   error = "#e08585";
   info = "#8c9cb8";
 
+  primaryAccent = base0A; # active/focused/current UI chrome
+  primarySurface = "#382d20"; # amber focus surface; every semantic accent stays >= 4.5:1
   inactiveBorder = "#454545";
-  activeBorder = base0D; # blue = Luna's function accent
+  activeBorder = primaryAccent;
 
   alacritty = {
     # 16-21 are extended slots some TUIs read for extra highlights. Mirroring
@@ -85,7 +88,7 @@ rec {
     };
 
     cursor = {
-      cursor = base05;
+      cursor = primaryAccent;
       text = base00;
     };
 
@@ -114,9 +117,9 @@ rec {
   # fzf keeps Luna's semantic accents on the softer local surfaces.
   fzf = [
     "--color=dark"
-    "--color=bg+:${base01},bg:${base00},spinner:${base04},hl:${signal}"
-    "--color=fg:${base05},header:${signal},info:${base0C},pointer:${base04}"
-    "--color=marker:${base0F},fg+:${base06},prompt:${base0D},hl+:${signal}"
+    "--color=bg+:${base01},bg:${base00},spinner:${primaryAccent},hl:${signal}"
+    "--color=fg:${base05},header:${signal},info:${base0C},pointer:${primaryAccent}"
+    "--color=marker:${primaryAccent},fg+:${primaryAccent},prompt:${primaryAccent},hl+:${signal}"
     "--color=border:${inactiveBorder}"
   ];
 

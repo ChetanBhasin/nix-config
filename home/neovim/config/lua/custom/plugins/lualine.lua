@@ -31,11 +31,11 @@ local function mode_theme(accent_bg)
 end
 
 local luna_comfort = {
-    normal = mode_theme(colors.blue),
-    insert = mode_theme(colors.purple),
-    visual = mode_theme(colors.grey_light),
-    replace = mode_theme(colors.grey),
-    command = mode_theme(colors.fg),
+    normal = mode_theme(colors.yellow),
+    insert = mode_theme(colors.yellow),
+    visual = mode_theme(colors.yellow),
+    replace = mode_theme(colors.yellow),
+    command = mode_theme(colors.yellow),
     inactive = {
         a = { fg = colors.grey, bg = colors.bg_alt },
         b = { fg = colors.grey, bg = colors.bg_alt },

@@ -18,6 +18,7 @@ local colors = {
     base07 = "#d8d8dc",
     dim_neutral = "#686868",
     surface = "#303030",
+    primary_surface = "#382d20",
     border = "#454545",
     float_bg = "#2b2b2d",
     -- Accents – Luna's four hues + the diagnostic quartet.
@@ -71,7 +72,7 @@ function DefineColors()
                 palette.white = colors.base07
 
                 palette.cursor_line = { bg = colors.base01 }
-                palette.cursor_line_nr = { fg = colors.base05 }
+                palette.cursor_line_nr = { fg = colors.base0A }
                 palette.line_nr = colors.dim_neutral
                 palette.git = {
                     add = { fg = palette.ok, bg = "#1b2a20" },
@@ -107,24 +108,45 @@ function DefineColors()
     highlight("@lsp.type.comment", { link = "Comment" })
 
     highlight("Pmenu", { fg = colors.base05, bg = colors.base01 })
-    highlight("PmenuSel", { fg = colors.base06, bg = colors.base02, bold = true })
-    highlight("LspSignatureActiveParameter", { fg = colors.base06, bg = colors.base02, bold = true })
+    highlight("PmenuSel", { fg = colors.base0A, bg = colors.base02, bold = true })
+    highlight("LspSignatureActiveParameter", { fg = colors.base0A, bg = colors.base02, bold = true })
+    highlight("WildMenu", { fg = colors.base0A, bg = colors.base02, bold = true })
+    highlight("QuickFixLine", { fg = colors.base0A, bg = colors.base02, bold = true })
+    highlight("TabLineSel", { fg = colors.base0A, bg = colors.base00, bold = true })
+    highlight("BlinkCmpMenuSelection", { fg = colors.base0A, bg = colors.base02, bold = true })
+    highlight("BlinkCmpSignatureHelpActiveParameter", { fg = colors.base0A, bold = true })
+    highlight("FzfLuaCursor", { fg = colors.base0A, bg = colors.base01, bold = true })
+    highlight("FzfLuaSelected", { fg = colors.base0A, bg = colors.base01, bold = true })
+    highlight("GrappleCurrent", { fg = colors.base0A, bold = true })
+    highlight("AvanteFileSelectorSelection", { fg = colors.base0A, bg = colors.base01, bold = true })
 
     highlight("CursorLine", { bg = colors.base01 })
     highlight("CursorLineNr", { fg = colors.base0A, bg = colors.base01, bold = true })
     highlight("LineNr", { fg = colors.base03, bg = colors.base00 })
 
     highlight("Visual", { fg = colors.base06, bg = colors.base02 })
+    highlight("Search", { fg = colors.base06, bg = colors.primary_surface })
+    highlight("IncSearch", { fg = colors.base00, bg = colors.base0A, bold = true })
+    highlight("CurSearch", { fg = colors.base00, bg = colors.base0A, bold = true })
+    highlight("Substitute", { fg = colors.base00, bg = colors.base0A, bold = true })
 
     highlight("Folded", { bg = colors.base01, fg = colors.base03 })
     highlight("FoldColumn", { bg = colors.base00, fg = colors.base03 })
 
     highlight("TelescopeBorder", { fg = colors.base03, bg = colors.base00 })
-    highlight("TelescopeSelection", { fg = colors.base06, bg = colors.base02, bold = true })
+    highlight("TelescopeSelection", { fg = colors.base0A, bg = colors.base02, bold = true })
+    highlight("TelescopeSelectionCaret", { fg = colors.base0A, bg = colors.base02, bold = true })
     highlight("TelescopeMatching", { fg = colors.base09, bold = true })
-    highlight("TelescopePromptPrefix", { fg = colors.base0D })
+    highlight("TelescopePromptPrefix", { fg = colors.base0A })
+    highlight("TelescopePromptBorder", { fg = colors.base0A, bg = colors.base00 })
+    highlight("FzfLuaPromptBorder", { fg = colors.base0A, bg = colors.base00 })
+    highlight("FzfLuaPromptPrefix", { fg = colors.base0A, bg = colors.base00 })
+    highlight("AvantePromptInputBorder", { fg = colors.base0A })
+    highlight("DressingInputBorder", { fg = colors.base0A })
+    highlight("DressingSelectBorder", { fg = colors.base0A })
 
     highlight("NvimTreeNormal", { fg = colors.base05, bg = colors.base00 })
+    highlight("NvimTreeCursorLine", { fg = colors.base0A, bg = colors.base01, bold = true })
     highlight("NvimTreeEndOfBuffer", { fg = colors.base00, bg = colors.base00 })
     highlight("NvimTreeRootFolder", { fg = colors.base0E, bold = true })
     highlight("NvimTreeFolderIcon", { fg = colors.base0D })
@@ -161,6 +183,9 @@ function DefineColors()
     highlight("MarkdownH5", { fg = colors.base0D, bold = true })
     highlight("MarkdownH6", { fg = colors.base0E, bold = true })
 
-    highlight("TermCursor", { fg = colors.base00, bg = colors.base05 })
+    highlight("Cursor", { fg = colors.base00, bg = colors.base0A })
+    highlight("lCursor", { fg = colors.base00, bg = colors.base0A })
+    highlight("CursorIM", { fg = colors.base00, bg = colors.base0A })
+    highlight("TermCursor", { fg = colors.base00, bg = colors.base0A })
     highlight("TermCursorNC", { fg = colors.base03, bg = colors.base03 })
 end

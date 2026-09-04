@@ -86,7 +86,7 @@ Full-featured NeoVim IDE with LSP, treesitter, completion, and 50+ curated plugi
 - **Git**: gitsigns, lazygit, lazyjj integration
 - **Languages**: Enhanced support for Rust, Go, Python, Nix, TypeScript
 - **Debug**: DAP (Debug Adapter Protocol) for Python
-- **Theme**: Luna via the pinned `luna.nvim` plugin, with local highlight overrides
+- **Theme**: Luna Comfort via the pinned `luna.nvim` plugin, with an amber interaction accent and local highlight overrides
 
 ---
 
@@ -197,7 +197,7 @@ Modern tmux configuration with session management, FZF integration, and the Luna
 - **Navigation**: vim-tmux-navigator for seamless splits
 - **Sessions**: resurrect, continuum for automatic save/restore
 - **FZF**: Session switcher, URL picker, content extractor
-- **Theme**: Luna with a custom status line
+- **Theme**: Luna Comfort with an amber-focused custom status line
 - **Which-Key**: Discoverable keybindings via `?`
 - **Thumbs**: Vimium-style hints for text selection
 

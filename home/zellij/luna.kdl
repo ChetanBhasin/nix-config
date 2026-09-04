@@ -1,7 +1,7 @@
 // Luna Comfort: Luna's semantic accents on softened neutral surfaces.
 // Accent roles follow luna.nvim (lua/luna/palette.lua), while the neutral
-// ladder mirrors modules/theme/luna.nix. The focused frame stays blue so
-// it reads unambiguously against the charcoal background.
+// ladder mirrors modules/theme/luna.nix. Amber is the shared primary accent for
+// active tabs, focused frames, selected rows, and other interaction chrome.
 themes {
     luna {
         text_unselected {
@@ -13,7 +13,7 @@ themes {
             emphasis_3 196 168 214
         }
         text_selected {
-            base 216 216 220
+            base 217 163 90
             background 48 52 58
             emphasis_0 225 144 103
             emphasis_1 117 161 199
@@ -22,7 +22,7 @@ themes {
         }
         ribbon_selected {
             base 21 21 21
-            background 117 161 199
+            background 217 163 90
             emphasis_0 225 144 103
             emphasis_1 194 145 106
             emphasis_2 196 168 214
@@ -45,7 +45,7 @@ themes {
             emphasis_3 196 168 214
         }
         table_cell_selected {
-            base 216 216 220
+            base 217 163 90
             background 48 52 58
             emphasis_0 225 144 103
             emphasis_1 117 161 199
@@ -61,7 +61,7 @@ themes {
             emphasis_3 196 168 214
         }
         list_selected {
-            base 216 216 220
+            base 217 163 90
             background 48 52 58
             emphasis_0 225 144 103
             emphasis_1 117 161 199
@@ -85,7 +85,7 @@ themes {
             emphasis_3 21 21 21
         }
         frame_selected {
-            base 117 161 199
+            base 217 163 90
             background 21 21 21
             emphasis_0 225 144 103
             emphasis_1 140 156 184
@@ -93,7 +93,7 @@ themes {
             emphasis_3 21 21 21
         }
         frame_highlight {
-            // Hover is one neutral step above the inactive frame; focus stays blue.
+            // Hover is one neutral step above the inactive frame; focus stays amber.
             base 104 104 104
             background 21 21 21
             emphasis_0 196 168 214

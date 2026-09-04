@@ -113,7 +113,7 @@ local setup_opts = {
         fill = { fg = colors.base03, bg = colors.base00 },
         background = { fg = colors.base03, bg = colors.base00 },
         buffer_visible = { fg = colors.base04, bg = colors.base00 },
-        buffer_selected = { fg = colors.base06, bg = colors.base01, bold = true, italic = false },
+        buffer_selected = { fg = colors.base0A, bg = colors.base01, bold = true, italic = false },
         separator = { fg = colors.base02, bg = colors.base00 },
         separator_visible = { fg = colors.base02, bg = colors.base00 },
         separator_selected = { fg = colors.base02, bg = colors.base01 },

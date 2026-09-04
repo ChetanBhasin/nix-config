@@ -280,7 +280,7 @@ in
             directory = {
               truncation_length = 3;
               truncate_to_repo = true;
-              style = "bold fg:${theme.base0A}";
+              style = "bold fg:${theme.primaryAccent}";
             };
 
             nix_shell = {

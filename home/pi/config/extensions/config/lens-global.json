@@ -61,6 +61,6 @@
     "compactToolLine": true
   },
   "widget": {
-    "visible": true
+    "visible": false
   }
 }

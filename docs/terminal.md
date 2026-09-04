@@ -207,9 +207,9 @@ FZF (Fuzzy Finder) is the heart of the enhanced terminal experience, providing:
 
 FZF uses Luna Comfort’s softened charcoal palette:
 - **Charcoal background** with gentler normal-text contrast
-- **Warm highlights** for selected items
-- **Blue accents** for information text
-- **Consistent theming** across all interfaces
+- **Amber primary accent** for cursors, selected items, focused borders, active tabs, and prompts
+- **Blue semantic accents** for information text and code functions
+- **Consistent interaction theming** across supported interfaces
 
 ### ⚙️ **Environment Variables**
 
