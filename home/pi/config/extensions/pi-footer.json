@@ -125,7 +125,7 @@
   "separatorFg": "default",
   "separatorBg": "default",
   "iconMode": "emoji",
-  "minimalist": true,
+  "minimalist": false,
   "terminal": {
     "widthMode": "full",
     "colorLevel": "truecolor"

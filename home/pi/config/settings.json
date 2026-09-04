@@ -28,7 +28,8 @@
     "npm:pi-subagents@0.56.0",
     "npm:@cortexkit/pi-magic-context@0.40.0",
     "npm:@earendil-works/pi-tui@0.84.3",
-    "npm:pi-footer@0.5.1"
+    "npm:pi-footer@0.5.1",
+    "./extensions/auto-mode"
   ],
   "quietStartup": true,
   "subagents": {
@@ -46,6 +47,9 @@
         "model": "inherit",
         "output": "delegate.md",
         "outputMode": "file-only",
+        "subagentOnlyExtensions": [
+          "~/.pi/agent/extensions/auto-mode/index.ts"
+        ],
         "systemPromptMode": "append",
         "thinking": "medium",
         "tools": [
@@ -80,6 +84,9 @@
         "model": "openai-codex/gpt-5.6-sol",
         "output": "oracle.md",
         "outputMode": "file-only",
+        "subagentOnlyExtensions": [
+          "~/.pi/agent/extensions/auto-mode/index.ts"
+        ],
         "systemPromptMode": "append",
         "thinking": "max",
         "tools": [
@@ -115,6 +122,9 @@
         "model": "openai-codex/gpt-5.6-sol",
         "output": "research.md",
         "outputMode": "file-only",
+        "subagentOnlyExtensions": [
+          "~/.pi/agent/extensions/auto-mode/index.ts"
+        ],
         "systemPromptMode": "append",
         "thinking": "medium",
         "tools": [
@@ -137,6 +147,9 @@
         "model": "openai-codex/gpt-5.6-sol",
         "output": "review.md",
         "outputMode": "file-only",
+        "subagentOnlyExtensions": [
+          "~/.pi/agent/extensions/auto-mode/index.ts"
+        ],
         "systemPromptMode": "append",
         "thinking": "high",
         "tools": [
@@ -171,6 +184,9 @@
         "model": "openai-codex/gpt-5.6-luna",
         "output": "context.md",
         "outputMode": "file-only",
+        "subagentOnlyExtensions": [
+          "~/.pi/agent/extensions/auto-mode/index.ts"
+        ],
         "systemPromptMode": "append",
         "thinking": "low",
         "tools": [
@@ -206,6 +222,9 @@
         "model": "openai-codex/gpt-5.6-sol",
         "output": "implementation.md",
         "outputMode": "file-only",
+        "subagentOnlyExtensions": [
+          "~/.pi/agent/extensions/auto-mode/index.ts"
+        ],
         "systemPromptMode": "append",
         "thinking": "xhigh",
         "tools": [
@@ -235,7 +254,8 @@
     },
     "defaultExtensions": [
       "~/.pi/agent/npm/node_modules/@narumitw/pi-accounts/dist/index.ts",
-      "~/.pi/agent/npm/node_modules/pi-lens/dist/index.js"
+      "~/.pi/agent/npm/node_modules/pi-lens/dist/index.js",
+      "~/.pi/agent/extensions/auto-mode/index.ts"
     ],
     "defaultModel": "inherit",
     "defaultProvider": "openai-codex",
