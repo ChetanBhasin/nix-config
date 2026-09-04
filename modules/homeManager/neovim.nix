@@ -10,6 +10,7 @@
 let
   cfg = config.cb.neovim;
   bazelLsp = pkgs.callPackage ../../packages/bazel-lsp.nix { };
+  lunaNvim = pkgs.callPackage ../../packages/luna-nvim.nix { };
 
   # Path to the neovim lua config directory (relative to this module)
   nvimConfigPath = ../../home/neovim/config;
@@ -152,6 +153,7 @@ in
           lualine-nvim
           bufferline-nvim
           base16-nvim
+          lunaNvim
           alpha-nvim
           indent-blankline-nvim
           rainbow-delimiters-nvim
@@ -332,7 +334,6 @@ in
                 textproto
                 thrift
                 tlaplus
-                tmux
                 todotxt
                 toml
                 tsv
@@ -353,7 +354,7 @@ in
                 zig
               ]
             else
-              builtins.map (name: p.${name}) cfg.treesitterGrammars
+              map (name: p.${name}) cfg.treesitterGrammars
           ))
         ]
         ++ cfg.extraPlugins;

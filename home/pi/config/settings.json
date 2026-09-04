@@ -30,6 +30,7 @@
     "npm:@earendil-works/pi-tui@0.84.3",
     "npm:pi-footer@0.5.1"
   ],
+  "quietStartup": true,
   "subagents": {
     "agentOverrides": {
       "delegate": {
@@ -283,7 +284,7 @@
   "terminal": {
     "showTerminalProgress": true
   },
-  "theme": "gruvbox-dark",
+  "theme": "luna",
   "treeFilterMode": "all",
   "tuiMode": "fullscreen"
 }

@@ -74,7 +74,7 @@
                   --config lazyjj.diff-format=git \
                   --config lazyjj.layout=horizontal \
                   --config lazyjj.layout-percent=30 \
-                  --config 'lazyjj.highlight-color="#3c3836"' \
+                  --config 'lazyjj.highlight-color="#30343a"' \
                   --config 'lazyjj.keybinds.log_tab.open-files=["enter", "o"]' \
                   "\$@"
                 EOF

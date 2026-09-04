@@ -50,14 +50,14 @@ todo.setup({
         exclude = {}, -- Filetypes to exclude
     },
 
-    -- Colors matching the lower-saturation Gruvbox Night palette
+    -- Colors matching Luna's diagnostic and accent palette
     colors = {
-        error = { "DiagnosticError", "ErrorMsg", "#db7e75" },
-        warning = { "DiagnosticWarn", "WarningMsg", "#c9a257" },
-        info = { "DiagnosticInfo", "#84a9b2" },
-        hint = { "DiagnosticHint", "#7fa98a" },
-        default = { "Identifier", "#c38da0" },
-        test = { "Identifier", "#d58a54" },
+        error = { "DiagnosticError", "ErrorMsg", "#e08585" },
+        warning = { "DiagnosticWarn", "WarningMsg", "#d9a35a" },
+        info = { "DiagnosticInfo", "#8c9cb8" },
+        hint = { "DiagnosticHint", "#b09080" },
+        default = { "Identifier", "#c4a8d6" },
+        test = { "Identifier", "#e19067" },
     },
 
     -- Search configuration

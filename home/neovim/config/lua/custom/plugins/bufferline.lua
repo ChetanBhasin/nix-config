@@ -5,15 +5,15 @@
 local bufferline = require('bufferline')
 
 local colors = {
-    base00 = "#1d2021",
-    base01 = "#282828",
-    base02 = "#3c3836",
-    base03 = "#aea089",
-    base04 = "#bcae94",
-    base05 = "#d0c0a0",
-    base06 = "#dfcfaa",
-    base0A = "#c9a257",
-    inactive_border = "#504945",
+    base00 = "#151515",
+    base01 = "#232323",
+    base02 = "#30343a",
+    base03 = "#858585",
+    base04 = "#a8a8a8",
+    base05 = "#c7c7c7",
+    base06 = "#d8d8dc",
+    base0A = "#d9a35a",
+    inactive_border = "#454545",
 }
 
 -- Build setup table first so we can optionally add highlights

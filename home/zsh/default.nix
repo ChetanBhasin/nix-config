@@ -1,11 +1,10 @@
 {
-  config,
   pkgs,
   lib,
   ...
 }:
 let
-  theme = import ../../modules/theme/gruvbox-night.nix;
+  theme = import ../../modules/theme/luna.nix;
 in
 {
   programs.zsh = {
