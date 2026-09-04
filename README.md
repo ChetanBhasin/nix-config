@@ -25,7 +25,7 @@ A comprehensive Nix configuration for reproducible development environments acro
 - 🤖 **Coding Agent**: Regular Pi 0.84.2 in package-only mode, with curated tooling and explicit writable configuration sync
 - 📦 **Package Management**: Nix + Home Manager for reproducible environments
 - 🔧 **Cross-Platform**: macOS (Darwin) and Linux (NixOS) support
-- 🎨 **Consistent Theming**: Luna Comfort’s softened dark palette across all applications
+- 🎨 **Consistent Theming**: Luna Comfort’s softened dark palette and amber interaction accent across all applications
 - ⚡ **Performance Optimized**: Fast startup times and efficient resource usage
 - 🔐 **Security Focused**: Proper SSH configurations and secure defaults
 

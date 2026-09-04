@@ -346,8 +346,8 @@ in
         }
 
         #workspaces button.active {
-          color: ${theme.base0A};
-          box-shadow: inset 0 -2px ${theme.base0A};
+          color: ${theme.primaryAccent};
+          box-shadow: inset 0 -2px ${theme.primaryAccent};
         }
 
         #workspaces button.urgent {
@@ -418,8 +418,8 @@ in
         padding-right = 16;
         background-color = theme.base00;
         text-color = theme.base05;
-        selection-color = theme.base0A;
-        prompt-color = theme.base0D;
+        selection-color = theme.primaryAccent;
+        prompt-color = theme.primaryAccent;
         # tofi trims value whitespace, so the separating space lives here.
         prompt-text = "run:";
       };

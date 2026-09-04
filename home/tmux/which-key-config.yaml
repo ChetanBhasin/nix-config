@@ -8,7 +8,7 @@ keybindings:
 title:
   style: "align=centre,bold"
   prefix: "tmux"
-  prefix_style: "fg=#75a1c7,bold"
+  prefix_style: "fg=#d9a35a,bold"
 
 position:
   x: C
