@@ -4,16 +4,43 @@
 
 -- Color scheme for consistent theming
 local colors = {
-    yellow = '#c9a257',
-    orange = '#d58a54',
-    background = "#1d2021",
-    surface = "#282828",
-    grey = "#aea089",
-    blue = "#84a9b2",
-    green = "#a3ad62",
-    red = "#db7e75",
-    purple = "#c38da0",
-    teal = "#7fa98a",
+    bg = "#151515",
+    bg_alt = "#232323",
+    fg = "#c7c7c7",
+    fg_bright = "#d8d8dc",
+    grey = "#858585",
+    grey_light = "#a8a8a8",
+    yellow = "#d9a35a",
+    blue = "#75a1c7",
+    green = "#6fbe80",
+    red = "#e08585",
+    purple = "#c4a8d6",
+    info = "#8c9cb8",
+    hint = "#b09080",
+}
+
+-- luna.nvim's bundled Lualine theme reads the unmodified upstream palette.
+-- Define the same mode mapping locally so Luna Comfort's on_colors overrides
+-- also reach the status line.
+local function mode_theme(accent_bg)
+    return {
+        a = { fg = colors.bg, bg = accent_bg },
+        b = { fg = colors.fg, bg = colors.bg_alt },
+        c = { fg = colors.fg_bright, bg = colors.bg },
+    }
+end
+
+local luna_comfort = {
+    normal = mode_theme(colors.blue),
+    insert = mode_theme(colors.purple),
+    visual = mode_theme(colors.grey_light),
+    replace = mode_theme(colors.grey),
+    command = mode_theme(colors.fg),
+    inactive = {
+        a = { fg = colors.grey, bg = colors.bg_alt },
+        b = { fg = colors.grey, bg = colors.bg_alt },
+        c = { fg = colors.grey, bg = colors.bg },
+    },
 }
 
 -- Custom components with beautiful icons
@@ -79,7 +106,7 @@ end
 require('lualine').setup {
     options = {
         icons_enabled = true,
-        theme = 'auto',
+        theme = luna_comfort,
         -- Beautiful powerline separators
         component_separators = { left = '󰿟', right = '󰿟' },
         section_separators = { left = '', right = '' },
@@ -147,8 +174,8 @@ require('lualine').setup {
                 diagnostics_color = {
                     error = { fg = colors.red },
                     warn = { fg = colors.yellow },
-                    info = { fg = colors.blue },
-                    hint = { fg = colors.teal }
+                    info = { fg = colors.info },
+                    hint = { fg = colors.hint }
                 }
             }
         },

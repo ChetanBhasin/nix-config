@@ -122,16 +122,26 @@
     ]
   ],
   "separator": "dot",
-  "separatorFg": "pi:borderMuted",
+  "separatorFg": "default",
   "separatorBg": "default",
-  "iconMode": "nerd",
-  "minimalist": false,
+  "iconMode": "emoji",
+  "minimalist": true,
   "terminal": {
     "widthMode": "full",
     "colorLevel": "truecolor"
   },
   "extensionStatusRow": {
-    "hiddenKeys": [],
-    "knownKeys": []
+    "hiddenKeys": [
+      "accounts",
+      "magic-context",
+      "pi-lens-lsp",
+      "usage"
+    ],
+    "knownKeys": [
+      "accounts",
+      "magic-context",
+      "pi-lens-lsp",
+      "usage"
+    ]
   }
 }

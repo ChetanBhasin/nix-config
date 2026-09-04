@@ -3,14 +3,14 @@ local M = {}
 local state_path = vim.fs.joinpath(vim.fn.stdpath("data"), "rust-linked-projects.json")
 
 local display_colors = {
-    fg1 = "#d0c0a0",
-    gray = "#aea089",
-    green = "#a3ad62",
-    yellow = "#c9a257",
-    blue = "#84a9b2",
-    aqua = "#7fa98a",
-    orange = "#d58a54",
-    bg4 = "#504945",
+    fg1 = "#c7c7c7",
+    gray = "#858585",
+    green = "#9eb38e",
+    yellow = "#d9a35a",
+    blue = "#75a1c7",
+    aqua = "#8c9cb8",
+    orange = "#e19067",
+    bg4 = "#454545",
 }
 
 local function notify(message, level)

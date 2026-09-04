@@ -74,6 +74,6 @@ require("ibl").setup {
 }
 
 -- Custom highlight groups for better visibility
-vim.api.nvim_set_hl(0, "IndentBlanklineChar", { fg = "#282828", nocombine = true })
-vim.api.nvim_set_hl(0, "IndentBlanklineContextChar", { fg = "#aea089", nocombine = true })
-vim.api.nvim_set_hl(0, "Whitespace", { fg = "#282828" })
+vim.api.nvim_set_hl(0, "IndentBlanklineChar", { fg = "#232323", nocombine = true })
+vim.api.nvim_set_hl(0, "IndentBlanklineContextChar", { fg = "#858585", nocombine = true })
+vim.api.nvim_set_hl(0, "Whitespace", { fg = "#232323" })

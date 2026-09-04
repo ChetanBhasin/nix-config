@@ -7,7 +7,7 @@
 with lib;
 let
   cfg = config.home-config-manager;
-  theme = import ../../modules/theme/gruvbox-night.nix;
+  theme = import ../../modules/theme/luna.nix;
   # Hyprland/hyprlock take colours as rgb(RRGGBB); the palette stores them as #RRGGBB.
   rgb = colour: "rgb(${removePrefix "#" colour})";
   font = "JetBrainsMono Nerd Font";
@@ -388,7 +388,7 @@ in
         }
 
         #battery.warning {
-          color: ${theme.base09};
+          color: ${theme.warning};
         }
 
         #battery.critical {

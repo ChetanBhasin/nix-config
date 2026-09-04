@@ -28,11 +28,11 @@ vim.g.rainbow_delimiters = {
     },
 }
 
--- Custom highlight groups using the Gruvbox Night accents
-vim.api.nvim_set_hl(0, 'RainbowDelimiterRed', { fg = '#db7e75', bold = true })
-vim.api.nvim_set_hl(0, 'RainbowDelimiterYellow', { fg = '#c9a257', bold = true })
-vim.api.nvim_set_hl(0, 'RainbowDelimiterBlue', { fg = '#84a9b2', bold = true })
-vim.api.nvim_set_hl(0, 'RainbowDelimiterOrange', { fg = '#d58a54', bold = true })
-vim.api.nvim_set_hl(0, 'RainbowDelimiterGreen', { fg = '#a3ad62', bold = true })
-vim.api.nvim_set_hl(0, 'RainbowDelimiterViolet', { fg = '#c38da0', bold = true })
-vim.api.nvim_set_hl(0, 'RainbowDelimiterCyan', { fg = '#7fa98a', bold = true })
+-- Custom highlight groups using Luna's accents
+vim.api.nvim_set_hl(0, 'RainbowDelimiterRed', { fg = '#e08585', bold = true })
+vim.api.nvim_set_hl(0, 'RainbowDelimiterYellow', { fg = '#d9a35a', bold = true })
+vim.api.nvim_set_hl(0, 'RainbowDelimiterBlue', { fg = '#75a1c7', bold = true })
+vim.api.nvim_set_hl(0, 'RainbowDelimiterOrange', { fg = '#e19067', bold = true })
+vim.api.nvim_set_hl(0, 'RainbowDelimiterGreen', { fg = '#9eb38e', bold = true })
+vim.api.nvim_set_hl(0, 'RainbowDelimiterViolet', { fg = '#c4a8d6', bold = true })
+vim.api.nvim_set_hl(0, 'RainbowDelimiterCyan', { fg = '#8c9cb8', bold = true })

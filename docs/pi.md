@@ -1,6 +1,6 @@
 # Pi Track B and Writable Runtime
 
-This configuration installs vanilla Pi Coding Agent 0.84.3 with the Track B composition: Lens code intelligence, Hashline editing, isolated specialist subagents, parent-only Magic Context, native browser automation, Gruvbox, native model controls, and separately packaged PI WEB.
+This configuration installs vanilla Pi Coding Agent 0.84.3 with the Track B composition: Lens code intelligence, Hashline editing, isolated specialist subagents, parent-only Magic Context, native browser automation, Luna, native model controls, and separately packaged PI WEB.
 
 The ownership boundary is deliberate:
 
@@ -35,7 +35,7 @@ Runtime responsibilities are non-overlapping:
 - **Magic Context** runs only in the parent. Its database, embeddings, model cache, and indexes stay local. Child processes receive `MAGIC_CONTEXT_PI_SUBAGENT=1` and explicit extension allowlists.
 - **Subagents** start fresh by default, hand back files rather than transcripts, allow one writer, cap depth at 1 and concurrency at 2, and enforce run/session spawn budgets of 8/24.
 - **Browser automation** uses `pi-agent-browser-native` over exact `agent-browser` 0.34.0 and a Nix-owned Chrome/Chromium executable. It uses neither MCP nor a downloaded browser.
-- **Footer** uses `pi-footer` with the checked-in `extensions/pi-footer.json` layout. It owns only Pi's footer, keeps the native header and editor, follows the Gruvbox theme through Pi semantic colors, and leaves all extension statuses visible on a secondary row.
+- **Footer** uses `pi-footer` with the checked-in `extensions/pi-footer.json` layout. It owns only Pi's footer, keeps the native header and editor, follows the Luna theme through Pi semantic colors, and leaves all extension statuses visible on a secondary row.
 
 ## Portable projection
 

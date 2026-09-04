@@ -107,7 +107,7 @@ The repository exports standalone Home Manager modules via `homeManagerModules` 
 - `helix.nix`: Helix editor configuration (options under `cb.helix.*`)
 - `neovim.nix`: NeoVim IDE with LSP, treesitter, 50+ plugins (options under `cb.neovim.*`)
 - `terminal.nix`: Zsh + FZF + Starship + Direnv + Zoxide + Alacritty (options under `cb.terminal.*`)
-- `tmux.nix`: Modern tmux with sessions, FZF, Gruvbox dark theme (options under `cb.tmux.*`)
+- `tmux.nix`: Modern tmux with sessions, FZF, Luna theme (options under `cb.tmux.*`)
 - `zellij.nix`: Zellij multiplexer configuration (options under `cb.zellij.*`)
 - `pi.nix`: Package-only regular Pi with writable state and explicit synchronization (options under `cb.pi.*`)
 - `default.nix`: Index that exports all modules

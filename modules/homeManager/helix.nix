@@ -9,7 +9,7 @@
 
 let
   cfg = config.cb.helix;
-  theme = import ../theme/gruvbox-night.nix;
+  theme = import ../theme/luna.nix;
   bazelLsp = pkgs.callPackage ../../packages/bazel-lsp.nix { };
   rustGlancer = pkgs.callPackage ../../packages/rust-glancer.nix { };
   rustServerPackage = if cfg.rustLsp == "rust-glancer" then rustGlancer else pkgs.rust-analyzer;
@@ -226,11 +226,11 @@ in
           style = "curl";
         };
         "diagnostic.info".underline = {
-          color = "base0D";
+          color = "base0C";
           style = "curl";
         };
         "diagnostic.hint".underline = {
-          color = "base0C";
+          color = "base0F";
           style = "curl";
         };
 

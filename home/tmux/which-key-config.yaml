@@ -1,4 +1,3 @@
-# yaml-language-server: $schema=config.schema.yaml
 # Simple which-key config - complex FZF commands are in tmux.conf
 command_alias_start_index: 200
 
@@ -9,7 +8,7 @@ keybindings:
 title:
   style: "align=centre,bold"
   prefix: "tmux"
-  prefix_style: "fg=#c9a257,bold"
+  prefix_style: "fg=#75a1c7,bold"
 
 position:
   x: C
