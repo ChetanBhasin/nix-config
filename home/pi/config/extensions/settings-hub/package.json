@@ -1,0 +1,14 @@
+{
+  "name": "pi-settings-hub",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "pi": {
+    "extensions": [
+      "./index.ts"
+    ]
+  },
+  "scripts": {
+    "test": "bun test"
+  }
+}

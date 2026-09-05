@@ -29,7 +29,8 @@
     "npm:@cortexkit/pi-magic-context@0.40.0",
     "npm:@earendil-works/pi-tui@0.84.3",
     "npm:pi-footer@0.5.1",
-    "./extensions/auto-mode"
+    "./extensions/auto-mode",
+    "./extensions/settings-hub"
   ],
   "quietStartup": true,
   "subagents": {

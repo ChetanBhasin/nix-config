@@ -3,7 +3,7 @@
     "responsesCompaction": false,
     "v2UserMessageRetention": 64
   },
-  "executionMode": "normal",
+  "executionMode": "code",
   "notebook": {
     "maxHeapMiB": 4096
   },
