@@ -8,7 +8,7 @@ The ownership boundary is deliberate:
 - **The portable projection owns reviewed Pi-native policy:** package pins, prompts, themes, extension policy, and the Codex extras-only configuration under `home/pi/config/`.
 - **Pi and the user own mutable evidence:** authentication, trust decisions, sessions, package realizations, browser profiles, caches, indexes, embeddings, SQLite databases, and logs.
 
-Home Manager keeps upstream Pi's live directory at `~/.pi/agent`. Its `settings`, `keybindings`, and `models` module values are empty and `context` is empty. Home Manager never projects those files as store symlinks and does not globally set `PI_CODING_AGENT_DIR` or `PI_CODING_AGENT_SESSION_DIR`. `pi-config` is the explicit copy-and-reconcile boundary.
+Home Manager keeps upstream Pi's live directory at `~/.pi/agent`. Its `settings`, `keybindings`, and `models` module values are empty and `context` is empty. Home Manager never projects those files as store symlinks and does not globally set `PI_CODING_AGENT_DIR` or `PI_CODING_AGENT_SESSION_DIR`. `pi-config` remains the copy-and-reconcile boundary. By default, activation only preflights Pi state; `cb.pi.forceApplyOnActivation` opts into a transactional, flake-authoritative copy after the write boundary. This repository enables that option in `home/pi/default.nix` for all three hosts.
 
 The module exposes only these options:
 
@@ -16,6 +16,7 @@ The module exposes only these options:
 |--------|---------|---------|
 | `cb.pi.enable` | `false` | Install Pi, Track B policy, and `pi-config` |
 | `cb.pi.package` | pinned package | Select Pi; the current package is 0.84.3 |
+| `cb.pi.forceApplyOnActivation` | `false` | Run `pi-config apply --force` after the Home Manager write boundary |
 | `cb.pi.enableLspTooling` | `true` | Add the curated language-server toolchain to Pi's wrapper |
 | `cb.pi.extraPackages` | `[]` | Add more tools to Pi and its shell environment |
 | `cb.pi.enableWeb` | `false` | Enable Nix-managed PI WEB services |
@@ -97,11 +98,13 @@ The command exits 0 when both plans are settled and 1 when a replacement or unre
 
 `diff` is read-only and produces a normalized unified diff from the snapshot embedded in the installed `pi-config` package to `~/.pi/agent`. JSON object ordering and formatting do not create differences. Directory entries are represented by paths, content hashes, and executable-bit state. It exits 1 when the projections differ.
 
-### `pi-config apply [--take-flake]`
+### `pi-config apply [--take-flake | --force]`
 
 `apply` is the only operation that writes projection entries into `~/.pi/agent`. Its source is the snapshot embedded when the currently installed `pi-config` package was built, so rebuild the flake after recording a capture before applying it.
 
 Without a conflict, a flake-only change is applied automatically. `--take-flake` resolves only two-sided conflicts, including an unsafe first run against a nonempty, differing runtime. It does not override an established runtime-only change; capture or otherwise reconcile that change first.
+
+`--force` makes the embedded flake snapshot authoritative for every unequal managed path, including runtime-only changes, conflicts, first-run differences, and managed deletions. It cannot be combined with `--take-flake`. The normal lock, ownership, validation, transaction, and recovery-backup protections still apply; an already-settled forced apply does not create another backup.
 
 ### `pi-config capture [--take-runtime] [--flake-root PATH]`
 
@@ -121,7 +124,7 @@ Each managed path is compared independently against the relevant baseline:
 | Both changed to the same result | `equal` | Do not rewrite; advance the baseline | Do not rewrite; advance the baseline |
 | Both changed differently | `conflict` | Refuse unless `--take-flake` selects the flake | Refuse unless `--take-runtime` selects the runtime |
 
-A refusal makes no managed mutation. The `--take-*` flags intentionally resolve conflicts only; they are not general force flags for overwriting an established opposite-direction one-sided change.
+A refusal makes no managed mutation. The `--take-*` flags intentionally resolve conflicts only; they are not general force flags for overwriting an established opposite-direction one-sided change. `apply --force` is the explicit exception: it selects the flake for every unequal managed path.
 
 First-run behavior is deliberately conservative:
 
@@ -154,11 +157,13 @@ The backup records the old versions of every target path being replaced, the old
 
 POSIX rename is atomic for one path, not for a group of managed paths plus a baseline. A crash or filesystem failure can therefore interrupt the multi-path transaction. If `~/.local/state/pi-nix-sync/transaction.json` remains, every synchronization command refuses to proceed; there is no automatic recovery command. Leave Pi stopped, inspect the journal and the referenced backup's `metadata.json`, restore or verify each recorded target path and baseline from that backup, and remove the journal only after the complete state is known to be consistent. Do not merely delete the journal to bypass the check; if the correct recovery is unclear, preserve the journal and backup for manual review.
 
-## Home Manager activation preflight
+## Home Manager activation
 
-The module adds one read-only check before Home Manager's write boundary. If `~/.pi` is absent, the Pi-state check succeeds without creating it; the independent legacy-link checks described below can still stop activation. If `~/.pi` exists, the preflight recursively rejects foreign-owned, unwritable, or `/nix/store`-linked Pi paths and prints remediation. Repeated activation does not create or change anything beneath `~/.pi`.
+The module always adds a read-only check before Home Manager's write boundary. If `~/.pi` is absent, the Pi-state check succeeds without creating it; the independent legacy-link checks described below can still stop activation. If `~/.pi` exists, the preflight recursively rejects foreign-owned, unwritable, or `/nix/store`-linked Pi paths and prints remediation. `pi-config doctor` performs the broader post-activation check that also covers project state, global skills, temporary storage, and npm cache.
 
-This preflight reads live state but does not repair, copy, unlink, or delete it. `pi-config doctor` performs the broader post-activation check that also covers project state, global skills, temporary storage, and npm cache.
+With `cb.pi.forceApplyOnActivation = false`, activation does not repair, copy, unlink, or delete anything beneath `~/.pi`. When the option is `true`, a second activation step runs `pi-config apply --force` after the write boundary. Home Manager dry-runs print that step without executing it. The repository's shared Pi configuration enables the option for `hugh`, `markus`, and `boris`.
+
+The force step remains transactional: it preserves unmanaged paths and Pi's runtime-only settings keys, records a recovery backup when anything changes, and refuses unsafe ownership, symlinks, a pending journal, or any running Pi process. Exit Pi before activation. Capture runtime-managed edits first if they should survive; otherwise the flake snapshot, including managed absences, wins.
 
 ## Build, activate, and reload
 
@@ -176,9 +181,9 @@ make apply-darwin host=hugh
 # or: make apply-nixos host=boris
 ```
 
-Activation updates Nix packages, wrapper policy, PI WEB services, and the embedded `pi-config` snapshot. It does not rewrite portable live Pi files. If the worktree snapshot contains accepted changes that are not yet live, exit Pi and run `pi-config apply`; use `--take-flake` only for a reviewed conflict.
+On this repository's hosts, activation force-applies the embedded snapshot after Home Manager's write boundary and before PI WEB service setup/reload; the same generation updates Nix packages and wrapper policy. Capture any runtime-managed edits that should survive before running `make apply-*`. External module consumers keep the safer `forceApplyOnActivation = false` default and can run `pi-config apply`, `pi-config apply --take-flake`, or `pi-config apply --force` explicitly.
 
-An already-running Pi process retains its loaded extension code. After activation and synchronization, run `/reload` or start a fresh Pi process. Magic Context deliberately refuses a schema migration while an older Pi PID still uses the shared database; do not kill an unrelated harness or bypass the guard. Reload/exit the listed old process and retry `/ctx-status`.
+With forced activation enabled, exit Pi before activation and start a fresh Pi process afterward. Magic Context deliberately refuses a schema migration while an older Pi PID still uses the shared database; do not kill an unrelated harness or bypass the guard. Exit the listed old process and retry `/ctx-status`.
 
 ## PI WEB
 

@@ -55,9 +55,15 @@ class SyncConflict(PiConfigError):
             for name, state in states.items()
             if state in {"conflict", "runtime-only", "flake-only"}
         )
-        flag = "--take-flake" if operation == "apply" else "--take-runtime"
+        guidance = (
+            "use --take-flake only for conflicts, or --force to replace all "
+            + "differing managed paths"
+            if operation == "apply"
+            else "use --take-runtime only for conflicts"
+        )
         super().__init__(
-            f"{operation} refused: unresolved changes ({details}); inspect status/diff and use {flag} only for conflicts"
+            f"{operation} refused: unresolved changes ({details}); "
+            + f"inspect status/diff and {guidance}"
         )
 
 
@@ -689,6 +695,7 @@ def build_plan(
     other_baseline: Projection | None,
     *,
     take_source: bool,
+    force_source: bool = False,
 ) -> SyncPlan:
     source_only, target_only = _direction_labels(operation)
     states: dict[str, str] = {}
@@ -728,7 +735,11 @@ def build_plan(
                 # an Entry implementation is inconsistent.
                 raise AssertionError(f"inconsistent state for {name}")
         states[name] = state
-        if state == source_only or (state == "conflict" and take_source):
+        if (
+            force_source
+            or state == source_only
+            or (state == "conflict" and take_source)
+        ):
             replacements.append(name)
         elif state in {target_only, "conflict"}:
             unresolved.append(name)
@@ -1141,12 +1152,20 @@ class SyncEngine:
             raise PiConfigError("no embedded Pi configuration snapshot is available")
         return read_projection(self.paths.snapshot)
 
-    def _plan_apply(self, take_flake: bool) -> OperationView:
+    def _plan_apply(self, take_flake: bool, force: bool = False) -> OperationView:
         flake = self._snapshot()
         runtime = read_projection(self.paths.runtime)
         base = load_baseline(self.state / "applied-base")
         other = load_baseline(self.state / "capture-base")
-        plan = build_plan("apply", flake, runtime, base, other, take_source=take_flake)
+        plan = build_plan(
+            "apply",
+            flake,
+            runtime,
+            base,
+            other,
+            take_source=take_flake,
+            force_source=force,
+        )
         return OperationView(
             plan,
             runtime,
@@ -1203,28 +1222,36 @@ class SyncEngine:
             )
         return "\n".join(output) + ("\n" if output else ""), different
 
-    def apply(self, *, take_flake: bool = False) -> SyncResult:
+    def apply(self, *, take_flake: bool = False, force: bool = False) -> SyncResult:
         self._reject_redirection()
         self._validate_runtime()
         self._check_pi_locks()
         self._check_pending_journal()
-        preliminary = self._plan_apply(take_flake)
+        preliminary = self._plan_apply(take_flake, force)
         if preliminary.plan.unresolved:
             raise SyncConflict("apply", preliminary.plan.states)
         with CliLock(self.state / "cli.lock"):
             self._validate_runtime()
             self._check_pi_locks()
             self._check_pending_journal()
-            locked = self._plan_apply(take_flake)
+            locked = self._plan_apply(take_flake, force)
             if locked.plan.unresolved:
                 raise SyncConflict("apply", locked.plan.states)
+            if (
+                force
+                and not locked.plan.replacements
+                and optional_projections_equal(locked.baseline, locked.plan.source)
+            ):
+                return SyncResult("apply", locked.plan.states, (), None)
 
             def precommit() -> None:
                 self.precommit_hook()
                 self._validate_runtime()
                 self._check_pi_locks()
                 self._check_pending_journal()
-                if not operation_views_equal(locked, self._plan_apply(take_flake)):
+                if not operation_views_equal(
+                    locked, self._plan_apply(take_flake, force)
+                ):
                     raise PiConfigError(
                         "apply inputs changed while the transaction was staged"
                     )
@@ -1536,10 +1563,16 @@ def build_parser() -> argparse.ArgumentParser:
     apply_parser = commands.add_parser(
         "apply", help="apply the embedded snapshot to ~/.pi/agent"
     )
-    apply_parser.add_argument(
+    apply_resolution = apply_parser.add_mutually_exclusive_group()
+    apply_resolution.add_argument(
         "--take-flake",
         action="store_true",
         help="resolve two-sided conflicts in favor of the flake",
+    )
+    apply_resolution.add_argument(
+        "--force",
+        action="store_true",
+        help="replace every differing managed path with the flake snapshot",
     )
     capture_parser = commands.add_parser(
         "capture", help="capture ~/.pi/agent into home/pi/config"
@@ -1612,7 +1645,9 @@ def main(argv: Sequence[str] | None = None) -> int:
                 sys.stdout.write(output)
             return 1 if different else 0
         if arguments.command == "apply":
-            result = engine.apply(take_flake=arguments.take_flake)
+            result = engine.apply(
+                take_flake=arguments.take_flake, force=arguments.force
+            )
         elif arguments.command == "capture":
             root = (
                 arguments.flake_root.resolve()
@@ -1625,7 +1660,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             raise AssertionError(arguments.command)
         for name in result.changed:
             print(f"{result.operation}: {name}")
-        print(f"recovery backup: {result.backup}")
+        if result.backup is not None:
+            print(f"recovery backup: {result.backup}")
         return 0
     except SyncConflict as error:
         print(f"pi-config: {error}", file=sys.stderr)

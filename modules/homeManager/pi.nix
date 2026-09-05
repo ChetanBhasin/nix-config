@@ -205,6 +205,15 @@ in
       description = "Pi Coding Agent package to install";
     };
 
+    forceApplyOnActivation = lib.mkOption {
+      type = lib.types.bool;
+      default = false;
+      description = ''
+        Force the embedded Pi configuration snapshot over every differing
+        managed runtime path during Home Manager activation
+      '';
+    };
+
     enableLspTooling = lib.mkOption {
       type = lib.types.bool;
       default = true;
@@ -346,5 +355,16 @@ in
     home.activation.piPreflight = lib.hm.dag.entryBefore [ "writeBoundary" ] ''
       ${piConfig}/bin/pi-config _activation-preflight
     '';
+
+    # Keep the live-state mutation after Home Manager's write boundary. The
+    # `run` helper turns this into a print-only step during dry-run activation.
+    home.activation.piForceApply = lib.mkIf cfg.forceApplyOnActivation (
+      lib.hm.dag.entryBetween
+        [ (if pkgs.stdenv.hostPlatform.isDarwin then "setupLaunchAgents" else "reloadSystemd") ]
+        [ "writeBoundary" ]
+        ''
+          run ${piConfig}/bin/pi-config apply --force
+        ''
+    );
   };
 }

@@ -22,7 +22,7 @@ A comprehensive Nix configuration for reproducible development environments acro
 - 🚀 **Modern Terminal Setup**: Zsh + FZF + Alacritty with enhanced productivity workflows
 - 🧠 **Powerful IDE**: Neovim with LSP, type annotations, smart navigation, and Claude AI integration
 - 🎯 **Terminal Multiplexers**: Zellij and tmux with discoverable bindings, session management, and persistence
-- 🤖 **Coding Agent**: Regular Pi 0.84.2 in package-only mode, with curated tooling and explicit writable configuration sync
+- 🤖 **Coding Agent**: Regular Pi 0.84.3 in package-only mode, with curated tooling and transactional writable-configuration synchronization
 - 📦 **Package Management**: Nix + Home Manager for reproducible environments
 - 🔧 **Cross-Platform**: macOS (Darwin) and Linux (NixOS) support
 - 🎨 **Consistent Theming**: Luna Comfort’s softened dark palette and amber interaction accent across all applications
@@ -96,7 +96,7 @@ You can use the editor, terminal, multiplexer, and coding-agent configurations i
 | `neovim` | Full NeoVim IDE with LSP, treesitter, and 50+ plugins | `cb.neovim.enable`, `cb.neovim.enableTmuxIntegration`, `cb.neovim.treesitterGrammars` |
 | `terminal` | Zsh + FZF + Starship + Direnv + Zoxide + Alacritty | `cb.terminal.enable`, `cb.terminal.enableFzf`, `cb.terminal.enableStarship`, `cb.terminal.viMode` |
 | `tmux` | Modern tmux with sessions, FZF, and Luna theme | `cb.tmux.enable`, `cb.tmux.enableVimIntegration`, `cb.tmux.enableSessionPersistence` |
-| `pi` | Package-only regular Pi with curated tooling and writable configuration sync | `cb.pi.enable`, `cb.pi.package`, `cb.pi.enableLspTooling`, `cb.pi.extraPackages` |
+| `pi` | Package-only regular Pi with curated tooling and writable configuration sync | `cb.pi.enable`, `cb.pi.package`, `cb.pi.forceApplyOnActivation`, `cb.pi.enableLspTooling`, `cb.pi.extraPackages` |
 | `default` | All modules combined | All options from above |
 
 See [Module Options Documentation](docs/modules.md) for complete configuration options.
