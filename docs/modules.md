@@ -160,6 +160,7 @@ Modern tmux configuration with session management, FZF integration, and the Luna
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `cb.tmux.enable` | boolean | `false` | Enable the tmux configuration |
+| `cb.tmux.package` | package | pinned full-frame tmux build | Override the tmux package; the default tracks upstream PR #5433 and adds rounded pane corners |
 | `cb.tmux.prefix` | string | `"C-Space"` | Tmux prefix key |
 | `cb.tmux.enableVimIntegration` | boolean | `true` | Enable vim-tmux-navigator |
 | `cb.tmux.enableSessionPersistence` | boolean | `true` | Enable resurrect/continuum |
@@ -169,6 +170,8 @@ Modern tmux configuration with session management, FZF integration, and the Luna
 | `cb.tmux.historyLimit` | integer | `50000` | Scrollback buffer size |
 | `cb.tmux.extraConfig` | string | `""` | Additional tmux configuration |
 | `cb.tmux.extraPlugins` | list of packages | `[]` | Additional tmux plugins |
+
+The default package pins tmux commit `fe8f9ff` from upstream PR [#5433](https://github.com/tmux/tmux/pull/5433) until the feature reaches a release. Set `cb.tmux.package = pkgs.tmux` to stay on stock tmux; the configuration will load normally but use heavy joined pane dividers instead of full rounded frames.
 
 #### Example
 
@@ -198,6 +201,7 @@ Modern tmux configuration with session management, FZF integration, and the Luna
 - **Sessions**: resurrect, continuum for automatic save/restore
 - **FZF**: Session switcher, URL picker, content extractor
 - **Theme**: Luna Comfort with an amber-focused custom status line
+- **Pane focus**: Rounded four-sided active frame with a slight gutter, using the pinned upstream separate-border implementation
 - **Which-Key**: Discoverable command palette via `Prefix Space`
 - **Thumbs**: Vimium-style hints for text selection
 

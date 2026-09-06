@@ -9,6 +9,7 @@
 
 let
   cfg = config.cb.tmux;
+  tmuxPackage = import ../../packages/tmux-pane-borders.nix { inherit pkgs; };
 
   # Paths to tmux config files (relative to this module)
   tmuxConfigPath = ../../home/tmux;
@@ -19,6 +20,16 @@ in
 {
   options.cb.tmux = {
     enable = lib.mkEnableOption "Chetan's tmux configuration";
+
+    package = lib.mkOption {
+      type = lib.types.package;
+      default = tmuxPackage;
+      defaultText = lib.literalExpression "tmuxPackage";
+      description = ''
+        Tmux package to install. The default pins upstream PR #5433 for full
+        per-pane frames and carries a small rounded-corner patch.
+      '';
+    };
 
     prefix = lib.mkOption {
       type = lib.types.str;
@@ -78,6 +89,7 @@ in
   config = lib.mkIf cfg.enable {
     programs.tmux = {
       enable = true;
+      package = cfg.package;
       clock24 = true;
       keyMode = "vi";
       mouse = true;

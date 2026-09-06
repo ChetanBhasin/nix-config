@@ -1,10 +1,12 @@
 { config, pkgs, ... }:
 let
+  tmuxPackage = import ../../packages/tmux-pane-borders.nix { inherit pkgs; };
   renamePopup = pkgs.writeShellScript "tmux-rename-popup" (builtins.readFile ./rename-popup.bash);
 in
 {
   programs.tmux = {
     enable = true;
+    package = tmuxPackage;
     clock24 = true;
     keyMode = "vi";
     mouse = true;

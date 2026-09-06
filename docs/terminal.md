@@ -938,7 +938,7 @@ C-Space ? a/d        # Help menu: list/describe keys
 
 **System Integration:**
 - Battery status in status line
-- Activity indicators
+- Inactive window tabs remain uniformly dark; only bell alerts turn red
 
 #### 🎨 **Beautiful Status Line**
 - Luna palette in a compact, one-row top bar
@@ -948,11 +948,13 @@ C-Space ? a/d        # Help menu: list/describe keys
 
 #### 🎯 **Active Pane Clarity**
 - The active window is the only solid amber tab in the status bar
-- The active pane gets heavy amber internal dividers; tmux's half-border colour indicator is disabled
+- The active pane gets a rounded amber frame on all four sides, including terminal-edge corners
+- Every pane reserves a one-cell frame, creating a slight gutter; inactive frames remain blank so focus stays dominant
 - The centered border label uses the pane title, with the current directory shown in a subdued color when width permits
-- Small horizontal spacing around the label adds breathing room without reducing the pane's usable area
 - The amber chip contains only the session name; SSH uses a separate blue badge and places the remote host on the right
-- Native tmux does not provide outer screen-edge pane frames or content padding, so the configuration avoids fragile gutter panes that would consume rows and columns
+- Full frames use the tmux implementation from upstream PR #5433 plus a small rounded-corner patch; overriding `cb.tmux.package` with stock tmux gracefully falls back to heavy joined dividers
+
+> After applying this package change, preserve any needed sessions and run `tmux kill-server` before starting tmux again. Reloading the configuration cannot replace an already-running stock tmux server.
 
 #### 🌐 **SSH Reliability**
 - Tmux uses the Nix-managed Zsh executable instead of assuming `/bin/zsh` exists

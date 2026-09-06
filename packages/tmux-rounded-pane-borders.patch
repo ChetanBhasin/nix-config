@@ -1,0 +1,30 @@
+diff --git a/options-table.c b/options-table.c
+index 9f8522d..5b21c0b 100644
+--- a/options-table.c
++++ b/options-table.c
+@@ -79 +79,2 @@ static const char *options_table_pane_border_lines_list[] = {
+-	"single", "double", "heavy", "simple", "number", "spaces", "none", NULL
++	"single", "rounded", "double", "heavy", "simple", "number", "spaces",
++	"none", NULL
+diff --git a/tmux.1 b/tmux.1
+index 2530f0d..a20025b 100644
+--- a/tmux.1
++++ b/tmux.1
+@@ -5931,0 +5932,2 @@ single lines using ACS or UTF\-8 characters
++.It rounded
++variation of single with rounded corners using UTF\-8 characters
+diff --git a/tmux.h b/tmux.h
+index 389c9dc..bc8d4ac 100644
+--- a/tmux.h
++++ b/tmux.h
+@@ -1145,0 +1146 @@ enum pane_lines {
++	PANE_LINES_ROUNDED,
+diff --git a/window-border.c b/window-border.c
+index 181cc9f..aec9d27 100644
+--- a/window-border.c
++++ b/window-border.c
+@@ -114,0 +115,4 @@ window_get_border_cell(struct window_pane *wp, enum pane_lines pane_lines,
++	case PANE_LINES_ROUNDED:
++		gc->attr &= ~GRID_ATTR_CHARSET;
++		utf8_copy(&gc->data, tty_acs_rounded_borders(cell_type));
++		break;
