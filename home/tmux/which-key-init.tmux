@@ -4,17 +4,15 @@
 # init.tmux: called by plugin.sh.tmux to initialize the plugin.
 #
 
-display -p '[tmux-which-key] Loading plugin ...'
 
 #
 # User options
 #
 
-set -g @wk_cfg_key_root_table "C-Space"
 set -g @wk_cfg_key_prefix_table "Space"
 set -g @wk_cfg_title_style "align=centre,bold"
 set -g @wk_cfg_title_prefix "tmux"
-set -g @wk_cfg_title_prefix_style "fg=#c9a257,bold"
+set -g @wk_cfg_title_prefix_style "fg=#d9a35a,bold"
 set -g @wk_cfg_pos_x "C"
 set -g @wk_cfg_pos_y "C"
 
@@ -31,13 +29,13 @@ set -g @wk_cfg_pos_y "C"
 set -g @wk_menu_sessions \
 '"Switch session" "s" "choose-tree -Zs" \
 "New session" "n" "command-prompt -p \"Session name:\" \"new-session -s '%%'\"" \
-"Rename session" "r" "command-prompt -p \"Rename:\" \"rename-session '%%'\"" \
+"Rename session" "r" rename-session-popup \
 "Kill session" "k" "confirm-before -p \"Kill session? (y/n)\" kill-session" \
 Detach "d" detach-client'
 
 set -g @wk_menu_windows \
-'"New window" "n" "new-window -c \"#{pane_current_path}\"" \
-"Rename window" "r" "command-prompt -p \"Rename:\" \"rename-window '%%'\"" \
+'"New window" "n" "new-window -c #{q:pane_current_path}" \
+"Rename window" "r" rename-window-popup \
 "Kill window" "k" "confirm-before -p \"Kill window? (y/n)\" kill-window" \
 "Choose window" "l" "choose-tree -Zw" \
 "" \
@@ -57,14 +55,14 @@ Tiled "t" "select-layout tiled" \
 "Next layout" "n" next-layout'
 
 set -g @wk_menu_panes \
-'"Split vertical" "|" "split-window -h -c \"#{pane_current_path}\"" \
-"Split horizontal" "-" "split-window -v -c \"#{pane_current_path}\"" \
+'"Split vertical" "|" "split-window -h -c #{q:pane_current_path}" \
+"Split horizontal" "-" "split-window -v -c #{q:pane_current_path}" \
 "" \
 "Zoom toggle" "z" "resize-pane -Z" \
 "Kill pane" "k" "confirm-before -p \"Kill pane? (y/n)\" kill-pane" \
 "Break to window" "!" break-pane \
 "Mark pane" "m" "select-pane -m" \
-"Rename pane" "R" "command-prompt -p \"Pane title:\" \"select-pane -T '%%'\"" \
+"Rename pane" "R" rename-pane-popup \
 "" \
 "+Resize" "r" "show-wk-menu #{@wk_menu_resize}" \
 "+Layouts" "L" "show-wk-menu #{@wk_menu_layouts}"'
@@ -86,11 +84,11 @@ set -g @wk_menu_help \
 "Describe key" "d" "command-prompt -p \"Key:\" \"list-keys -1 '%%'\""'
 
 set -g @wk_menu_root \
-'"New window" "c" "new-window -c \"#{pane_current_path}\"" \
+'"New window" "c" "new-window -c #{q:pane_current_path}" \
 "Next window" "n" next-window \
 "Previous window" "N" previous-window \
-"Split vertical" "|" "split-window -h -c \"#{pane_current_path}\"" \
-"Split horizontal" "-" "split-window -v -c \"#{pane_current_path}\"" \
+"Split vertical" "|" "split-window -h -c #{q:pane_current_path}" \
+"Split horizontal" "-" "split-window -v -c #{q:pane_current_path}" \
 "Zoom pane" "z" "resize-pane -Z" \
 "Kill pane" "x" "confirm-before -p \"Kill pane? (y/n)\" kill-pane" \
 "Reload config" "r" "macro reload-config" \
@@ -98,19 +96,12 @@ set -g @wk_menu_root \
 "Toggle status" "t" "set-option -g status" \
 "Copy mode" "[" copy-mode \
 "Paste buffer" "]" paste-buffer \
-"Thumbs (hints)" "T" thumbs-pick \
-"" \
-"Pane left" "h" "select-pane -L" \
-"Pane down" "j" "select-pane -D" \
-"Pane up" "k" "select-pane -U" \
-"Pane right" "l" "select-pane -R" \
-"" \
+"Thumbs (hints)" "T" cb-thumbs \
 "+Sessions" "s" "show-wk-menu #{@wk_menu_sessions}" \
 "+Windows" "w" "show-wk-menu #{@wk_menu_windows}" \
 "+Panes" "p" "show-wk-menu #{@wk_menu_panes}" \
 "+Git" "g" "show-wk-menu #{@wk_menu_git}" \
 "+Find" "f" "show-wk-menu #{@wk_menu_find}" \
-"" \
 "+Help" "?" "show-wk-menu #{@wk_menu_help}"'
 
 #
@@ -130,21 +121,11 @@ set -gF command-alias[201] show-wk-menu-root=\
 '#{@wk_cmd_show} #{@wk_menu_root}'
 
 set -gF command-alias[202] reload-config=\
-'source-file ~/.tmux.conf ; \
+'source-file -F "#{@cb_tmux_config}" ; \
 display-message "Config reloaded!"'
 
 #
 # Keybindings
 #
 
-display -p "[tmux-which-key] Binding root table key to #{@wk_cfg_key_root_table} ..."
-run-shell "tmux bind-key -Troot #{@wk_cfg_key_root_table} show-wk-menu-root"
-
-# Also bind C-@ (NUL) as fallback - this is what Ctrl+Space sends in traditional terminals
-display -p "[tmux-which-key] Binding C-@ (NUL) as fallback for Ctrl+Space ..."
-run-shell "tmux bind-key -Troot 'C-@' show-wk-menu-root"
-
-display -p "[tmux-which-key] Binding prefix table key to #{@wk_cfg_key_prefix_table} ..."
 run-shell "tmux bind-key -Tprefix #{@wk_cfg_key_prefix_table} show-wk-menu-root"
-
-display -p '[tmux-which-key] Done'

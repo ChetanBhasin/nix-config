@@ -3,7 +3,6 @@ command_alias_start_index: 200
 
 keybindings:
   prefix_table: Space
-  root_table: C-Space
 
 title:
   style: "align=centre,bold"
@@ -19,14 +18,14 @@ custom_variables: []
 macros:
   - name: reload-config
     commands:
-      - "source-file ~/.tmux.conf"
+      - "source-file -F \"#{@cb_tmux_config}\""
       - "display-message \"Config reloaded!\""
 
 items:
   # Quick actions
   - name: "New window"
     key: "c"
-    command: "new-window -c \"#{pane_current_path}\""
+    command: "new-window -c #{q:pane_current_path}"
 
   - name: "Next window"
     key: "n"
@@ -38,11 +37,11 @@ items:
 
   - name: "Split vertical"
     key: "|"
-    command: "split-window -h -c \"#{pane_current_path}\""
+    command: "split-window -h -c #{q:pane_current_path}"
 
   - name: "Split horizontal"
     key: "-"
-    command: "split-window -v -c \"#{pane_current_path}\""
+    command: "split-window -v -c #{q:pane_current_path}"
 
   - name: "Zoom pane"
     key: "z"
@@ -74,28 +73,7 @@ items:
 
   - name: "Thumbs (hints)"
     key: "T"
-    command: "thumbs-pick"
-
-  - separator: true
-
-  # Pane navigation
-  - name: "Pane left"
-    key: "h"
-    command: "select-pane -L"
-
-  - name: "Pane down"
-    key: "j"
-    command: "select-pane -D"
-
-  - name: "Pane up"
-    key: "k"
-    command: "select-pane -U"
-
-  - name: "Pane right"
-    key: "l"
-    command: "select-pane -R"
-
-  - separator: true
+    command: "cb-thumbs"
 
   # Sessions submenu (simple commands only)
   - name: "+Sessions"
@@ -111,7 +89,7 @@ items:
 
       - name: "Rename session"
         key: "r"
-        command: "command-prompt -p \"Rename:\" \"rename-session '%%'\""
+        command: "rename-session-popup"
 
       - name: "Kill session"
         key: "k"
@@ -127,11 +105,11 @@ items:
     menu:
       - name: "New window"
         key: "n"
-        command: "new-window -c \"#{pane_current_path}\""
+        command: "new-window -c #{q:pane_current_path}"
 
       - name: "Rename window"
         key: "r"
-        command: "command-prompt -p \"Rename:\" \"rename-window '%%'\""
+        command: "rename-window-popup"
 
       - name: "Kill window"
         key: "k"
@@ -157,11 +135,11 @@ items:
     menu:
       - name: "Split vertical"
         key: "|"
-        command: "split-window -h -c \"#{pane_current_path}\""
+        command: "split-window -h -c #{q:pane_current_path}"
 
       - name: "Split horizontal"
         key: "-"
-        command: "split-window -v -c \"#{pane_current_path}\""
+        command: "split-window -v -c #{q:pane_current_path}"
 
       - separator: true
 
@@ -183,7 +161,7 @@ items:
 
       - name: "Rename pane"
         key: "R"
-        command: "command-prompt -p \"Pane title:\" \"select-pane -T '%%'\""
+        command: "rename-pane-popup"
 
       - separator: true
 
@@ -268,8 +246,6 @@ items:
       - name: "Command prompt"
         key: ":"
         command: "command-prompt"
-
-  - separator: true
 
   # Help
   - name: "+Help"

@@ -165,7 +165,7 @@ Modern tmux configuration with session management, FZF integration, and the Luna
 | `cb.tmux.enableSessionPersistence` | boolean | `true` | Enable resurrect/continuum |
 | `cb.tmux.enableFzfIntegration` | boolean | `true` | Enable FZF-powered features |
 | `cb.tmux.enableThumbs` | boolean | `true` | Enable tmux-thumbs (vimium-like hints) |
-| `cb.tmux.shell` | string | `"/bin/zsh"` | Default shell |
+| `cb.tmux.shell` | string | Nix-managed `zsh` | Default shell executable |
 | `cb.tmux.historyLimit` | integer | `50000` | Scrollback buffer size |
 | `cb.tmux.extraConfig` | string | `""` | Additional tmux configuration |
 | `cb.tmux.extraPlugins` | list of packages | `[]` | Additional tmux plugins |
@@ -198,19 +198,24 @@ Modern tmux configuration with session management, FZF integration, and the Luna
 - **Sessions**: resurrect, continuum for automatic save/restore
 - **FZF**: Session switcher, URL picker, content extractor
 - **Theme**: Luna Comfort with an amber-focused custom status line
-- **Which-Key**: Discoverable keybindings via `?`
+- **Which-Key**: Discoverable command palette via `Prefix Space`
 - **Thumbs**: Vimium-style hints for text selection
 
 #### Key Bindings
+`Prefix` below means `C-Space` by default; `cb.tmux.prefix` changes only that first chord.
 
 | Binding | Action |
 |---------|--------|
-| `C-Space ?` | Show help menu |
-| `C-Space s` | Sessions menu |
-| `C-Space w` | Windows menu |
-| `C-Space p` | Panes menu |
-| `C-Space g` | Git menu |
-| `C-Space f` | Find menu |
+| `Prefix Space` | Main command palette |
+| `Prefix F` | FZF action palette |
+| `Prefix P` | Project switcher |
+| `Prefix S` | FZF session switcher |
+| `Prefix ?` | Show help menu |
+| `Prefix s` | Sessions menu |
+| `Prefix w` | Windows menu |
+| `Prefix p` | Panes menu |
+| `Prefix g` | Git menu |
+| `Prefix f` | Find menu |
 | `Alt+1-5` | Quick session switch |
 | `Alt+h/l` | Previous/next window |
 

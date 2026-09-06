@@ -1,9 +1,14 @@
-{ config, pkgs, ... }: {
+{ config, pkgs, ... }:
+let
+  renamePopup = pkgs.writeShellScript "tmux-rename-popup" (builtins.readFile ./rename-popup.bash);
+in
+{
   programs.tmux = {
     enable = true;
     clock24 = true;
     keyMode = "vi";
     mouse = true;
+    historyLimit = 50000;
 
     # Use C-Space as prefix (ergonomic, no conflicts with shell/terminal/neovim)
     prefix = "C-Space";
@@ -26,9 +31,7 @@
       fzf-tmux-url
 
       # Visual feedback and status
-      prefix-highlight
       battery
-      cpu
 
       # Clipboard integration
       yank
@@ -38,16 +41,19 @@
 
     ];
 
-    # Shell integration - use system zsh which is in /etc/shells
-    shell = "/bin/zsh";
+    # Use an immutable, cross-platform shell path (there is no /bin/zsh on NixOS)
+    shell = "${pkgs.zsh}/bin/zsh";
 
     extraConfig = ''
+      set -g @cb_tmux_config ${builtins.toJSON "${config.xdg.configHome}/tmux/tmux.conf"}
+      set -g @cb_tmux_which_key ${builtins.toJSON "${config.xdg.configHome}/tmux/which-key-init.tmux"}
+      set -g @cb_tmux_rename_popup ${builtins.toJSON "${renamePopup}"}
       ${builtins.readFile ./tmux.conf}
     '';
   };
 
   # Pre-generated which-key menu (generated from which-key-config.yaml via build.py)
-  home.file.".config/tmux/which-key-init.tmux".source = ./which-key-init.tmux;
+  xdg.configFile."tmux/which-key-init.tmux".source = ./which-key-init.tmux;
 
   # Install required dependencies
   home.packages = with pkgs; [
@@ -57,6 +63,10 @@
     bat
     jq
     python313
+    # Keep Alacritty's TERM entry available on SSH destinations
+    alacritty.terminfo
     coreutils
+    git
+    lazygit
   ];
 }

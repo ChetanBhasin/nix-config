@@ -15,10 +15,10 @@ This guide covers the comprehensive terminal setup including Zsh, Alacritty, and
 
 ### 🎯 **Quick Start**
 - **Command Palette**: `C-Space Space` - Your central hub for all operations
-- **FZF Menu**: `C-Space f` - Fuzzy find sessions, windows, files, processes
+- **FZF Menu**: `C-Space F` - Fuzzy find sessions, windows, files, and content
 - **Project Switcher**: `C-Space P` - Jump between your ~/Projects instantly
-- **Session Switcher**: `C-Space s` - FZF-powered session navigation
-- **Help System**: `C-Space F1` - Built-in documentation
+- **Session Switcher**: `C-Space S` - FZF-powered session navigation
+- **Help System**: `C-Space ?` - List or describe configured keys
 
 ---
 
@@ -876,82 +876,105 @@ export FZF_DEFAULT_OPTS="$FZF_DEFAULT_OPTS
 #### 🎯 **Command Palette System**
 Like Legendary in Neovim or VS Code's Command Palette:
 
-**Primary Command Palette:**
-- `Ctrl+g Space` - Opens the main command palette
-- Organized by categories: Sessions, Windows, Panes, Utilities
-- Visual documentation for all commands
+**Main Command Palette:**
+- `C-Space Space` opens the root menu
+- The menu exposes quick actions plus Sessions, Windows, Panes, Git, Find, and Help submenus
+- Press the displayed key to run an action; submenu keys are shown in the next menu
 
-**FZF Integration Menu:**
-- `Ctrl+g f` - Opens FZF-powered menu
-- Switch sessions, find windows, manage processes
-- File browsing with preview
-- URL extraction and opening
+**FZF Actions:**
+- `C-Space F` opens the full FZF action palette
+- `C-Space P` switches projects under `~/Projects`
+- `C-Space S` switches sessions with FZF
+- `C-Space u` finds URLs and `C-Space Tab` opens Extrakto
 
 #### 🔧 **Enhanced Keybindings**
 
 **Prefix Key:** `C-Space` (ergonomic, no conflicts with shell/terminal/neovim)
 
 **Session Management:**
-```bash
-C-Space s    # Switch session (FZF)
-C-Space S    # New session
-C-Space R    # Rename session
-C-Space X    # Kill session
-Alt+1-5      # Quick session switching
+```text
+C-Space s s      # Open Sessions menu, then switch
+C-Space s n      # New session
+C-Space s r      # Rename session in a centered input popup
+C-Space s k      # Kill session
+C-Space s d      # Detach
+Alt+1-5          # Quick session switching
 ```
 
 **Window Management:**
-```bash
-C-Space c    # New window
-C-Space n/p  # Next/Previous window
-C-Space w    # Choose window
-Alt+h/l      # Navigate windows
+```text
+C-Space c        # New window
+C-Space n / N    # Next / previous window
+C-Space w l      # Open Windows menu, then choose a window
+C-Space w r      # Rename window in a centered input popup
+Alt+h / Alt+l    # Previous / next window
 ```
 
 **Pane Management:**
-```bash
-C-Space |    # Split vertical
-C-Space -    # Split horizontal
-C-Space h/j/k/l  # Navigate panes (vim-style)
-C-Space H/J/K/L  # Resize panes
-C-Space z    # Zoom pane
+```text
+C-Space | / -        # Split side-by-side / stacked
+C-Space h/j/k/l      # Navigate panes (vim-style)
+C-Space H/J/K/L      # Resize panes
+C-Space z / x        # Zoom / kill pane
+C-Space p            # Open Panes menu for advanced actions
+C-Space p R          # Rename pane in a centered input popup
 ```
+
+Pane, window, and session rename actions open a focused popup with the current name prefilled. The standard `C-Space ,` and `C-Space $` bindings use the same popups. Names are passed literally, so spaces and punctuation are preserved.
 
 #### 📋 **Advanced Copy & Clipboard**
-- Vi-style copy mode bindings
-- System clipboard integration
-- Smart text selection with Extrakto
-- Mouse support for copy/paste
+- `C-Space [` enters vi-style copy mode; `v` selects and `y` copies
+- `C-Space ]` pastes the tmux buffer
+- `C-Space Space T` opens tmux-thumbs from the command palette
+- OSC 52 carries copied text through SSH to the local terminal clipboard
+- Mouse drag selection uses the same portable clipboard path
 
-#### 🔍 **Search & Navigation**
-```bash
-C-Space /    # Search backward
-C-Space ?    # Search forward
-C-Space [    # Enter copy mode
+#### 🧭 **Discoverable Submenus**
+```text
+C-Space g g/s/l/d    # Git menu: lazygit/status/log/diff
+C-Space f c/l/r/:    # Find menu: copy/messages/reload/command
+C-Space ? a/d        # Help menu: list/describe keys
 ```
-
-#### 🚀 **Productivity Features**
-
-**Project Integration:**
-- `C-Space P` - Project switcher (integrates with ~/Projects)
-- Automatic session naming based on project directories
-
-**Development Helpers:**
-- `C-Space g` - Git status popup
-- `C-Space !` - Quick command execution
-- Smart URL detection and opening
 
 **System Integration:**
 - Battery status in status line
-- CPU usage monitoring
 - Activity indicators
 
 #### 🎨 **Beautiful Status Line**
-- Luna theme
-- Battery status with icons
-- Date/time display
-- Session and window information
-- Prefix key highlighting
+- Luna palette in a compact, one-row top bar
+- The session name, windows, selected-pane title, and time stay visible; optional context is hidden as the client narrows
+- Optional command, battery, and path context remains width-aware; SSH hosts appear on the right
+- Explicit `ZOOM`, `COMMAND`, `COPY`, and `SYNC` mode badges
+
+#### 🎯 **Active Pane Clarity**
+- The active window is the only solid amber tab in the status bar
+- The active pane gets heavy amber internal dividers; tmux's half-border colour indicator is disabled
+- The centered border label uses the pane title, with the current directory shown in a subdued color when width permits
+- Small horizontal spacing around the label adds breathing room without reducing the pane's usable area
+- The amber chip contains only the session name; SSH uses a separate blue badge and places the remote host on the right
+- Native tmux does not provide outer screen-edge pane frames or content padding, so the configuration avoids fragile gutter panes that would consume rows and columns
+
+#### 🌐 **SSH Reliability**
+- Tmux uses the Nix-managed Zsh executable instead of assuming `/bin/zsh` exists
+- The Alacritty terminfo entry is installed so direct Alacritty SSH sessions are recognized
+- Known Alacritty clients advertise RGB, clipboard, focus, and extended-key support; generic clients retain tmux's conservative defaults
+- A conservative `50ms` escape-sequence tolerance remains reliable when SSH clients join an existing server
+- Copy mode uses tmux's OSC 52 clipboard path, so the existing `y` and mouse bindings work on both Darwin and Linux
+
+Terminal features are negotiated when a client attaches. After applying a terminal-related change, detach and reattach; after changing `default-terminal`, restart the tmux server. Useful diagnostics:
+
+```bash
+tmux display-message -p 'client=#{client_termname} features=#{client_termfeatures}'
+tmux show-options -sv escape-time
+tmux info | grep -E 'RGB:|Tc:|Ms:'
+```
+
+If an unmanaged destination does not know `tmux-256color`, use a one-connection fallback or install the terminfo entry once:
+
+```bash
+TERM=xterm-256color ssh host
+infocmp -x tmux-256color | ssh host 'tic -x -o ~/.terminfo -'
+```
 
 #### 💾 **Session Persistence**
 - Automatic session saving every 15 minutes

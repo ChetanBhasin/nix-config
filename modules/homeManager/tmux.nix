@@ -12,6 +12,9 @@ let
 
   # Paths to tmux config files (relative to this module)
   tmuxConfigPath = ../../home/tmux;
+  renamePopup = pkgs.writeShellScript "tmux-rename-popup" (
+    builtins.readFile (tmuxConfigPath + "/rename-popup.bash")
+  );
 in
 {
   options.cb.tmux = {
@@ -49,8 +52,8 @@ in
 
     shell = lib.mkOption {
       type = lib.types.str;
-      default = "/bin/zsh";
-      description = "Default shell to use in tmux";
+      default = "${pkgs.zsh}/bin/zsh";
+      description = "Default shell executable to use in tmux";
     };
 
     historyLimit = lib.mkOption {
@@ -80,6 +83,7 @@ in
       mouse = true;
       prefix = cfg.prefix;
       shell = cfg.shell;
+      historyLimit = cfg.historyLimit;
 
       plugins =
         with pkgs.tmuxPlugins;
@@ -89,9 +93,7 @@ in
           pain-control
 
           # Visual feedback
-          prefix-highlight
           battery
-          cpu
 
           # Clipboard
           yank
@@ -118,18 +120,29 @@ in
         ++ cfg.extraPlugins;
 
       extraConfig = ''
+        set -g @cb_tmux_config ${builtins.toJSON "${config.xdg.configHome}/tmux/tmux.conf"}
+        set -g @cb_tmux_which_key ${builtins.toJSON "${config.xdg.configHome}/tmux/which-key-init.tmux"}
+        set -g @cb_tmux_rename_popup ${builtins.toJSON "${renamePopup}"}
+        set -g @cb_tmux_fzf ${if cfg.enableFzfIntegration then "1" else "0"}
+        set -g @cb_tmux_thumbs ${if cfg.enableThumbs then "1" else "0"}
         ${builtins.readFile (tmuxConfigPath + "/tmux.conf")}
         ${cfg.extraConfig}
       '';
     };
 
     # Pre-generated which-key menu configuration
-    home.file.".config/tmux/which-key-init.tmux".source = tmuxConfigPath + "/which-key-init.tmux";
+    xdg.configFile."tmux/which-key-init.tmux".source = tmuxConfigPath + "/which-key-init.tmux";
 
     # Required packages for tmux features
     home.packages =
       with pkgs;
-      [ coreutils ]
+      [
+        # Keep Alacritty's TERM entry available on SSH destinations
+        alacritty.terminfo
+        coreutils
+        git
+        lazygit
+      ]
       ++ lib.optionals cfg.enableFzfIntegration [
         fzf
         ripgrep
