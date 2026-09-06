@@ -5,7 +5,7 @@
 # surface ladder with gentler normal-text contrast. Its semantic accent hues
 # remain unchanged. Amber is the primary interaction accent for active/focused UI
 # chrome, while traditional Base16 slot semantics keep functions blue and errors
-# red across every consumer (Helix, Waybar, Starship, Alacritty, and others).
+# red across every consumer (Helix, Quickshell, Starship, Alacritty, and others).
 # Neovim applies the same local palette via luna.nvim's supported on_colors hook
 # while retaining upstream integrations.
 rec {

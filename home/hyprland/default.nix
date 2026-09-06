@@ -12,12 +12,14 @@ let
   rgb = colour: "rgb(${removePrefix "#" colour})";
   font = "JetBrainsMono Nerd Font";
   terminal = "alacritty";
+  quickshell = getExe pkgs.quickshell;
   # A fresh Hyprland install gives no hint that SUPER is the modkey, so one
   # bind prints the map. The body is built here and shell-escaped because a
   # hyprlang `bind =` entry is single-line: real newlines cannot live in it.
   keybindHelp = concatStringsSep "\n" [
     "SUPER + Return      terminal"
     "SUPER + D / Space   launcher"
+    "SUPER + N           control center"
     "SUPER + Q           close window"
     "SUPER + M           exit Hyprland"
     "SUPER + H/J/K/L     focus left/down/up/right"
@@ -40,7 +42,7 @@ in
   # opts in.
   config = mkIf cfg.enableHyprland {
     # `home/default.nix` is imported by the Darwin hosts too; failing here is
-    # far clearer than mako/tofi erroring out as unsupported packages.
+    # far clearer than Linux-only desktop modules failing during evaluation.
     assertions = [
       {
         assertion = pkgs.stdenv.hostPlatform.isLinux;
@@ -58,14 +60,13 @@ in
       # Pin it so the generated file stays a plain hyprland.conf.
       configType = "hyprlang";
 
-      # systemd.enable is left at its default: it creates hyprland-session.target,
-      # which BindsTo graphical-session.target and is what autostarts waybar,
-      # mako, hypridle and the tray applets below.
+      # Home Manager creates hyprland-session.target; Quickshell, hypridle and
+      # the tray applets bind to that session lifecycle.
 
       settings = {
         "$mod" = "SUPER";
         "$terminal" = terminal;
-        "$menu" = "tofi-drun --drun-launch=true";
+        "$menu" = "${quickshell} ipc --config luna call launcher toggle";
 
         # The display's native geometry is not known at build time, so let Hyprland pick.
         monitor = [ ",preferred,auto,auto" ];
@@ -78,7 +79,7 @@ in
             natural_scroll = true;
             disable_while_typing = true;
             # libinput defaults this off; a laptop user expects a tap to click.
-            tap_to_click = true;
+            "tap-to-click" = true;
           };
         };
 
@@ -120,13 +121,11 @@ in
         };
 
         dwindle = {
-          pseudotile = true;
           preserve_split = true;
         };
 
-        # No exec-once: waybar, mako, hypridle, hyprpolkitagent and the tray
-        # applets are all home-manager user services started by
-        # hyprland-session.target. Launching them here would double-start them.
+        # No exec-once: Quickshell and the remaining session daemons are
+        # Home Manager services started by hyprland-session.target.
 
         bind = [
           "$mod, Return, exec, $terminal"
@@ -137,12 +136,13 @@ in
           "$mod, P, pseudo"
           "$mod, D, exec, $menu"
           "$mod, SPACE, exec, $menu"
+          "$mod, N, exec, ${quickshell} ipc --config luna call dashboard toggle"
           "$mod, slash, exec, ${cheatsheet}"
 
           # $mod+J and $mod+L are taken by vim-style focus movement below, so
           # togglesplit and the lock screen keep their mnemonic letters one
           # modifier over rather than firing alongside a movefocus.
-          "$mod ALT, J, togglesplit"
+          "$mod ALT, J, layoutmsg, togglesplit"
           "$mod ALT, L, exec, hyprlock"
 
           "$mod, H, movefocus, l"
@@ -225,227 +225,6 @@ in
           ", XF86AudioNext, exec, playerctl next"
           ", XF86AudioPrev, exec, playerctl previous"
         ];
-      };
-    };
-
-    programs.waybar = {
-      enable = true;
-      # systemd.targets is left at its default ([ graphical-session.target ]),
-      # which hyprland-session.target binds to.
-      systemd.enable = true;
-
-      settings.mainBar = {
-        layer = "top";
-        position = "top";
-        height = 34;
-
-        modules-left = [
-          "hyprland/workspaces"
-        ];
-        modules-center = [ "hyprland/window" ];
-        modules-right = [
-          "pulseaudio"
-          "backlight"
-          "battery"
-          "network"
-          "tray"
-          "clock"
-        ];
-
-        "hyprland/workspaces" = {
-          format = "{name}";
-          on-click = "activate";
-          sort-by-number = true;
-        };
-
-        "hyprland/window" = {
-          format = "{title}";
-          max-length = 80;
-          separate-outputs = true;
-        };
-
-        pulseaudio = {
-          format = "{icon} {volume}%";
-          format-muted = "󰝟";
-          format-icons.default = [
-            "󰕿"
-            "󰖀"
-            "󰕾"
-          ];
-          scroll-step = 5;
-          on-click = "pavucontrol";
-        };
-
-        backlight = {
-          format = "{icon} {percent}%";
-          format-icons = [
-            "󰃞"
-            "󰃟"
-            "󰃠"
-          ];
-          on-scroll-up = "brightnessctl set 5%+";
-          on-scroll-down = "brightnessctl set 5%-";
-        };
-
-        battery = {
-          states = {
-            warning = 30;
-            critical = 15;
-          };
-          format = "{icon} {capacity}%";
-          format-charging = "󰂄 {capacity}%";
-          format-plugged = "󰚥 {capacity}%";
-          format-icons = [
-            "󰁺"
-            "󰁼"
-            "󰁾"
-            "󰂀"
-            "󰂂"
-            "󰁹"
-          ];
-          tooltip-format = "{timeTo} ({power} W)";
-        };
-
-        network = {
-          format-wifi = "󰖩 {essid}";
-          format-ethernet = "󰈀 {ifname}";
-          format-disconnected = "󰖪";
-          tooltip-format = "{ifname}: {ipaddr}/{cidr}";
-        };
-
-        tray = {
-          icon-size = 16;
-          spacing = 8;
-        };
-
-        clock = {
-          format = "󰃰 {:%a %d %b  %H:%M}";
-          format-alt = "{:%Y-%m-%d %H:%M:%S}";
-          tooltip-format = "<tt>{calendar}</tt>";
-        };
-      };
-
-      style = ''
-        * {
-          border: none;
-          border-radius: 0;
-          font-family: "${font}";
-          font-size: 13px;
-          min-height: 0;
-        }
-
-        window#waybar {
-          background-color: ${theme.base00};
-          color: ${theme.base05};
-        }
-
-        #workspaces button {
-          padding: 0 8px;
-          background-color: transparent;
-          color: ${theme.base03};
-        }
-
-        #workspaces button.active {
-          color: ${theme.primaryAccent};
-          box-shadow: inset 0 -2px ${theme.primaryAccent};
-        }
-
-        #workspaces button.urgent {
-          color: ${theme.base08};
-        }
-
-        #window {
-          padding: 0 8px;
-          color: ${theme.base04};
-        }
-
-        #pulseaudio,
-        #backlight,
-        #battery,
-        #network,
-        #tray,
-        #clock {
-          padding: 0 10px;
-          color: ${theme.base05};
-        }
-
-        #clock {
-          color: ${theme.base0D};
-        }
-        #pulseaudio.muted {
-          color: ${theme.base03};
-        }
-
-        #network.disconnected {
-          color: ${theme.base08};
-        }
-
-
-        #battery.good,
-        #battery.charging,
-        #battery.plugged {
-          color: ${theme.base0B};
-        }
-
-        #battery.warning {
-          color: ${theme.warning};
-        }
-
-        #battery.critical {
-          color: ${theme.base08};
-        }
-      '';
-    };
-
-    programs.tofi = {
-      enable = true;
-      settings = {
-        font = font;
-        font-size = 13;
-        anchor = "center";
-        width = 620;
-        height = 340;
-        num-results = 8;
-        result-spacing = 4;
-        border-width = 2;
-        border-color = theme.activeBorder;
-        outline-width = 0;
-        outline-color = theme.base00;
-        corner-radius = 6;
-        padding-top = 12;
-        padding-bottom = 12;
-        padding-left = 16;
-        padding-right = 16;
-        background-color = theme.base00;
-        text-color = theme.base05;
-        selection-color = theme.primaryAccent;
-        prompt-color = theme.primaryAccent;
-        # tofi trims value whitespace, so the separating space lives here.
-        prompt-text = "run:";
-      };
-    };
-
-    services.mako = {
-      enable = true;
-      settings = {
-        font = "${font} 11";
-        anchor = "top-right";
-        layer = "overlay";
-        width = 380;
-        height = 140;
-        margin = 10;
-        padding = "10,14";
-        border-size = 2;
-        border-radius = 6;
-        background-color = theme.base01;
-        text-color = theme.base05;
-        border-color = theme.activeBorder;
-        progress-color = "over ${theme.base02}";
-        default-timeout = 6000;
-        icons = true;
-        max-icon-size = 32;
-        markup = true;
-        actions = true;
       };
     };
 
