@@ -17,6 +17,11 @@ in
     enableExtras = lib.mkEnableOption "enable extra packages";
     enableProf = lib.mkEnableOption "enable professional packages";
     enableHyprland = lib.mkEnableOption "Hyprland desktop session";
+    tmuxFleetRemoteHosts = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = [ ];
+      description = "OpenSSH aliases for remote tmux-fleet peers (excluding this host)";
+    };
   };
 
   imports = [

@@ -166,6 +166,13 @@ Modern tmux configuration with session management, FZF integration, and the Gruv
 | `cb.tmux.enableSessionPersistence` | boolean | `true` | Enable resurrect/continuum |
 | `cb.tmux.enableFzfIntegration` | boolean | `true` | Enable FZF-powered features |
 | `cb.tmux.enableThumbs` | boolean | `true` | Enable tmux-thumbs (vimium-like hints) |
+| `cb.tmux.fleet.enable` | boolean | `false` | Enable the local/SSH tmux fleet picker on `Prefix s` |
+| `cb.tmux.fleet.remoteHosts` | list of strings | `[]` | OpenSSH aliases for participating peers; omit the current host |
+| `cb.tmux.fleet.reconcileSeconds` | integer | `30` | Slow watcher reconciliation interval |
+| `cb.tmux.fleet.connectTimeoutSeconds` | integer | `5` | Non-interactive SSH connection timeout |
+| `cb.tmux.fleet.serverAliveIntervalSeconds` | integer | `15` | OpenSSH keepalive interval |
+| `cb.tmux.fleet.serverAliveCountMax` | integer | `2` | Missed keepalives before a connection is stale |
+| `cb.tmux.fleet.controlPersistSeconds` | integer | `600` | ControlMaster idle lifetime |
 | `cb.tmux.shell` | string | Nix-managed `zsh` | Default shell executable |
 | `cb.tmux.historyLimit` | integer | `50000` | Scrollback buffer size |
 | `cb.tmux.extraConfig` | string | `""` | Additional tmux configuration |
@@ -182,6 +189,10 @@ The default package pins tmux commit `fe8f9ff` from upstream PR [#5433](https://
     prefix = "C-a";  # Use traditional prefix instead of C-Space
     enableVimIntegration = true;
     enableSessionPersistence = true;
+    fleet = {
+      enable = true;
+      remoteHosts = [ "workstation" "server" ]; # OpenSSH host aliases
+    };
 
     # Add custom configuration
     extraConfig = ''
@@ -199,14 +210,46 @@ The default package pins tmux commit `fe8f9ff` from upstream PR [#5433](https://
 - **Prefix**: `C-Space` (ergonomic, no conflicts)
 - **Navigation**: vim-tmux-navigator for seamless splits
 - **Sessions**: resurrect, continuum for automatic save/restore
+- **Fleet picker**: Cached local and SSH-hosted sessions with event-driven
+  refresh, explicit reauthentication, and no nested tmux UI
 - **FZF**: Session switcher, URL picker, content extractor
 - **Theme**: Gruvbox Night with an orange-focused custom status line
-- **Pane focus**: Rounded four-sided active frame with a slight gutter, using the pinned upstream separate-border implementation
+- **Pane focus**: Rounded four-sided active frame with a slight gutter, using
+  the pinned upstream separate-border implementation
 - **Which-Key**: Discoverable command palette via `Prefix Space`
 - **Thumbs**: Vimium-style hints for text selection
 
+#### Fleet prerequisites and lifecycle
+
+Enable `cb.tmux.fleet` on every participating machine and configure
+`remoteHosts` with the other machines' OpenSSH aliases. Each alias must support
+public-key authentication and resolve to a host whose Home Manager generation
+provides `tmux`, the plugin, and `~/.local/libexec/tmux-fleet`. Discovery uses
+noninteractive OpenSSH, disables agent forwarding, and never opens a public
+listener.
+
+With fleet mode enabled, `Prefix s` replaces an ordinary tmux client with the
+controller and opens the cached picker. Local hooks and remote watcher streams
+reload FZF as state changes; a slow full snapshot repairs missed events. Inside
+a controller-managed local or remote client, `Prefix s` returns exit code 42
+to the existing controller and reopens that picker without nesting tmux. A
+normal `Prefix d` detach exits the controller and returns to the shell.
+
+Offline hosts retain their last accepted sessions as stale entries. Choosing
+**Reconnect** leaves FZF and runs foreground OpenSSH so private-key
+PIN/passphrase, FIDO touch, and host-key prompts can proceed; password and
+keyboard-interactive authentication remain disabled. Existing targets are
+atomically revalidated by server generation, session ID, and creation time
+before attachment.
+
+For protocol details, state paths, standalone configuration, and
+troubleshooting, see the
+[`tmux-fleet` README](../packages/tmux-fleet/README.md).
+
 #### Key Bindings
-`Prefix` below means `C-Space` by default; `cb.tmux.prefix` changes only that first chord.
+
+`Prefix` below means `C-Space` by default; `cb.tmux.prefix` changes only that
+first chord.
 
 | Binding | Action |
 |---------|--------|
@@ -215,7 +258,7 @@ The default package pins tmux commit `fe8f9ff` from upstream PR [#5433](https://
 | `Prefix P` | Project switcher |
 | `Prefix S` | FZF session switcher |
 | `Prefix ?` | Show help menu |
-| `Prefix s` | Sessions menu |
+| `Prefix s` | Fleet picker when enabled; otherwise sessions menu |
 | `Prefix w` | Windows menu |
 | `Prefix p` | Panes menu |
 | `Prefix g` | Git menu |

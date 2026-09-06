@@ -1,0 +1,8 @@
+#!/usr/bin/env sh
+set -eu
+
+if [ "${TMUX_FLEET_MANAGED-}" = 1 ]; then
+  exit 42
+fi
+
+exec @tmuxFleet@ run

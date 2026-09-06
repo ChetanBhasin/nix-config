@@ -1,2 +1,15 @@
-result
-.vscode/*
+# Nix build outputs
+/result
+/result-*
+.direnv/
+
+# Editor and OS state
+.vscode/
+.DS_Store
+
+# Language build and cache artifacts
+**/target/
+**/__pycache__/
+*.py[cod]
+node_modules/
+coverage/
