@@ -3,6 +3,7 @@
 -- ═══════════════════════════════════════════════════════════════════════════════
 
 local rainbow_delimiters = require('rainbow-delimiters')
+local palette = require("custom.palette")
 
 vim.g.rainbow_delimiters = {
     strategy = {
@@ -28,11 +29,11 @@ vim.g.rainbow_delimiters = {
     },
 }
 
--- Custom highlight groups using Luna's accents
-vim.api.nvim_set_hl(0, 'RainbowDelimiterRed', { fg = '#e08585', bold = true })
-vim.api.nvim_set_hl(0, 'RainbowDelimiterYellow', { fg = '#d9a35a', bold = true })
-vim.api.nvim_set_hl(0, 'RainbowDelimiterBlue', { fg = '#75a1c7', bold = true })
-vim.api.nvim_set_hl(0, 'RainbowDelimiterOrange', { fg = '#e19067', bold = true })
-vim.api.nvim_set_hl(0, 'RainbowDelimiterGreen', { fg = '#9eb38e', bold = true })
-vim.api.nvim_set_hl(0, 'RainbowDelimiterViolet', { fg = '#c4a8d6', bold = true })
-vim.api.nvim_set_hl(0, 'RainbowDelimiterCyan', { fg = '#8c9cb8', bold = true })
+-- Use Gruvbox's full accent wheel while keeping the sequence subdued.
+vim.api.nvim_set_hl(0, 'RainbowDelimiterRed', { fg = palette.base08, bold = true })
+vim.api.nvim_set_hl(0, 'RainbowDelimiterYellow', { fg = palette.base0A, bold = true })
+vim.api.nvim_set_hl(0, 'RainbowDelimiterBlue', { fg = palette.base0D, bold = true })
+vim.api.nvim_set_hl(0, 'RainbowDelimiterOrange', { fg = palette.base09, bold = true })
+vim.api.nvim_set_hl(0, 'RainbowDelimiterGreen', { fg = palette.base0B, bold = true })
+vim.api.nvim_set_hl(0, 'RainbowDelimiterViolet', { fg = palette.base0E, bold = true })
+vim.api.nvim_set_hl(0, 'RainbowDelimiterCyan', { fg = palette.base0C, bold = true })

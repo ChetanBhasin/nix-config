@@ -309,10 +309,10 @@ function configTargets(agentDir: string): ConfigTarget[] {
       path: join(agentDir, "pi-codex-conversion.json"),
     },
     {
-      id: "luna",
-      label: "Luna theme",
+      id: "gruvbox-night",
+      label: "Gruvbox Night theme",
       description: "Active Pi color theme",
-      path: join(agentDir, "themes", "luna.json"),
+      path: join(agentDir, "themes", "gruvbox-night.json"),
     },
   ];
 }

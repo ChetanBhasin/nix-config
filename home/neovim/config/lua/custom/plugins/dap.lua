@@ -11,6 +11,8 @@ end
 local dapui_ok, dapui = pcall(require, "dapui")
 local dap_python_ok, dap_python = pcall(require, "dap-python")
 
+local palette = require("custom.palette")
+
 -- ═══════════════════════════════════════════════════════════════════════════════
 -- DAP UI CONFIGURATION
 -- ═══════════════════════════════════════════════════════════════════════════════
@@ -138,7 +140,7 @@ vim.fn.sign_define("DapBreakpointRejected", {
 })
 
 -- Highlight for stopped line
-vim.api.nvim_set_hl(0, "DapStoppedLine", { bg = "#30343a" })
+vim.api.nvim_set_hl(0, "DapStoppedLine", { bg = palette.primary_surface })
 
 -- Note: All keybindings are centralized in keymaps.lua for discoverability via Legendary
 -- See: <leader>? to search all keybindings

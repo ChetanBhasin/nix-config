@@ -7,7 +7,7 @@
 with lib;
 let
   cfg = config.home-config-manager;
-  theme = import ../../modules/theme/luna.nix;
+  theme = import ../../modules/theme/gruvbox-night.nix;
   # Hyprland/hyprlock take colours as rgb(RRGGBB); the palette stores them as #RRGGBB.
   rgb = colour: "rgb(${removePrefix "#" colour})";
   font = "JetBrainsMono Nerd Font";
@@ -66,7 +66,7 @@ in
       settings = {
         "$mod" = "SUPER";
         "$terminal" = terminal;
-        "$menu" = "${quickshell} ipc --config luna call launcher toggle";
+        "$menu" = "${quickshell} ipc --config gruvbox-night call launcher toggle";
 
         # The display's native geometry is not known at build time, so let Hyprland pick.
         monitor = [ ",preferred,auto,auto" ];
@@ -136,7 +136,7 @@ in
           "$mod, P, pseudo"
           "$mod, D, exec, $menu"
           "$mod, SPACE, exec, $menu"
-          "$mod, N, exec, ${quickshell} ipc --config luna call dashboard toggle"
+          "$mod, N, exec, ${quickshell} ipc --config gruvbox-night call dashboard toggle"
           "$mod, slash, exec, ${cheatsheet}"
 
           # $mod+J and $mod+L are taken by vim-style focus movement below, so

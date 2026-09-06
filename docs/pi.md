@@ -1,6 +1,6 @@
 # Pi Track B and Writable Runtime
 
-This configuration installs vanilla Pi Coding Agent 0.84.3 with the Track B composition: Lens code intelligence, Hashline editing, isolated specialist subagents, parent-only Magic Context, native browser automation, Luna, native model controls, and separately packaged PI WEB.
+This configuration installs vanilla Pi Coding Agent 0.84.3 with the Track B composition: Lens code intelligence, Hashline editing, isolated specialist subagents, parent-only Magic Context, native browser automation, Gruvbox Night, native model controls, and separately packaged PI WEB.
 
 The ownership boundary is deliberate:
 
@@ -37,7 +37,7 @@ Runtime responsibilities are non-overlapping:
 - **Subagents** start fresh by default, hand back files rather than transcripts, allow one writer, cap depth at 1 and concurrency at 2, and enforce run/session spawn budgets of 8/24.
 - **Session coordinator** lets one idle long-lived (`tui`/`rpc`) Pi session queue `/after A B -- <prompt>` until exact, explicitly named independent sessions settle. It binds each name to one live instance and activity revision through a private local registry, requires a post-barrier heartbeat before trusting pre-existing settlement evidence, records `/tree` navigation as a new settled revision, and fails on duplicate live PID claims or lost bound processes. Release waits for the dependent session to become idle and for matching `before_agent_start` confirmation; synchronous or unconfirmed submissions remain available for `/after retry` or `/after cancel`. Bounded dependency text is labeled untrusted, incomplete model output is not marked completed, and barriers remain in memory until release/cancellation or waiting-session reload, switch, fork, or exit.
 - **Browser automation** uses `pi-agent-browser-native` over exact `agent-browser` 0.34.0 and a Nix-owned Chrome/Chromium executable. It uses neither MCP nor a downloaded browser.
-- **Footer** uses `pi-footer` with the checked-in `extensions/pi-footer.json` layout. It owns only Pi's footer, keeps the native header and editor, follows the Luna theme through Pi semantic colors, and leaves all extension statuses visible on a secondary row.
+- **Footer** uses `pi-footer` with the checked-in `extensions/pi-footer.json` layout. It owns only Pi's footer, keeps the native header and editor, follows the active theme through Pi semantic colors, and leaves all extension statuses visible on a secondary row.
 
 ## Portable projection
 

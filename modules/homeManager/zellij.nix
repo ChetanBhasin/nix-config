@@ -413,7 +413,7 @@ in
         default_mode = "normal";
         default_shell = "${pkgs.zsh}/bin/zsh";
 
-        theme = "luna";
+        theme = "gruvbox-night";
         pane_frames = true;
         # Zellij 0.45 defaults to title-only separators; retain full pane boxes.
         pane_frame_style = "full";
@@ -447,7 +447,6 @@ in
       # Raw KDL keeps the plugin alias, UI options, and key map readable while
       # avoiding Home Manager's automatic headless plugin loading.
       extraConfig = ''
-        ${builtins.readFile (zellijConfigPath + "/luna.kdl")}
         ${builtins.readFile (zellijConfigPath + "/gruvbox-night.kdl")}
 
         plugins {

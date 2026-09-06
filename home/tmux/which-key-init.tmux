@@ -12,7 +12,7 @@
 set -g @wk_cfg_key_prefix_table "Space"
 set -g @wk_cfg_title_style "align=centre,bold"
 set -g @wk_cfg_title_prefix "tmux"
-set -g @wk_cfg_title_prefix_style "fg=#d9a35a,bold"
+set -g @wk_cfg_title_prefix_style "fg=#d58a54,bold"
 set -g @wk_cfg_pos_x "C"
 set -g @wk_cfg_pos_y "C"
 

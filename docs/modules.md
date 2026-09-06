@@ -86,7 +86,7 @@ Full-featured NeoVim IDE with LSP, treesitter, completion, and 50+ curated plugi
 - **Git**: gitsigns, lazygit, lazyjj integration
 - **Languages**: Enhanced support for Rust, Go, Python, Nix, TypeScript
 - **Debug**: DAP (Debug Adapter Protocol) for Python
-- **Theme**: Luna Comfort via the pinned `luna.nvim` plugin, with an amber interaction accent and local highlight overrides
+- **Theme**: Custom Gruvbox Night palette with an orange interaction accent and local highlight overrides
 
 ---
 
@@ -153,7 +153,7 @@ Complete terminal environment with Zsh, FZF, Starship prompt, and more.
 
 ### `homeManagerModules.tmux`
 
-Modern tmux configuration with session management, FZF integration, and the Luna theme.
+Modern tmux configuration with session management, FZF integration, and the Gruvbox Night theme.
 
 #### Options
 
@@ -200,7 +200,7 @@ The default package pins tmux commit `fe8f9ff` from upstream PR [#5433](https://
 - **Navigation**: vim-tmux-navigator for seamless splits
 - **Sessions**: resurrect, continuum for automatic save/restore
 - **FZF**: Session switcher, URL picker, content extractor
-- **Theme**: Luna Comfort with an amber-focused custom status line
+- **Theme**: Gruvbox Night with an orange-focused custom status line
 - **Pane focus**: Rounded four-sided active frame with a slight gutter, using the pinned upstream separate-border implementation
 - **Which-Key**: Discoverable command palette via `Prefix Space`
 - **Thumbs**: Vimium-style hints for text selection

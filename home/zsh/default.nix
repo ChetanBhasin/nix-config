@@ -4,7 +4,7 @@
   ...
 }:
 let
-  theme = import ../../modules/theme/luna.nix;
+  theme = import ../../modules/theme/gruvbox-night.nix;
 in
 {
   programs.zsh = {

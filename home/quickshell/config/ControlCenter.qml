@@ -147,7 +147,7 @@ PopupWindow {
                         }
                     }
 
-                    LunaButton {
+                    GruvboxButton {
                         icon: "󰅖"
                         foreground: Theme.muted
                         tooltip: "Close"
@@ -159,7 +159,7 @@ PopupWindow {
                     Layout.fillWidth: true
                     spacing: 6
 
-                    LunaButton {
+                    GruvboxButton {
                         Layout.fillWidth: true
                         text: "Controls"
                         icon: "󰒓"
@@ -167,7 +167,7 @@ PopupWindow {
                         onClicked: root.shellState.dashboardPage = 0
                     }
 
-                    LunaButton {
+                    GruvboxButton {
                         Layout.fillWidth: true
                         text: "Notifications"
                         icon: root.shellState.doNotDisturb ? "󰂛" : "󰂚"
@@ -197,7 +197,7 @@ PopupWindow {
                                 Layout.fillWidth: true
                                 spacing: 6
 
-                                LunaButton {
+                                GruvboxButton {
                                     Layout.fillWidth: true
                                     icon: "󰤨"
                                     text: "Wi-Fi"
@@ -207,7 +207,7 @@ PopupWindow {
                                     onClicked: Networking.wifiEnabled = !Networking.wifiEnabled
                                 }
 
-                                LunaButton {
+                                GruvboxButton {
                                     Layout.fillWidth: true
                                     icon: root.shellState.doNotDisturb ? "󰂛" : "󰂚"
                                     text: "Focus"
@@ -216,7 +216,7 @@ PopupWindow {
                                     onClicked: root.shellState.doNotDisturb = !root.shellState.doNotDisturb
                                 }
 
-                                LunaButton {
+                                GruvboxButton {
                                     Layout.fillWidth: true
                                     icon: "󰌾"
                                     text: "Lock"
@@ -253,7 +253,7 @@ PopupWindow {
 
                                         Item { Layout.fillWidth: true }
 
-                                        LunaButton {
+                                        GruvboxButton {
                                             icon: root.audio !== null && root.audio.muted ? "󰝟" : "󰕾"
                                             text: root.audio === null ? "Unavailable" : Math.round(root.audio.volume * 100) + "%"
                                             foreground: root.audio !== null && root.audio.muted ? Theme.muted : Theme.accent
@@ -264,7 +264,7 @@ PopupWindow {
                                         }
                                     }
 
-                                    LunaSlider {
+                                    GruvboxSlider {
                                         Layout.fillWidth: true
                                         enabled: root.audio !== null
                                         value: root.audio === null ? 0 : root.audio.volume
@@ -316,7 +316,7 @@ PopupWindow {
                                         }
                                     }
 
-                                    LunaSlider {
+                                    GruvboxSlider {
                                         Layout.fillWidth: true
                                         value: root.shellState.brightness
                                         accentColor: Theme.warning
@@ -354,7 +354,7 @@ PopupWindow {
 
                                         Item { Layout.fillWidth: true }
 
-                                        LunaButton {
+                                        GruvboxButton {
                                             visible: root.wifiDevice !== null
                                             text: Networking.wifiEnabled ? "On" : "Off"
                                             checked: Networking.wifiEnabled
@@ -531,7 +531,7 @@ PopupWindow {
                             RowLayout {
                                 Layout.fillWidth: true
 
-                                LunaButton {
+                                GruvboxButton {
                                     icon: root.shellState.doNotDisturb ? "󰂛" : "󰂚"
                                     text: root.shellState.doNotDisturb ? "Focus on" : "Focus off"
                                     checked: root.shellState.doNotDisturb
@@ -541,7 +541,7 @@ PopupWindow {
 
                                 Item { Layout.fillWidth: true }
 
-                                LunaButton {
+                                GruvboxButton {
                                     icon: "󰆴"
                                     text: "Clear"
                                     danger: true

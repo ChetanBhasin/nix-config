@@ -1,6 +1,7 @@
-# A daylight-readable night variant of Base16 Gruvbox Dark Hard.
-# The hard background comes from Jon Gjengset's Base16 setup; the foreground
-# ladder is lifted for daylight while the accents remain subdued.
+# Gruvbox Night: a warm, lower-strain take on Base16 Gruvbox Dark Hard.
+# The hard background stays unmistakably Gruvbox, while lifted foregrounds and
+# restrained accents remain readable in daylight. Warm orange is the shared
+# interaction accent; syntax and diagnostics retain their conventional roles.
 rec {
   name = "gruvbox-night";
 
@@ -24,8 +25,21 @@ rec {
   base0E = "#c38da0";
   base0F = "#b9916b";
 
+  # Named semantic roles keep every consumer aligned without flattening
+  # Gruvbox's distinct syntax hues into a single accent.
+  signal = base0A; # search matches and changed state
+  dimNeutral = "#7c6f64"; # low-priority UI text and invisibles
+  softNeutral = "#9c8d7d"; # secondary text stays AA-readable on raised surfaces
+  hint = base0F;
+  ok = base0B;
+  warning = base0A;
+  error = base08;
+  info = base0D;
+
+  primaryAccent = base09; # active/focused/current UI chrome
+  primarySurface = "#3b2a22"; # low-chroma orange surface for selections
   inactiveBorder = "#504945";
-  activeBorder = base0A;
+  activeBorder = primaryAccent;
 
   alacritty = {
     indexed_colors = [
@@ -67,7 +81,7 @@ rec {
     };
 
     cursor = {
-      cursor = base05;
+      cursor = primaryAccent;
       text = base00;
     };
 
@@ -93,10 +107,13 @@ rec {
     };
   };
 
+  # Focus is orange; search and changed-state emphasis remains golden yellow.
   fzf = [
     "--color=dark"
-    "--color=fg:${base05},bg:-1,hl:${base0E},fg+:${base07},bg+:${base02},hl+:${base09}"
-    "--color=info:${base0B},prompt:${base0D},pointer:${base08},marker:${base0A},spinner:${base0D},header:${base0D},border:${base03}"
+    "--color=bg+:${base01},bg:${base00},spinner:${primaryAccent},hl:${signal}"
+    "--color=fg:${base05},header:${signal},info:${info},pointer:${primaryAccent}"
+    "--color=marker:${primaryAccent},fg+:${primaryAccent},prompt:${primaryAccent},hl+:${signal}"
+    "--color=border:${inactiveBorder}"
   ];
 
   # Bat uses TextMate themes rather than Base16 tables, so keep its syntax
@@ -117,9 +134,10 @@ rec {
             <key>background</key><string>${base00}</string>
             <key>caret</key><string>${base05}</string>
             <key>foreground</key><string>${base05}</string>
-            <key>invisibles</key><string>${base03}</string>
+            <key>invisibles</key><string>${dimNeutral}</string>
             <key>lineHighlight</key><string>${base01}</string>
             <key>selection</key><string>${base02}</string>
+            <key>gutterForeground</key><string>${inactiveBorder}</string>
           </dict>
         </dict>
         <dict>
@@ -128,7 +146,7 @@ rec {
           <key>settings</key>
           <dict>
             <key>fontStyle</key><string>italic</string>
-            <key>foreground</key><string>${base03}</string>
+            <key>foreground</key><string>${softNeutral}</string>
           </dict>
         </dict>
         <dict>
@@ -193,7 +211,7 @@ rec {
         <dict>
           <key>name</key><string>Diff changed</string>
           <key>scope</key><string>markup.changed, meta.diff.header.from-file</string>
-          <key>settings</key><dict><key>foreground</key><string>${base0E}</string></dict>
+          <key>settings</key><dict><key>foreground</key><string>${signal}</string></dict>
         </dict>
         <dict>
           <key>name</key><string>Diff deleted</string>

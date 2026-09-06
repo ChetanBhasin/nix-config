@@ -8,7 +8,6 @@
 let
   bazelLsp = pkgs.callPackage ../../packages/bazel-lsp.nix { };
   cfg = config.cb.neovim;
-  lunaNvim = pkgs.callPackage ../../packages/luna-nvim.nix { };
   rustGlancer = pkgs.callPackage ../../packages/rust-glancer.nix { };
 in
 with lib;
@@ -88,7 +87,6 @@ with lib;
         dressing-nvim
         fidget-nvim
         base16-nvim
-        lunaNvim
         FTerm-nvim
         undotree
         # Visual enhancement plugins

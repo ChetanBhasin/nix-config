@@ -100,7 +100,7 @@ hist_stats     # Show most used commands statistics
 ```
 
 ### 🎨 **Visual Enhancements**
-- **Luna Comfort theme** integration across all tools
+- **Gruvbox Night theme** integration across all tools
 - **Syntax highlighting** in file previews
 - **Git status indicators** in file listings
 - **Color-coded output** for better readability
@@ -205,9 +205,9 @@ FZF (Fuzzy Finder) is the heart of the enhanced terminal experience, providing:
 
 ### 🎨 **Visual Configuration**
 
-FZF uses Luna Comfort’s softened charcoal palette:
-- **Charcoal background** with gentler normal-text contrast
-- **Amber primary accent** for cursors, selected items, focused borders, active tabs, and prompts
+FZF uses Gruvbox Night’s hard-dark, warm-neutral palette:
+- **Warm dark background** with comfortable normal-text contrast
+- **Orange primary accent** for cursors, selected items, focused borders, active tabs, and prompts
 - **Blue semantic accents** for information text and code functions
 - **Consistent interaction theming** across supported interfaces
 
@@ -324,7 +324,7 @@ Alacritty is configured as a **modern, GPU-accelerated terminal emulator** with:
 
 ### 🎨 **Visual Configuration**
 
-- **Theme**: Luna Comfort’s softened charcoal palette
+- **Theme**: Custom Gruvbox Night palette
 - **Font**: JetBrains Mono Nerd Font at 14pt for excellent readability
 - **Cursor**: Block cursor with unfocused hollow
 - **Padding**: 8px padding for comfortable viewing
@@ -416,7 +416,7 @@ export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
 **Optimized for**:
 - **Cross-platform**: Works on macOS and Linux
 - **Tmux integration**: Super+1-9 switches tmux windows (Cmd on macOS, Ctrl+Shift on Linux)
-- **Visual consistency**: Luna Comfort’s softened charcoal palette
+- **Visual consistency**: Gruvbox Night’s warm-neutral palette
 - **Performance**: GPU-accelerated rendering
 
 **Key settings**:
@@ -424,7 +424,7 @@ export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
 programs.alacritty = {
   enable = true;
   settings = {
-    colors = (import ../../modules/theme/luna.nix).alacritty;
+    colors = (import ../../modules/theme/gruvbox-night.nix).alacritty;
     font.normal.family = "JetBrainsMono Nerd Font";
     font.size = 14.0;
     window.option_as_alt = "OnlyLeft";  # macOS
@@ -941,17 +941,17 @@ C-Space ? a/d        # Help menu: list/describe keys
 - Inactive window tabs remain uniformly dark; only bell alerts turn red
 
 #### 🎨 **Beautiful Status Line**
-- Luna palette in a compact, one-row top bar
+- Gruvbox Night palette in a compact, one-row top bar
 - The session name, windows, selected-pane title, and time stay visible; optional context is hidden as the client narrows
 - Optional command, battery, and path context remains width-aware; SSH hosts appear on the right
 - Explicit `ZOOM`, `COMMAND`, `COPY`, and `SYNC` mode badges
 
 #### 🎯 **Active Pane Clarity**
-- The active window is the only solid amber tab in the status bar
-- The active pane gets a rounded amber frame on all four sides, including terminal-edge corners
+- The active window is the only solid orange tab in the status bar
+- The active pane gets a rounded orange frame on all four sides, including terminal-edge corners
 - Every pane reserves a one-cell frame, creating a slight gutter; inactive frames remain blank so focus stays dominant
 - The centered border label uses the pane title, with the current directory shown in a subdued color when width permits
-- The amber chip contains only the session name; SSH uses a separate blue badge and places the remote host on the right
+- The orange chip contains only the session name; SSH uses a separate blue badge and places the remote host on the right
 - Full frames use the tmux implementation from upstream PR #5433 plus a small rounded-corner patch; overriding `cb.tmux.package` with stock tmux gracefully falls back to heavy joined dividers
 
 > After applying this package change, preserve any needed sessions and run `tmux kill-server` before starting tmux again. Reloading the configuration cannot replace an already-running stock tmux server.

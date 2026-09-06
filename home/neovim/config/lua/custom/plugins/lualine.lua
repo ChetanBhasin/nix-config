@@ -2,26 +2,27 @@
 -- 🎨 ENHANCED LUALINE CONFIGURATION
 -- ═══════════════════════════════════════════════════════════════════════════════
 
--- Color scheme for consistent theming
+-- Shared Gruvbox Night palette and semantic aliases.
+local palette = require("custom.palette")
 local colors = {
-    bg = "#151515",
-    bg_alt = "#232323",
-    fg = "#c7c7c7",
-    fg_bright = "#d8d8dc",
-    grey = "#858585",
-    grey_light = "#a8a8a8",
-    yellow = "#d9a35a",
-    blue = "#75a1c7",
-    green = "#6fbe80",
-    red = "#e08585",
-    purple = "#c4a8d6",
-    info = "#8c9cb8",
-    hint = "#b09080",
+    bg = palette.base00,
+    bg_alt = palette.base01,
+    fg = palette.base05,
+    fg_bright = palette.base06,
+    grey = palette.soft_neutral,
+    grey_light = palette.base04,
+    accent = palette.primary_accent,
+    yellow = palette.warning,
+    blue = palette.base0D,
+    green = palette.ok,
+    red = palette.error,
+    purple = palette.base0E,
+    info = palette.info,
+    hint = palette.hint,
 }
 
--- luna.nvim's bundled Lualine theme reads the unmodified upstream palette.
--- Define the same mode mapping locally so Luna Comfort's on_colors overrides
--- also reach the status line.
+-- Keep mode sections calm and uniform while the orange block provides a clear
+-- active-state anchor across the editor and the surrounding desktop.
 local function mode_theme(accent_bg)
     return {
         a = { fg = colors.bg, bg = accent_bg },
@@ -30,12 +31,12 @@ local function mode_theme(accent_bg)
     }
 end
 
-local luna_comfort = {
-    normal = mode_theme(colors.yellow),
-    insert = mode_theme(colors.yellow),
-    visual = mode_theme(colors.yellow),
-    replace = mode_theme(colors.yellow),
-    command = mode_theme(colors.yellow),
+local gruvbox_night = {
+    normal = mode_theme(colors.accent),
+    insert = mode_theme(colors.accent),
+    visual = mode_theme(colors.accent),
+    replace = mode_theme(colors.accent),
+    command = mode_theme(colors.accent),
     inactive = {
         a = { fg = colors.grey, bg = colors.bg_alt },
         b = { fg = colors.grey, bg = colors.bg_alt },
@@ -106,7 +107,7 @@ end
 require('lualine').setup {
     options = {
         icons_enabled = true,
-        theme = luna_comfort,
+        theme = gruvbox_night,
         -- Beautiful powerline separators
         component_separators = { left = '󰿟', right = '󰿟' },
         section_separators = { left = '', right = '' },

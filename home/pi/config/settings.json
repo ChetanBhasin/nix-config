@@ -306,7 +306,7 @@
   "terminal": {
     "showTerminalProgress": true
   },
-  "theme": "luna",
+  "theme": "gruvbox-night",
   "treeFilterMode": "all",
   "tuiMode": "fullscreen"
 }

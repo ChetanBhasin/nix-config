@@ -4,6 +4,7 @@
 
 local alpha = require("alpha")
 local dashboard = require("alpha.themes.dashboard")
+local palette = require("custom.palette")
 
 -- Custom ASCII art
 dashboard.section.header.val = {
@@ -60,9 +61,9 @@ dashboard.section.buttons.opts.hl = "AlphaButtons"
 dashboard.section.footer.opts.hl = "AlphaFooter"
 
 -- Custom highlight groups
-vim.api.nvim_set_hl(0, "AlphaHeader", { fg = "#75a1c7", bold = true })
-vim.api.nvim_set_hl(0, "AlphaButtons", { fg = "#c4a8d6" })
-vim.api.nvim_set_hl(0, "AlphaFooter", { fg = "#858585", italic = true })
+vim.api.nvim_set_hl(0, "AlphaHeader", { fg = palette.base0D, bold = true })
+vim.api.nvim_set_hl(0, "AlphaButtons", { fg = palette.primary_accent })
+vim.api.nvim_set_hl(0, "AlphaFooter", { fg = palette.soft_neutral, italic = true })
 
 -- Layout configuration
 dashboard.config.layout = {

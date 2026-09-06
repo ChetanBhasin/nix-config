@@ -109,7 +109,7 @@ Item {
             color: Theme.border
         }
 
-        LunaButton {
+        GruvboxButton {
             width: 26
             height: 26
             icon: "󰓎"

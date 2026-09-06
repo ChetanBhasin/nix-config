@@ -43,7 +43,7 @@
       ...
     }:
     let
-      lunaTheme = import ./modules/theme/luna.nix;
+      gruvboxTheme = import ./modules/theme/gruvbox-night.nix;
       nixpkgsConfig = {
         config = {
           allowUnfree = true;
@@ -75,7 +75,7 @@
                   --config lazyjj.diff-format=git \
                   --config lazyjj.layout=horizontal \
                   --config lazyjj.layout-percent=30 \
-                  --config 'lazyjj.highlight-color="${lunaTheme.primarySurface}"' \
+                  --config 'lazyjj.highlight-color="${gruvboxTheme.primarySurface}"' \
                   --config 'lazyjj.keybinds.log_tab.open-files=["enter", "o"]' \
                   "\$@"
                 EOF

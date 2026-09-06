@@ -1,6 +1,6 @@
 { pkgs, ... }:
 let
-  theme = import ../../modules/theme/luna.nix;
+  theme = import ../../modules/theme/gruvbox-night.nix;
 
   # Keep escape-sequence keybindings independent of TOML string quoting.
   esc = builtins.fromJSON ''"\u001b"'';

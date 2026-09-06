@@ -9,7 +9,7 @@
 
 let
   cfg = config.cb.helix;
-  theme = import ../theme/luna.nix;
+  theme = import ../theme/gruvbox-night.nix;
   bazelLsp = pkgs.callPackage ../../packages/bazel-lsp.nix { };
   rustGlancer = pkgs.callPackage ../../packages/rust-glancer.nix { };
   rustServerPackage = if cfg.rustLsp == "rust-glancer" then rustGlancer else pkgs.rust-analyzer;
@@ -187,7 +187,7 @@ in
         # Keep comments calm in low light and make editor surfaces distinct
         # without putting saturated accents behind ordinary text.
         "comment" = {
-          fg = "base03";
+          fg = "soft-neutral";
           modifiers = [ "italic" ];
         };
         "ui.background" = {
@@ -197,8 +197,8 @@ in
           fg = "inactive-border";
         };
         "ui.menu.selected" = {
-          fg = "base0A";
-          bg = "base02";
+          fg = "base09";
+          bg = "primary-surface";
           modifiers = [ "bold" ];
         };
         "ui.statusline.normal" = {
@@ -208,20 +208,20 @@ in
         };
         "ui.cursor" = {
           fg = "base00";
-          bg = "base0A";
+          bg = "base09";
         };
         "ui.cursor.primary" = {
           fg = "base00";
-          bg = "base0A";
+          bg = "base09";
         };
         "ui.statusline.insert" = {
           fg = "base00";
-          bg = "base0A";
+          bg = "base09";
           modifiers = [ "bold" ];
         };
         "ui.statusline.select" = {
           fg = "base00";
-          bg = "base0A";
+          bg = "base09";
           modifiers = [ "bold" ];
         };
 
@@ -234,7 +234,7 @@ in
           style = "curl";
         };
         "diagnostic.info".underline = {
-          color = "base0C";
+          color = "base0D";
           style = "curl";
         };
         "diagnostic.hint".underline = {
@@ -263,6 +263,8 @@ in
             ;
           "active-border" = theme.activeBorder;
           "inactive-border" = theme.inactiveBorder;
+          "primary-surface" = theme.primarySurface;
+          "soft-neutral" = theme.softNeutral;
         };
       };
 

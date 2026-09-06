@@ -1,4 +1,6 @@
-// Gruvbox Night: muted accents with a deliberately obvious focused frame.
+// Gruvbox Night: warm hard-dark surfaces with a clear orange focus accent.
+// The palette mirrors modules/theme/gruvbox-night.nix. Syntax and status hues
+// stay distinct while selected tabs, rows, and pane frames share one signal.
 themes {
     gruvbox-night {
         text_unselected {
@@ -10,20 +12,20 @@ themes {
             emphasis_3 195 141 160
         }
         text_selected {
-            base 223 207 170
-            background 60 56 54
-            emphasis_0 213 138 84
+            base 213 138 84
+            background 59 42 34
+            emphasis_0 219 126 117
             emphasis_1 132 169 178
             emphasis_2 163 173 98
             emphasis_3 195 141 160
         }
         ribbon_selected {
             base 29 32 33
-            background 201 162 87
+            background 213 138 84
             emphasis_0 219 126 117
-            emphasis_1 213 138 84
+            emphasis_1 201 162 87
             emphasis_2 195 141 160
-            emphasis_3 132 169 178
+            emphasis_3 163 173 98
         }
         ribbon_unselected {
             base 208 192 160
@@ -34,17 +36,17 @@ themes {
             emphasis_3 195 141 160
         }
         table_title {
-            base 201 162 87
+            base 132 169 178
             background 29 32 33
             emphasis_0 213 138 84
-            emphasis_1 132 169 178
+            emphasis_1 201 162 87
             emphasis_2 163 173 98
             emphasis_3 195 141 160
         }
         table_cell_selected {
-            base 223 207 170
-            background 60 56 54
-            emphasis_0 213 138 84
+            base 213 138 84
+            background 59 42 34
+            emphasis_0 219 126 117
             emphasis_1 132 169 178
             emphasis_2 163 173 98
             emphasis_3 195 141 160
@@ -58,9 +60,9 @@ themes {
             emphasis_3 195 141 160
         }
         list_selected {
-            base 223 207 170
-            background 60 56 54
-            emphasis_0 213 138 84
+            base 213 138 84
+            background 59 42 34
+            emphasis_0 219 126 117
             emphasis_1 132 169 178
             emphasis_2 163 173 98
             emphasis_3 195 141 160
@@ -74,7 +76,7 @@ themes {
             emphasis_3 195 141 160
         }
         frame_unselected {
-            base 80 73 69
+            base 124 111 100
             background 29 32 33
             emphasis_0 213 138 84
             emphasis_1 132 169 178
@@ -82,21 +84,21 @@ themes {
             emphasis_3 29 32 33
         }
         frame_selected {
-            base 184 187 38
+            base 213 138 84
             background 29 32 33
-            emphasis_0 213 138 84
+            emphasis_0 219 126 117
             emphasis_1 132 169 178
             emphasis_2 195 141 160
             emphasis_3 29 32 33
         }
         frame_highlight {
-            // Hover is one neutral step above the inactive frame; focus stays lime.
-            base 102 92 84
+            // Hover stays neutral so orange is reserved for keyboard focus.
+            base 124 111 100
             background 29 32 33
             emphasis_0 195 141 160
             emphasis_1 213 138 84
             emphasis_2 201 162 87
-            emphasis_3 213 138 84
+            emphasis_3 132 169 178
         }
         exit_code_success {
             base 163 173 98
@@ -122,9 +124,9 @@ themes {
             player_5 163 173 98
             player_6 213 138 84
             player_7 219 126 117
-            player_8 208 192 160
+            player_8 156 141 125
             player_9 223 207 170
-            player_10 174 160 137
+            player_10 185 145 107
         }
     }
 }

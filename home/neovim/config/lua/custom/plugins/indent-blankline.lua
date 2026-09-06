@@ -2,6 +2,8 @@
 -- 📏 INDENT BLANKLINE CONFIGURATION
 -- ═══════════════════════════════════════════════════════════════════════════════
 
+local palette = require("custom.palette")
+
 require("ibl").setup {
     indent = {
         char = "│",
@@ -74,6 +76,6 @@ require("ibl").setup {
 }
 
 -- Custom highlight groups for better visibility
-vim.api.nvim_set_hl(0, "IndentBlanklineChar", { fg = "#232323", nocombine = true })
-vim.api.nvim_set_hl(0, "IndentBlanklineContextChar", { fg = "#858585", nocombine = true })
-vim.api.nvim_set_hl(0, "Whitespace", { fg = "#232323" })
+vim.api.nvim_set_hl(0, "IndentBlanklineChar", { fg = palette.base01, nocombine = true })
+vim.api.nvim_set_hl(0, "IndentBlanklineContextChar", { fg = palette.soft_neutral, nocombine = true })
+vim.api.nvim_set_hl(0, "Whitespace", { fg = palette.base01 })

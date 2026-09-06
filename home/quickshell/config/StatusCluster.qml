@@ -96,7 +96,7 @@ Item {
             Layout.preferredWidth: volumeButton.implicitWidth
             Layout.preferredHeight: 26
 
-            LunaButton {
+            GruvboxButton {
                 id: volumeButton
                 anchors.fill: parent
                 icon: root.volumeIcon()
@@ -125,7 +125,7 @@ Item {
             }
         }
 
-        LunaButton {
+        GruvboxButton {
             icon: root.networkIcon()
             text: root.networkName()
             foreground: root.connectedWifi !== null
@@ -135,7 +135,7 @@ Item {
             onClicked: root.shellState.toggleDashboardPage(0)
         }
 
-        LunaButton {
+        GruvboxButton {
             visible: root.shellState.batteryAvailable
             icon: root.batteryIcon()
             text: Math.round(root.shellState.batteryPercentage * 100) + "%"
@@ -152,7 +152,7 @@ Item {
             color: Theme.border
         }
 
-        LunaButton {
+        GruvboxButton {
             icon: root.shellState.doNotDisturb ? "󰂛" : "󰂚"
             text: root.notificationCount > 0 ? root.notificationCount.toString() : ""
             foreground: root.shellState.doNotDisturb ? Theme.purple
@@ -162,7 +162,7 @@ Item {
             onClicked: root.shellState.toggleDashboardPage(1)
         }
 
-        LunaButton {
+        GruvboxButton {
             text: Qt.formatDateTime(clock.date, "ddd, MMM d  HH:mm")
             checked: root.shellState.dashboardOpen && root.shellState.dashboardPage === 0
             tooltip: "Open controls and notifications"

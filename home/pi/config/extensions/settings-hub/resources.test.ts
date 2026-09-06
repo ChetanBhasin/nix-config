@@ -32,7 +32,7 @@ describe("global resource toggles", () => {
   test("adds explicit disable and enable patterns for auto-discovered resources", () => {
     const manager = new FakeSettingsManager({});
     const resource = {
-      path: "/home/test/.pi/agent/themes/luna.json",
+      path: "/home/test/.pi/agent/themes/gruvbox-night.json",
       enabled: true,
       metadata: {
         source: "auto",
@@ -43,10 +43,10 @@ describe("global resource toggles", () => {
     };
 
     toggleGlobalResource(manager, "themes", resource, false, "/home/test/.pi/agent");
-    expect(manager.settings.themes).toEqual(["-themes/luna.json"]);
+    expect(manager.settings.themes).toEqual(["-themes/gruvbox-night.json"]);
 
     toggleGlobalResource(manager, "themes", resource, true, "/home/test/.pi/agent");
-    expect(manager.settings.themes).toEqual(["+themes/luna.json"]);
+    expect(manager.settings.themes).toEqual(["+themes/gruvbox-night.json"]);
   });
 
   test("converts a package source into a filtered package entry", () => {

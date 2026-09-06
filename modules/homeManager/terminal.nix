@@ -10,7 +10,7 @@
 
 let
   cfg = config.cb.terminal;
-  theme = import ../theme/luna.nix;
+  theme = import ../theme/gruvbox-night.nix;
 
   # Paths to shell scripts (relative to this module)
   shellScriptsPath = ../../home/zsh;

@@ -4,16 +4,16 @@
 
 local bufferline = require('bufferline')
 
+local palette = require("custom.palette")
 local colors = {
-    base00 = "#151515",
-    base01 = "#232323",
-    base02 = "#30343a",
-    base03 = "#858585",
-    base04 = "#a8a8a8",
-    base05 = "#c7c7c7",
-    base06 = "#d8d8dc",
-    base0A = "#d9a35a",
-    inactive_border = "#454545",
+    base00 = palette.base00,
+    base01 = palette.base01,
+    base02 = palette.base02,
+    base03 = palette.soft_neutral,
+    base04 = palette.base04,
+    base05 = palette.base05,
+    primary_accent = palette.primary_accent,
+    inactive_border = palette.border,
 }
 
 -- Build setup table first so we can optionally add highlights
@@ -113,17 +113,17 @@ local setup_opts = {
         fill = { fg = colors.base03, bg = colors.base00 },
         background = { fg = colors.base03, bg = colors.base00 },
         buffer_visible = { fg = colors.base04, bg = colors.base00 },
-        buffer_selected = { fg = colors.base0A, bg = colors.base01, bold = true, italic = false },
+        buffer_selected = { fg = colors.primary_accent, bg = colors.base01, bold = true, italic = false },
         separator = { fg = colors.base02, bg = colors.base00 },
         separator_visible = { fg = colors.base02, bg = colors.base00 },
         separator_selected = { fg = colors.base02, bg = colors.base01 },
-        indicator_selected = { fg = colors.base0A, bg = colors.base01 },
+        indicator_selected = { fg = colors.primary_accent, bg = colors.base01 },
         close_button = { fg = colors.base03, bg = colors.base00 },
         close_button_visible = { fg = colors.base04, bg = colors.base00 },
         close_button_selected = { fg = colors.base05, bg = colors.base01 },
-        modified = { fg = colors.base0A, bg = colors.base00 },
-        modified_visible = { fg = colors.base0A, bg = colors.base00 },
-        modified_selected = { fg = colors.base0A, bg = colors.base01 },
+        modified = { fg = colors.primary_accent, bg = colors.base00 },
+        modified_visible = { fg = colors.primary_accent, bg = colors.base00 },
+        modified_selected = { fg = colors.primary_accent, bg = colors.base01 },
         offset_separator = { fg = colors.inactive_border, bg = colors.base00 },
     },
 }

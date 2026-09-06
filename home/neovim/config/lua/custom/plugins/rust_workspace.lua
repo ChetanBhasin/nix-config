@@ -1,16 +1,17 @@
 local M = {}
+local palette = require("custom.palette")
 
 local state_path = vim.fs.joinpath(vim.fn.stdpath("data"), "rust-linked-projects.json")
 
 local display_colors = {
-    fg1 = "#c7c7c7",
-    gray = "#858585",
-    green = "#9eb38e",
-    yellow = "#d9a35a",
-    blue = "#75a1c7",
-    aqua = "#8c9cb8",
-    orange = "#e19067",
-    bg4 = "#454545",
+    fg1 = palette.base05,
+    gray = palette.soft_neutral,
+    green = palette.ok,
+    yellow = palette.warning,
+    blue = palette.base0D,
+    aqua = palette.base0C,
+    orange = palette.primary_accent,
+    bg4 = palette.border,
 }
 
 local function notify(message, level)

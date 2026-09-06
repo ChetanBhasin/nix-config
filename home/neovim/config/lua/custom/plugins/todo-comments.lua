@@ -4,6 +4,7 @@
 -- Highlight and search TODO, FIXME, BUG, etc. comments
 
 local ok, todo = pcall(require, "todo-comments")
+local palette = require("custom.palette")
 if not ok then
     return
 end
@@ -50,14 +51,14 @@ todo.setup({
         exclude = {}, -- Filetypes to exclude
     },
 
-    -- Colors matching Luna's diagnostic and accent palette
+    -- Semantic fallbacks mirror Gruvbox Night's diagnostics and accents.
     colors = {
-        error = { "DiagnosticError", "ErrorMsg", "#e08585" },
-        warning = { "DiagnosticWarn", "WarningMsg", "#d9a35a" },
-        info = { "DiagnosticInfo", "#8c9cb8" },
-        hint = { "DiagnosticHint", "#b09080" },
-        default = { "Identifier", "#c4a8d6" },
-        test = { "Identifier", "#e19067" },
+        error = { "DiagnosticError", "ErrorMsg", palette.error },
+        warning = { "DiagnosticWarn", "WarningMsg", palette.warning },
+        info = { "DiagnosticInfo", palette.info },
+        hint = { "DiagnosticHint", palette.hint },
+        default = { "Identifier", palette.base0E },
+        test = { "Identifier", palette.primary_accent },
     },
 
     -- Search configuration

@@ -574,7 +574,7 @@ inlayHints = {
 
 ### 🎨 **Theme and Appearance**
 
-- **Color scheme**: Luna Comfort via the pinned `luna.nvim` plugin, using amber for active/focused UI
+- **Color scheme**: Custom Gruvbox Night palette with warm orange active/focused UI
 - **Inlay hint styling**: Subtle gray italic text
 - **Status line**: Lualine with file information
 - **Icons**: Nerdfont icons throughout

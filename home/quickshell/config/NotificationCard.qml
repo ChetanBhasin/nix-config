@@ -103,7 +103,7 @@ Rectangle {
                 }
             }
 
-            LunaButton {
+            GruvboxButton {
                 Layout.preferredWidth: 26
                 Layout.preferredHeight: 26
                 icon: "󰅖"
@@ -141,7 +141,7 @@ Rectangle {
                     : root.compact ? root.notification.actions.slice(0, 2)
                     : root.notification.actions
 
-                LunaButton {
+                GruvboxButton {
                     required property var modelData
                     height: 28
                     text: modelData.text
