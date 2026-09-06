@@ -30,7 +30,8 @@
     "npm:@earendil-works/pi-tui@0.84.3",
     "npm:pi-footer@0.5.1",
     "./extensions/auto-mode",
-    "./extensions/settings-hub"
+    "./extensions/settings-hub",
+    "./extensions/session-coordinator"
   ],
   "quietStartup": true,
   "subagents": {

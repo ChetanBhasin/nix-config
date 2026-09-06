@@ -1,0 +1,14 @@
+{
+  "name": "@cb/pi-session-coordinator",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "tsc --noEmit && node --test ./coordinator.test.mjs && bun test ./index.test.mjs"
+  },
+  "pi": {
+    "extensions": [
+      "./index.ts"
+    ]
+  }
+}
