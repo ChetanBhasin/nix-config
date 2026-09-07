@@ -1029,7 +1029,7 @@ fn run_picker(
             "--cycle",
             "--prompt=Sessions › ",
             "--header=Enter attach · Esc quit · Ctrl-R refresh",
-            "--color=bg:#1d2021,bg+:#3c3836,fg:#d0c0a0,fg+:#ebdbb2,hl:#84a9b2,hl+:#d58a54,prompt:#d58a54,pointer:#d58a54,marker:#84a9b2,spinner:#84a9b2,border:#504945,header:#9c8d7d,info:#7c6f64",
+            "--color=bg:#1d2021,bg+:#3c3836,fg:#d0c0a0,fg+:#ebdbb2,hl:#84a9b2,hl+:#c9a257,prompt:#c9a257,pointer:#c9a257,marker:#84a9b2,spinner:#84a9b2,border:#504945,header:#96918a,info:#7c6f64",
         ])
         .arg(format!("--listen-unsafe={}", socket_path.display()))
         .arg(format!("--bind=ctrl-r:{reload_action}"))

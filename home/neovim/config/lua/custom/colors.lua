@@ -15,7 +15,7 @@ function DefineColors()
     require("base16-colorscheme").setup(colors)
     vim.g.colors_name = "gruvbox-night"
 
-    -- Keep ordinary surfaces calm while making active UI consistently orange.
+    -- Keep ordinary surfaces calm while making active UI consistently golden.
     highlight("Normal", { fg = colors.base05, bg = colors.base00 })
     highlight("NormalNC", { fg = colors.base04, bg = colors.base00 })
     highlight("NormalFloat", { fg = colors.base05, bg = colors.base01 })

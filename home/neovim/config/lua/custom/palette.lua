@@ -24,9 +24,9 @@ return {
     base0F = "#b9916b",
 
     dim_neutral = "#7c6f64",
-    soft_neutral = "#9c8d7d",
-    primary_accent = "#d58a54",
-    primary_surface = "#3b2a22",
+    soft_neutral = "#96918a",
+    primary_accent = "#c9a257",
+    primary_surface = "#38321f",
     border = "#504945",
 
     signal = "#c9a257",

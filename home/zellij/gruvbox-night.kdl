@@ -1,4 +1,4 @@
-// Gruvbox Night: warm hard-dark surfaces with a clear orange focus accent.
+// Gruvbox Night: warm hard-dark surfaces with a clear golden focus accent.
 // The palette mirrors modules/theme/gruvbox-night.nix. Syntax and status hues
 // stay distinct while selected tabs, rows, and pane frames share one signal.
 themes {
@@ -12,8 +12,8 @@ themes {
             emphasis_3 195 141 160
         }
         text_selected {
-            base 213 138 84
-            background 59 42 34
+            base 201 162 87
+            background 56 50 31
             emphasis_0 219 126 117
             emphasis_1 132 169 178
             emphasis_2 163 173 98
@@ -21,7 +21,7 @@ themes {
         }
         ribbon_selected {
             base 29 32 33
-            background 213 138 84
+            background 201 162 87
             emphasis_0 219 126 117
             emphasis_1 201 162 87
             emphasis_2 195 141 160
@@ -44,8 +44,8 @@ themes {
             emphasis_3 195 141 160
         }
         table_cell_selected {
-            base 213 138 84
-            background 59 42 34
+            base 201 162 87
+            background 56 50 31
             emphasis_0 219 126 117
             emphasis_1 132 169 178
             emphasis_2 163 173 98
@@ -60,8 +60,8 @@ themes {
             emphasis_3 195 141 160
         }
         list_selected {
-            base 213 138 84
-            background 59 42 34
+            base 201 162 87
+            background 56 50 31
             emphasis_0 219 126 117
             emphasis_1 132 169 178
             emphasis_2 163 173 98
@@ -84,7 +84,7 @@ themes {
             emphasis_3 29 32 33
         }
         frame_selected {
-            base 213 138 84
+            base 201 162 87
             background 29 32 33
             emphasis_0 219 126 117
             emphasis_1 132 169 178
@@ -92,12 +92,12 @@ themes {
             emphasis_3 29 32 33
         }
         frame_highlight {
-            // Hover stays neutral so orange is reserved for keyboard focus.
+            // Hover stays neutral so gold is reserved for keyboard focus.
             base 124 111 100
             background 29 32 33
             emphasis_0 195 141 160
-            emphasis_1 213 138 84
-            emphasis_2 201 162 87
+            emphasis_1 201 162 87
+            emphasis_2 213 138 84
             emphasis_3 132 169 178
         }
         exit_code_success {
@@ -124,7 +124,7 @@ themes {
             player_5 163 173 98
             player_6 213 138 84
             player_7 219 126 117
-            player_8 156 141 125
+            player_8 150 145 138
             player_9 223 207 170
             player_10 185 145 107
         }

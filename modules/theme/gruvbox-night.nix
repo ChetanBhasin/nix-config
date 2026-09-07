@@ -1,6 +1,6 @@
 # Gruvbox Night: a warm, lower-strain take on Base16 Gruvbox Dark Hard.
 # The hard background stays unmistakably Gruvbox, while lifted foregrounds and
-# restrained accents remain readable in daylight. Warm orange is the shared
+# restrained accents remain readable in daylight. Muted gold is the shared
 # interaction accent; syntax and diagnostics retain their conventional roles.
 rec {
   name = "gruvbox-night";
@@ -29,15 +29,15 @@ rec {
   # Gruvbox's distinct syntax hues into a single accent.
   signal = base0A; # search matches and changed state
   dimNeutral = "#7c6f64"; # low-priority UI text and invisibles
-  softNeutral = "#9c8d7d"; # secondary text stays AA-readable on raised surfaces
+  softNeutral = "#96918a"; # neutral secondary text stays AA-readable on raised surfaces
   hint = base0F;
   ok = base0B;
   warning = base0A;
   error = base08;
   info = base0D;
 
-  primaryAccent = base09; # active/focused/current UI chrome
-  primarySurface = "#3b2a22"; # low-chroma orange surface for selections
+  primaryAccent = base0A; # active/focused/current UI chrome
+  primarySurface = "#38321f"; # low-chroma gold surface for selections
   inactiveBorder = "#504945";
   activeBorder = primaryAccent;
 
@@ -107,7 +107,7 @@ rec {
     };
   };
 
-  # Focus is orange; search and changed-state emphasis remains golden yellow.
+  # Focus and changed-state emphasis share a restrained golden yellow.
   fzf = [
     "--color=dark"
     "--color=bg+:${base01},bg:${base00},spinner:${primaryAccent},hl:${signal}"

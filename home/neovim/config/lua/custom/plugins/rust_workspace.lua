@@ -10,7 +10,7 @@ local display_colors = {
     yellow = palette.warning,
     blue = palette.base0D,
     aqua = palette.base0C,
-    orange = palette.primary_accent,
+    accent = palette.primary_accent,
     bg4 = palette.border,
 }
 
@@ -858,7 +858,7 @@ function M.setup_highlights()
     vim.api.nvim_set_hl(0, "RustWorkspaceProject", { fg = display_colors.fg1 })
     vim.api.nvim_set_hl(0, "RustWorkspacePath", { fg = display_colors.gray })
     vim.api.nvim_set_hl(0, "RustWorkspaceCount", { fg = display_colors.aqua })
-    vim.api.nvim_set_hl(0, "RustWorkspaceKind", { fg = display_colors.orange })
+    vim.api.nvim_set_hl(0, "RustWorkspaceKind", { fg = display_colors.accent })
     vim.api.nvim_set_hl(0, "RustWorkspaceTree", { fg = display_colors.bg4 })
 end
 

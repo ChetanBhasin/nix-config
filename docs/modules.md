@@ -86,7 +86,7 @@ Full-featured NeoVim IDE with LSP, treesitter, completion, and 50+ curated plugi
 - **Git**: gitsigns, lazygit, lazyjj integration
 - **Languages**: Enhanced support for Rust, Go, Python, Nix, TypeScript
 - **Debug**: DAP (Debug Adapter Protocol) for Python
-- **Theme**: Custom Gruvbox Night palette with an orange interaction accent and local highlight overrides
+- **Theme**: Custom Gruvbox Night palette with a muted-gold interaction accent and local highlight overrides
 
 ---
 
@@ -213,7 +213,7 @@ The default package pins tmux commit `fe8f9ff` from upstream PR [#5433](https://
 - **Fleet picker**: Cached local and SSH-hosted sessions with event-driven
   refresh, explicit reauthentication, and no nested tmux UI
 - **FZF**: Session switcher, URL picker, content extractor
-- **Theme**: Gruvbox Night with an orange-focused custom status line
+- **Theme**: Gruvbox Night custom status line with a muted-gold focus accent
 - **Pane focus**: Rounded four-sided active frame with a slight gutter, using
   the pinned upstream separate-border implementation
 - **Which-Key**: Discoverable command palette via `Prefix Space`

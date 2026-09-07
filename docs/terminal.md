@@ -207,7 +207,7 @@ FZF (Fuzzy Finder) is the heart of the enhanced terminal experience, providing:
 
 FZF uses Gruvbox Night’s hard-dark, warm-neutral palette:
 - **Warm dark background** with comfortable normal-text contrast
-- **Orange primary accent** for cursors, selected items, focused borders, active tabs, and prompts
+- **Muted-gold primary accent** for cursors, selected items, focused borders, active tabs, and prompts
 - **Blue semantic accents** for information text and code functions
 - **Consistent interaction theming** across supported interfaces
 
@@ -947,11 +947,11 @@ C-Space ? a/d        # Help menu: list/describe keys
 - Explicit `ZOOM`, `COMMAND`, `COPY`, and `SYNC` mode badges
 
 #### 🎯 **Active Pane Clarity**
-- The active window is the only solid orange tab in the status bar
-- The active pane gets a rounded orange frame on all four sides, including terminal-edge corners
+- The active window is the only solid muted-gold tab in the status bar
+- The active pane gets a rounded muted-gold frame on all four sides, including terminal-edge corners
 - Every pane reserves a one-cell frame, creating a slight gutter; inactive frames remain blank so focus stays dominant
 - The centered border label uses the pane title, with the current directory shown in a subdued color when width permits
-- The orange chip contains only the session name; SSH uses a separate blue badge and places the remote host on the right
+- The muted-gold chip contains only the session name; SSH uses a separate blue badge and places the remote host on the right
 - Full frames use the tmux implementation from upstream PR #5433 plus a small rounded-corner patch; overriding `cb.tmux.package` with stock tmux gracefully falls back to heavy joined dividers
 
 > After applying this package change, preserve any needed sessions and run `tmux kill-server` before starting tmux again. Reloading the configuration cannot replace an already-running stock tmux server.

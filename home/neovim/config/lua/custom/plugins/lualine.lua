@@ -21,7 +21,7 @@ local colors = {
     hint = palette.hint,
 }
 
--- Keep mode sections calm and uniform while the orange block provides a clear
+-- Keep mode sections calm and uniform while the muted-gold block provides a clear
 -- active-state anchor across the editor and the surrounding desktop.
 local function mode_theme(accent_bg)
     return {
