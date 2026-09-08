@@ -5,9 +5,5 @@
     isDarwin = true;
     enableExtras = true;
     enableProf = true;
-    tmuxFleetRemoteHosts = [
-      "hugh"
-      "boris"
-    ];
   };
 }

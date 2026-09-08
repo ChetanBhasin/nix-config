@@ -9,7 +9,6 @@ let
     src = ./tmux-fleet-plugin;
     postInstall = ''
       substituteInPlace "$target/tmux_fleet.tmux" \
-        --replace-fail '@tmuxFleet@' '${tmuxFleet}/bin/tmux-fleet' \
         --replace-fail '@tmuxFleetSwitch@' "$target/tmux_fleet_switch"
       substituteInPlace "$target/tmux_fleet_switch" \
         --replace-fail '@tmuxFleet@' '${tmuxFleet}/bin/tmux-fleet'
@@ -77,19 +76,14 @@ in
 
   xdg.configFile."tmux-fleet/config.json".text =
     builtins.toJSON {
-      hosts = config.home-config-manager.tmuxFleetRemoteHosts;
-      reconcile_seconds = 30;
-      connect_timeout_seconds = 5;
-      server_alive_interval_seconds = 15;
-      server_alive_count_max = 2;
-      control_persist_seconds = 600;
+      ssh_targets = config.home-config-manager.tmuxFleetSshTargets;
       tmux_command = "${tmuxPackage}/bin/tmux";
       fzf_command = "${pkgs.fzf}/bin/fzf";
       ssh_command = sshCommand;
     }
     + "\n";
 
-  # Stable path used by noninteractive SSH commands across Darwin and NixOS profiles.
+  # Stable path used by foreground SSH commands across Darwin and NixOS profiles.
   home.file.".local/libexec/tmux-fleet".source = "${tmuxFleet}/bin/tmux-fleet";
   # Install required dependencies
   home.packages = with pkgs; [

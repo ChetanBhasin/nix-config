@@ -24,7 +24,6 @@ let
     src = tmuxConfigPath + "/tmux-fleet-plugin";
     postInstall = ''
       substituteInPlace "$target/tmux_fleet.tmux" \
-        --replace-fail '@tmuxFleet@' '${tmuxFleet}/bin/tmux-fleet' \
         --replace-fail '@tmuxFleetSwitch@' "$target/tmux_fleet_switch"
       substituteInPlace "$target/tmux_fleet_switch" \
         --replace-fail '@tmuxFleet@' '${tmuxFleet}/bin/tmux-fleet'
@@ -80,50 +79,20 @@ in
     };
 
     fleet = {
-      enable = lib.mkEnableOption "the local and SSH tmux fleet controller";
+      enable = lib.mkEnableOption "the local tmux and on-demand SSH target picker";
 
-      remoteHosts = lib.mkOption {
+      sshTargets = lib.mkOption {
         type = lib.types.listOf lib.types.str;
         default = [ ];
         example = [
+          "chetan@192.168.1.170"
           "workstation"
-          "laptop"
         ];
         description = ''
-          SSH host aliases whose tmux sessions should appear beside local sessions.
-          Configure public-key authentication for each alias in ssh_config.
-          Omit the current machine; enable fleet mode on every listed peer.
+          Optional directional OpenSSH destinations displayed by tmux-fleet.
+          They are opened only after selection; tmux-fleet never inventories or
+          requires SSH connectivity between the listed machines.
         '';
-      };
-
-      reconcileSeconds = lib.mkOption {
-        type = lib.types.ints.between 1 3600;
-        default = 30;
-        description = "Background full-snapshot interval for missed tmux events";
-      };
-
-      connectTimeoutSeconds = lib.mkOption {
-        type = lib.types.ints.between 1 300;
-        default = 5;
-        description = "Timeout for each background SSH connection attempt";
-      };
-
-      serverAliveIntervalSeconds = lib.mkOption {
-        type = lib.types.ints.between 1 3600;
-        default = 15;
-        description = "Interval between OpenSSH keepalive messages";
-      };
-
-      serverAliveCountMax = lib.mkOption {
-        type = lib.types.ints.between 1 100;
-        default = 2;
-        description = "Unanswered OpenSSH keepalives allowed before reconnecting";
-      };
-
-      controlPersistSeconds = lib.mkOption {
-        type = lib.types.ints.between 1 86400;
-        default = 600;
-        description = "Lifetime of an idle shared OpenSSH control connection";
       };
     };
     shell = lib.mkOption {
@@ -215,12 +184,7 @@ in
     xdg.configFile."tmux-fleet/config.json" = lib.mkIf cfg.fleet.enable {
       text =
         builtins.toJSON {
-          hosts = cfg.fleet.remoteHosts;
-          reconcile_seconds = cfg.fleet.reconcileSeconds;
-          connect_timeout_seconds = cfg.fleet.connectTimeoutSeconds;
-          server_alive_interval_seconds = cfg.fleet.serverAliveIntervalSeconds;
-          server_alive_count_max = cfg.fleet.serverAliveCountMax;
-          control_persist_seconds = cfg.fleet.controlPersistSeconds;
+          ssh_targets = cfg.fleet.sshTargets;
           tmux_command = "${cfg.package}/bin/tmux";
           fzf_command = "${pkgs.fzf}/bin/fzf";
           ssh_command = sshCommand;
@@ -228,7 +192,7 @@ in
         + "\n";
     };
 
-    # Stable path used by noninteractive SSH commands across profile layouts.
+    # Stable path used by foreground SSH commands across profile layouts.
     home.file.".local/libexec/tmux-fleet" = lib.mkIf cfg.fleet.enable {
       source = "${tmuxFleet}/bin/tmux-fleet";
     };

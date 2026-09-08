@@ -81,7 +81,7 @@ items:
     menu:
       - name: "Switch session"
         key: "s"
-        command: "choose-tree -Zs"
+        command: "if-shell -F '#{@cb_tmux_fleet}' 'tmux-fleet-switch' 'choose-tree -Zs'"
 
       - name: "New session"
         key: "n"

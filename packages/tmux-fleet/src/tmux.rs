@@ -1,34 +1,31 @@
-use std::fs;
-use std::io::{self, Read};
-use std::os::unix::net::UnixDatagram;
-use std::path::PathBuf;
+use std::io::Read;
 use std::process::{Child, Command, ExitStatus, Output, Stdio};
 use std::thread;
-use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 use anyhow::{bail, Context, Result};
 
 use crate::config::Config;
-use crate::protocol::{
-    unix_timestamp, write_wire, SessionInfo, Snapshot, WireMessage, MAX_SESSION_NAME_BYTES,
-};
+use crate::protocol::{unix_timestamp, SessionInfo, Snapshot, MAX_SESSION_NAME_BYTES};
 use crate::runtime;
 
 const FIELD_SEPARATOR: char = '\u{1f}';
-const SNAPSHOT_FORMAT: &str = "#{session_id}\u{1f}#{session_name}\u{1f}#{session_windows}\u{1f}#{session_attached}\u{1f}#{session_created}\u{1f}#{session_activity}\u{1f}#{start_time}";
+const SNAPSHOT_FORMAT: &str = "#{session_id}\u{1f}#{session_name}\u{1f}#{session_windows}\u{1f}#{session_attached}\u{1f}#{session_created}\u{1f}#{session_activity}\u{1f}#{pid}\u{1f}#{start_time}";
 const MAX_SNAPSHOT_OUTPUT_BYTES: usize = 8 * 1024 * 1024;
 const MAX_ERROR_OUTPUT_BYTES: usize = 64 * 1024;
-const HEARTBEAT_INTERVAL: Duration = Duration::from_secs(10);
+pub const SWITCH_EXIT_CODE: i32 = 42;
 pub const STALE_TARGET_EXIT_CODE: i32 = 75;
 
 #[derive(Clone, Debug)]
 pub struct ExistingTarget {
     pub id: String,
+    pub server_pid: u64,
     pub server_started_at: u64,
     pub created_at: u64,
 }
+
 pub enum AttachMode {
     Existing(ExistingTarget),
+    LatestOrNew,
     New(Option<String>),
 }
 
@@ -37,16 +34,6 @@ pub struct ManagedChild {
 }
 
 impl ManagedChild {
-    pub fn id(&self) -> u32 {
-        self.child.id()
-    }
-
-    pub fn try_wait(&mut self) -> Result<Option<ExitStatus>> {
-        self.child
-            .try_wait()
-            .context("failed to query tmux client status")
-    }
-
     pub fn wait(mut self) -> Result<ExitStatus> {
         self.child.wait().context("failed to wait for tmux client")
     }
@@ -105,7 +92,6 @@ fn capture_tmux(config: &Config, args: &[&str]) -> Result<Output> {
 
 pub fn snapshot(config: &Config) -> Result<Snapshot> {
     let output = capture_tmux(config, &["list-sessions", "-F", SNAPSHOT_FORMAT])?;
-
     let stdout = String::from_utf8(output.stdout).context("tmux emitted non-UTF-8 session data")?;
     if !output.status.success() {
         let stderr = String::from_utf8_lossy(&output.stderr);
@@ -124,19 +110,19 @@ pub fn snapshot(config: &Config) -> Result<Snapshot> {
         .filter(|line| !line.is_empty())
         .map(parse_session)
         .collect::<Result<Vec<_>>>()?;
-    let server_started_at = records
+    let (server_pid, server_started_at) = records
         .first()
-        .map(|(_, server_started_at)| *server_started_at)
+        .map(|(_, server_pid, server_started_at)| (*server_pid, *server_started_at))
         .unwrap_or_default();
     if records
         .iter()
-        .any(|(_, started_at)| *started_at != server_started_at)
+        .any(|(_, pid, started_at)| *pid != server_pid || *started_at != server_started_at)
     {
-        bail!("tmux server generation changed while collecting sessions");
+        bail!("tmux server identity changed while collecting sessions");
     }
     let mut sessions = records
         .into_iter()
-        .map(|(session, _)| session)
+        .map(|(session, _, _)| session)
         .collect::<Vec<_>>();
     sessions.sort_by(|left, right| {
         right
@@ -146,6 +132,7 @@ pub fn snapshot(config: &Config) -> Result<Snapshot> {
     });
 
     Ok(Snapshot {
+        server_pid,
         server_started_at,
         hostname: runtime::short_hostname(),
         generated_at: unix_timestamp(),
@@ -153,94 +140,11 @@ pub fn snapshot(config: &Config) -> Result<Snapshot> {
     })
 }
 
-pub fn run_watch(config: &Config, reconcile_seconds: u64) -> Result<()> {
-    let watcher = WatcherSocket::bind()?;
-    if !send_snapshot(config)? {
-        return Ok(());
-    }
-
-    let reconcile_interval = Duration::from_secs(reconcile_seconds.max(1));
-    let mut next_reconcile = Instant::now() + reconcile_interval;
-    let mut next_heartbeat = Instant::now() + HEARTBEAT_INTERVAL;
-    let mut buffer = [0_u8; 32];
-
-    loop {
-        let mut changed = false;
-        match watcher.socket.recv(&mut buffer) {
-            Ok(_) => changed = true,
-            Err(error)
-                if matches!(
-                    error.kind(),
-                    io::ErrorKind::WouldBlock | io::ErrorKind::TimedOut
-                ) => {}
-            Err(error) if error.kind() == io::ErrorKind::Interrupted => continue,
-            Err(error) => return Err(error).context("failed to receive tmux notification"),
-        }
-
-        if changed {
-            thread::sleep(Duration::from_millis(25));
-            watcher.socket.set_nonblocking(true)?;
-            while watcher.socket.recv(&mut buffer).is_ok() {}
-            watcher.socket.set_nonblocking(false)?;
-            watcher
-                .socket
-                .set_read_timeout(Some(Duration::from_secs(1)))?;
-        }
-
-        let now = Instant::now();
-        if changed || now >= next_reconcile {
-            if !send_snapshot(config)? {
-                return Ok(());
-            }
-            next_reconcile = now + reconcile_interval;
-            next_heartbeat = now + HEARTBEAT_INTERVAL;
-        } else if now >= next_heartbeat {
-            if !write_wire(&WireMessage::Heartbeat {
-                sent_at: unix_timestamp(),
-            })? {
-                return Ok(());
-            }
-            next_heartbeat = now + HEARTBEAT_INTERVAL;
-        }
-    }
-}
-
-pub fn notify_watchers() -> Result<()> {
-    let directory = runtime::watcher_dir()?;
-    let sender = UnixDatagram::unbound().context("failed to create notification socket")?;
-    sender
-        .set_nonblocking(true)
-        .context("failed to make notification socket nonblocking")?;
-    for entry in fs::read_dir(&directory)
-        .with_context(|| format!("failed to read {}", directory.display()))?
-    {
-        let entry = match entry {
-            Ok(entry) => entry,
-            Err(_) => continue,
-        };
-        let path = entry.path();
-        if path.extension().and_then(|extension| extension.to_str()) != Some("sock") {
-            continue;
-        }
-        match sender.send_to(&[1], &path) {
-            Err(error)
-                if matches!(
-                    error.kind(),
-                    io::ErrorKind::NotFound | io::ErrorKind::ConnectionRefused
-                ) =>
-            {
-                let _ = fs::remove_file(path);
-            }
-            _ => {}
-        }
-    }
-    Ok(())
-}
-
 fn new_session_name_argument(name: &str) -> Result<String> {
     if name.len() > MAX_SESSION_NAME_BYTES {
         bail!("tmux session name exceeds {MAX_SESSION_NAME_BYTES} bytes");
     }
+    // tmux expands #() and #{} even in direct argv; ## is the literal # escape.
     Ok(name.replace('#', "##"))
 }
 
@@ -252,11 +156,13 @@ pub fn spawn_managed(config: &Config, mode: AttachMode) -> Result<ManagedChild> 
                 bail!("invalid tmux session ID");
             }
             let condition = [
-                "#{&&:#{==:#{start_time},",
+                "#{&&:#{==:#{pid},",
+                &target.server_pid.to_string(),
+                "},#{&&:#{==:#{start_time},",
                 &target.server_started_at.to_string(),
                 "},#{==:#{session_created},",
                 &target.created_at.to_string(),
-                "}}",
+                "}}}",
             ]
             .concat();
             let attach = format!("attach-session -t '{}'", target.id);
@@ -270,6 +176,17 @@ pub fn spawn_managed(config: &Config, mode: AttachMode) -> Result<ManagedChild> 
                 "detach-client -E 'exit 75'",
             ]);
         }
+        AttachMode::LatestOrNew => {
+            command.args([
+                "start-server",
+                ";",
+                "if-shell",
+                "-F",
+                "#{>:#{server_sessions},0}",
+                "attach-session",
+                "new-session",
+            ]);
+        }
         AttachMode::New(name) => {
             command.arg("new-session");
             if let Some(name) = name {
@@ -278,21 +195,22 @@ pub fn spawn_managed(config: &Config, mode: AttachMode) -> Result<ManagedChild> 
             }
         }
     }
+    spawn_managed_command(command, &config.tmux_command)
+}
+
+pub fn attach_latest_or_new(config: &Config) -> Result<ExitStatus> {
+    spawn_managed(config, AttachMode::LatestOrNew)?.wait()
+}
+
+fn spawn_managed_command(
+    mut command: Command,
+    tmux_command: &std::path::Path,
+) -> Result<ManagedChild> {
     command.env("TMUX_FLEET_MANAGED", "1");
     let child = command
         .spawn()
-        .with_context(|| format!("failed to run {}", config.tmux_command.display()))?;
+        .with_context(|| format!("failed to run {}", tmux_command.display()))?;
     Ok(ManagedChild { child })
-}
-
-fn send_snapshot(config: &Config) -> Result<bool> {
-    match snapshot(config) {
-        Ok(snapshot) => write_wire(&WireMessage::Snapshot { snapshot }),
-        Err(error) => write_wire(&WireMessage::Error {
-            message: format!("{error:#}"),
-            sent_at: unix_timestamp(),
-        }),
-    }
 }
 
 fn valid_session_id(value: &str) -> bool {
@@ -301,9 +219,9 @@ fn valid_session_id(value: &str) -> bool {
     })
 }
 
-fn parse_session(line: &str) -> Result<(SessionInfo, u64)> {
+fn parse_session(line: &str) -> Result<(SessionInfo, u64, u64)> {
     let fields = line.split(FIELD_SEPARATOR).collect::<Vec<_>>();
-    if fields.len() != 7 {
+    if fields.len() != 8 {
         bail!(
             "unexpected tmux session record with {} fields",
             fields.len()
@@ -321,7 +239,8 @@ fn parse_session(line: &str) -> Result<(SessionInfo, u64)> {
             created_at: fields[4].parse().context("invalid tmux creation time")?,
             activity_at: fields[5].parse().context("invalid tmux activity time")?,
         },
-        fields[6]
+        fields[6].parse().context("invalid tmux server PID")?,
+        fields[7]
             .parse()
             .context("invalid tmux server start time")?,
     ))
@@ -329,6 +248,7 @@ fn parse_session(line: &str) -> Result<(SessionInfo, u64)> {
 
 fn empty_snapshot() -> Snapshot {
     Snapshot {
+        server_pid: 0,
         server_started_at: 0,
         hostname: runtime::short_hostname(),
         generated_at: unix_timestamp(),
@@ -336,51 +256,31 @@ fn empty_snapshot() -> Snapshot {
     }
 }
 
-struct WatcherSocket {
-    socket: UnixDatagram,
-    path: PathBuf,
-}
-
-impl WatcherSocket {
-    fn bind() -> Result<Self> {
-        let directory = runtime::watcher_dir()?;
-        let nonce = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .unwrap_or_default()
-            .as_nanos();
-        let path = directory.join(format!("watch-{}-{nonce}.sock", std::process::id()));
-        let socket = UnixDatagram::bind(&path)
-            .with_context(|| format!("failed to bind {}", path.display()))?;
-        socket.set_read_timeout(Some(Duration::from_secs(1)))?;
-        Ok(Self { socket, path })
-    }
-}
-
-impl Drop for WatcherSocket {
-    fn drop(&mut self) {
-        let _ = fs::remove_file(&self.path);
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use std::fs;
     use std::os::unix::fs::PermissionsExt;
+    use std::os::unix::process::ExitStatusExt;
     use std::path::PathBuf;
-    use std::time::{SystemTime, UNIX_EPOCH};
+    use std::sync::atomic::{AtomicU64, Ordering};
+    use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
     use crate::config::Config;
     use crate::protocol::MAX_SESSION_NAME_BYTES;
 
     use super::{
-        new_session_name_argument, parse_session, spawn_managed, AttachMode, ExistingTarget,
+        attach_latest_or_new, new_session_name_argument, parse_session, snapshot, spawn_managed,
+        AttachMode, ExistingTarget, SNAPSHOT_FORMAT, STALE_TARGET_EXIT_CODE, SWITCH_EXIT_CODE,
     };
+
+    static TEST_NONCE: AtomicU64 = AtomicU64::new(0);
 
     #[test]
     fn parses_tmux_record_with_spaces_and_punctuation() {
-        let record = "$3\u{1f}work ! now\u{1f}4\u{1f}1\u{1f}10\u{1f}20\u{1f}5";
-        let (session, server_started_at) =
+        let record = "$3\u{1f}work ! now\u{1f}4\u{1f}1\u{1f}10\u{1f}20\u{1f}321\u{1f}5";
+        let (session, server_pid, server_started_at) =
             parse_session(record).expect("valid tmux record should parse");
+        assert_eq!(server_pid, 321);
         assert_eq!(server_started_at, 5);
         assert_eq!(session.id, "$3");
         assert_eq!(session.name, "work ! now");
@@ -396,7 +296,7 @@ mod tests {
     }
 
     #[test]
-    fn new_session_name_limit_matches_snapshot_validation() {
+    fn new_session_name_limit_is_enforced_before_creation() {
         let boundary = "x".repeat(MAX_SESSION_NAME_BYTES);
         assert_eq!(
             new_session_name_argument(&boundary).expect("boundary name should be accepted"),
@@ -408,72 +308,254 @@ mod tests {
 
     #[test]
     fn managed_attach_uses_one_atomic_identity_guard() {
-        let (directory, executable, log) = fake_tmux(0);
+        let (directory, executable, log) = fake_tmux("exit 0");
         let config = Config {
             tmux_command: executable,
             ..Config::default()
         };
-
-        let child = spawn_managed(
-            &config,
-            AttachMode::Existing(ExistingTarget {
-                id: "$3".into(),
-                server_started_at: 5,
-                created_at: 10,
-            }),
-        )
+        let child = retry_text_file_busy(|| {
+            spawn_managed(
+                &config,
+                AttachMode::Existing(ExistingTarget {
+                    id: "$3".into(),
+                    server_pid: 321,
+                    server_started_at: 5,
+                    created_at: 10,
+                }),
+            )
+        })
         .expect("fake tmux should spawn");
         assert!(
             child.wait().expect("fake tmux should exit").success(),
             "fake tmux should succeed"
         );
-
-        let arguments = fs::read_to_string(&log).expect("fake tmux should log arguments");
         assert_eq!(
-            arguments,
-            "if-shell\n-F\n-t\n$3\n#{&&:#{==:#{start_time},5},#{==:#{session_created},10}}\nattach-session -t '$3'\ndetach-client -E 'exit 75'\n"
+            fs::read_to_string(&log).expect("fake tmux should log arguments"),
+            "if-shell\n-F\n-t\n$3\n#{&&:#{==:#{pid},321},#{&&:#{==:#{start_time},5},#{==:#{session_created},10}}}\nattach-session -t '$3'\ndetach-client -E 'exit 75'\n"
         );
         fs::remove_dir_all(directory).expect("fake tmux directory should be removable");
     }
 
     #[test]
     fn managed_attach_propagates_the_atomic_stale_exit() {
-        let (directory, executable, _) = fake_tmux(75);
+        let (directory, executable, _) = fake_tmux("exit 75");
         let config = Config {
             tmux_command: executable,
             ..Config::default()
         };
-        let child = spawn_managed(
-            &config,
-            AttachMode::Existing(ExistingTarget {
-                id: "$3".into(),
-                server_started_at: 4,
-                created_at: 10,
-            }),
-        )
+        let child = retry_text_file_busy(|| {
+            spawn_managed(
+                &config,
+                AttachMode::Existing(ExistingTarget {
+                    id: "$3".into(),
+                    server_pid: 321,
+                    server_started_at: 4,
+                    created_at: 10,
+                }),
+            )
+        })
         .expect("fake stale tmux should spawn");
-
         assert_eq!(
             child.wait().expect("fake stale tmux should exit").code(),
-            Some(75)
+            Some(STALE_TARGET_EXIT_CODE)
         );
         fs::remove_dir_all(directory).expect("fake tmux directory should be removable");
     }
 
-    fn fake_tmux(exit_status: i32) -> (PathBuf, PathBuf, PathBuf) {
+    #[test]
+    fn latest_or_new_runs_one_atomic_queue_and_preserves_switch_status() {
+        let (directory, executable, log) = fake_tmux("exit 42");
+        let config = Config {
+            tmux_command: executable,
+            ..Config::default()
+        };
+
+        assert_eq!(
+            retry_text_file_busy(|| attach_latest_or_new(&config))
+                .expect("atomic attach-or-create should run")
+                .code(),
+            Some(SWITCH_EXIT_CODE)
+        );
+        assert_eq!(
+            fs::read_to_string(&log).expect("fake tmux should log arguments"),
+            "start-server\n;\nif-shell\n-F\n#{>:#{server_sessions},0}\nattach-session\nnew-session\n"
+        );
+        fs::remove_dir_all(directory).expect("fake tmux directory should be removable");
+    }
+
+    #[test]
+    fn latest_or_new_propagates_nonzero_status() {
+        let (directory, executable, log) = fake_tmux("exit 75");
+        let config = Config {
+            tmux_command: executable,
+            ..Config::default()
+        };
+
+        let status = retry_text_file_busy(|| attach_latest_or_new(&config))
+            .expect("atomic attach-or-create should return its child status");
+        assert_eq!(status.code(), Some(STALE_TARGET_EXIT_CODE));
+        assert_eq!(status.signal(), None);
+        assert_eq!(
+            fs::read_to_string(&log).expect("fake tmux should log arguments"),
+            "start-server\n;\nif-shell\n-F\n#{>:#{server_sessions},0}\nattach-session\nnew-session\n"
+        );
+        fs::remove_dir_all(directory).expect("fake tmux directory should be removable");
+    }
+
+    #[test]
+    fn latest_or_new_propagates_signal_status() {
+        let (directory, executable, log) = fake_tmux("kill -TERM $$");
+        let config = Config {
+            tmux_command: executable,
+            ..Config::default()
+        };
+
+        let status = retry_text_file_busy(|| attach_latest_or_new(&config))
+            .expect("atomic attach-or-create should return its child status");
+        assert_eq!(status.code(), None);
+        assert_eq!(status.signal(), Some(15));
+        assert_eq!(
+            fs::read_to_string(&log).expect("fake tmux should log arguments"),
+            "start-server\n;\nif-shell\n-F\n#{>:#{server_sessions},0}\nattach-session\nnew-session\n"
+        );
+        fs::remove_dir_all(directory).expect("fake tmux directory should be removable");
+    }
+
+    #[test]
+    fn explicit_new_session_always_uses_new_session() {
+        let (directory, executable, log) = fake_tmux("exit 0");
+        let config = Config {
+            tmux_command: executable,
+            ..Config::default()
+        };
+
+        assert!(retry_text_file_busy(|| spawn_managed(
+            &config,
+            AttachMode::New(Some("fresh".into()))
+        ))
+        .expect("explicit new session should spawn")
+        .wait()
+        .expect("fake tmux should exit")
+        .success());
+        assert_eq!(
+            fs::read_to_string(&log).expect("fake tmux should log arguments"),
+            "new-session\n-s\nfresh\n"
+        );
+        fs::remove_dir_all(directory).expect("fake tmux directory should be removable");
+    }
+
+    #[test]
+    fn snapshot_rejects_inconsistent_server_identity() {
+        let (directory, executable, _) = fake_tmux(
+            "printf '%s\\n' '$3\u{1f}first\u{1f}1\u{1f}0\u{1f}10\u{1f}20\u{1f}321\u{1f}5' '$4\u{1f}second\u{1f}1\u{1f}0\u{1f}11\u{1f}21\u{1f}322\u{1f}5'",
+        );
+        let config = Config {
+            tmux_command: executable,
+            ..Config::default()
+        };
+
+        let error = retry_text_file_busy(|| snapshot(&config))
+            .expect_err("inconsistent tmux server identity must be rejected");
+        assert!(
+            error
+                .to_string()
+                .contains("tmux server identity changed while collecting sessions"),
+            "unexpected error: {error:#}"
+        );
+        fs::remove_dir_all(directory).expect("fake tmux directory should be removable");
+    }
+
+    #[test]
+    fn snapshot_recognizes_no_server_from_status_one_and_stderr() {
+        let (directory, executable, log) =
+            fake_tmux("printf '%s\\n' 'no server running on /tmp/tmux-1000/default' >&2\nexit 1");
+        let config = Config {
+            tmux_command: executable,
+            ..Config::default()
+        };
+
+        let snapshot = retry_text_file_busy(|| snapshot(&config))
+            .expect("no-server response should be an empty snapshot");
+        assert_eq!(snapshot.server_pid, 0);
+        assert_eq!(snapshot.server_started_at, 0);
+        assert!(snapshot.sessions.is_empty());
+        assert_eq!(
+            fs::read_to_string(&log).expect("fake tmux should log arguments"),
+            format!("list-sessions\n-F\n{SNAPSHOT_FORMAT}\n")
+        );
+        fs::remove_dir_all(directory).expect("fake tmux directory should be removable");
+    }
+
+    #[test]
+    fn snapshot_reports_unrelated_list_failure() {
+        let (directory, executable, log) =
+            fake_tmux("printf '%s\\n' 'permission denied' >&2\nexit 1");
+        let config = Config {
+            tmux_command: executable,
+            ..Config::default()
+        };
+
+        let error = retry_text_file_busy(|| snapshot(&config))
+            .expect_err("unrelated list failure must propagate");
+        assert!(
+            error
+                .to_string()
+                .contains("tmux list-sessions failed: permission denied"),
+            "unexpected error: {error:#}"
+        );
+        assert_eq!(
+            fs::read_to_string(&log).expect("fake tmux should log arguments"),
+            format!("list-sessions\n-F\n{SNAPSHOT_FORMAT}\n")
+        );
+        fs::remove_dir_all(directory).expect("fake tmux directory should be removable");
+    }
+
+    fn retry_text_file_busy<T>(
+        mut operation: impl FnMut() -> anyhow::Result<T>,
+    ) -> anyhow::Result<T> {
+        for attempt in 0..20 {
+            match operation() {
+                Err(error) if text_file_busy(&error) && attempt < 19 => {
+                    std::thread::sleep(Duration::from_millis(5));
+                }
+                result => return result,
+            }
+        }
+        unreachable!("the bounded retry loop always returns");
+    }
+
+    fn text_file_busy(error: &anyhow::Error) -> bool {
+        error.chain().any(|cause| {
+            cause
+                .downcast_ref::<std::io::Error>()
+                .is_some_and(|io_error| io_error.raw_os_error() == Some(nix::libc::ETXTBSY))
+        })
+    }
+
+    fn fake_tmux(body: &str) -> (PathBuf, PathBuf, PathBuf) {
         let nonce = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .expect("system clock should be after the Unix epoch")
             .as_nanos();
-        let directory =
-            std::env::temp_dir().join(format!("tmux-fleet-test-{}-{nonce}", std::process::id()));
+        let sequence = TEST_NONCE.fetch_add(1, Ordering::Relaxed);
+        let test_root = std::env::current_exe()
+            .expect("test executable path should be available")
+            .parent()
+            .expect("test executable should have a parent directory")
+            .to_path_buf();
+        let directory = test_root.join(format!(
+            "tmux-fleet-test-{}-{nonce}-{sequence}",
+            std::process::id()
+        ));
         fs::create_dir(&directory).expect("fake tmux directory should be created");
+        fs::set_permissions(&directory, fs::Permissions::from_mode(0o700))
+            .expect("fake tmux directory should be private");
         let executable = directory.join("tmux");
         let log = directory.join("arguments");
         fs::write(
             &executable,
             format!(
-                "#!/bin/sh\nprintf '%s\\n' \"$@\" > {}\nexit {exit_status}\n",
+                "#!/bin/sh\nprintf '%s\\n' \"$@\" >> {}\n{body}\n",
                 shell_single_quote(&log)
             ),
         )

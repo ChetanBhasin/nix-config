@@ -10,7 +10,7 @@ rustPlatform.buildRustPackage {
   doCheck = true;
 
   meta = {
-    description = "Low-latency local and SSH tmux session controller";
+    description = "On-demand local tmux and SSH target session picker";
     license = lib.licenses.mit;
     mainProgram = "tmux-fleet";
     platforms = lib.platforms.unix;

@@ -23,9 +23,5 @@
     enableExtras = true;
     enableProf = true;
     enableHyprland = true;
-    tmuxFleetRemoteHosts = [
-      "hugh"
-      "markus"
-    ];
   };
 }

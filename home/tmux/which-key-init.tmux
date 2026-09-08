@@ -27,7 +27,7 @@ set -g @wk_cfg_pos_y "C"
 #
 
 set -g @wk_menu_sessions \
-'"Switch session" "s" "choose-tree -Zs" \
+'"Switch session" "s" "if-shell -F \"#{@cb_tmux_fleet}\" \"tmux-fleet-switch\" \"choose-tree -Zs\"" \
 "New session" "n" "command-prompt -p \"Session name:\" \"new-session -s '%%'\"" \
 "Rename session" "r" rename-session-popup \
 "Kill session" "k" "confirm-before -p \"Kill session? (y/n)\" kill-session" \

@@ -893,7 +893,7 @@ Like Legendary in Neovim or VS Code's Command Palette:
 
 **Session Management:**
 ```text
-C-Space s s      # Open Sessions menu, then switch
+C-Space s s      # Open the local/SSH picker when fleet is enabled; otherwise session tree
 C-Space s n      # New session
 C-Space s r      # Rename session in a centered input popup
 C-Space s k      # Kill session

@@ -1,168 +1,94 @@
-use std::ffi::OsString;
-use std::process::{Command, Stdio};
+use std::process::Command;
 
 use anyhow::Result;
 
-use crate::config::Config;
-use crate::runtime::{hex_encode, ssh_control_path};
-use crate::tmux::AttachMode;
+use crate::config::{validate_ssh_target, Config};
 
-const REMOTE_BINARY: &str = "\"$HOME/.local/libexec/tmux-fleet\"";
+pub const REMOTE_ATTACH_COMMAND: &str = "if [ -x \"$HOME/.local/libexec/tmux-fleet\" ]; then exec \"$HOME/.local/libexec/tmux-fleet\" attach-latest; else export TMUX_FLEET_MANAGED=1; exec tmux start-server \\; if-shell -F '#{>:#{server_sessions},0}' 'attach-session' 'new-session'; fi";
 
-pub fn watch_command(config: &Config, host: &str) -> Result<Command> {
-    let mut command = base_command(config, host, true)?;
-    command
-        .arg("-T")
-        .arg("--")
-        .arg(host)
-        .arg(format!(
-            "exec {REMOTE_BINARY} watch --reconcile-seconds {}",
-            config.reconcile_seconds
-        ))
-        .stdin(Stdio::null())
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped());
-    Ok(command)
-}
-
-pub fn attach_command(config: &Config, host: &str, mode: &AttachMode) -> Result<Command> {
-    let mut command = base_command(config, host, false)?;
-    let remote_command = match mode {
-        AttachMode::Existing(target) => format!(
-            "exec {REMOTE_BINARY} attach --session-hex {} --server-started-at {} --created-at {}",
-            hex_encode(&target.id),
-            target.server_started_at,
-            target.created_at
-        ),
-        AttachMode::New(Some(name)) => format!(
-            "exec {REMOTE_BINARY} attach --new --session-hex {}",
-            hex_encode(name)
-        ),
-        AttachMode::New(None) => format!("exec {REMOTE_BINARY} attach --new"),
-    };
-    command.arg("-tt").arg("--").arg(host).arg(remote_command);
-    Ok(command)
-}
-
-pub fn reconnect_command(config: &Config, host: &str) -> Result<Command> {
-    let mut command = base_command(config, host, false)?;
-    command.arg("-fN").arg("--").arg(host);
-    Ok(command)
-}
-
-fn base_command(config: &Config, host: &str, batch: bool) -> Result<Command> {
+pub fn attach_command(config: &Config, target: &str) -> Result<Command> {
+    validate_ssh_target(target)?;
     let mut command = Command::new(&config.ssh_command);
-    let control_path = ssh_control_path(host)?;
     command
-        .arg("-o")
-        .arg(format!("BatchMode={}", if batch { "yes" } else { "no" }))
-        .arg("-o")
-        .arg("PreferredAuthentications=publickey")
-        .arg("-o")
-        .arg("PasswordAuthentication=no")
-        .arg("-o")
-        .arg("KbdInteractiveAuthentication=no")
-        .arg("-o")
-        .arg("ForwardAgent=no")
-        .arg("-o")
-        .arg("RemoteCommand=none")
-        .arg("-o")
-        .arg("ControlMaster=auto")
-        .arg("-o")
-        .arg(format!("ControlPersist={}", config.control_persist_seconds))
-        .arg("-o")
-        .arg(control_path_option(&control_path))
-        .arg("-o")
-        .arg(format!("ConnectTimeout={}", config.connect_timeout_seconds))
-        .arg("-o")
-        .arg(format!(
-            "ServerAliveInterval={}",
-            config.server_alive_interval_seconds
-        ))
-        .arg("-o")
-        .arg(format!(
-            "ServerAliveCountMax={}",
-            config.server_alive_count_max
-        ))
-        .arg("-o")
-        .arg("ConnectionAttempts=1");
+        .arg("-tt")
+        .arg("--")
+        .arg(target)
+        .arg(REMOTE_ATTACH_COMMAND);
     Ok(command)
-}
-
-fn control_path_option(path: &std::path::Path) -> OsString {
-    let mut option = OsString::from("ControlPath=");
-    option.push(path);
-    option
 }
 
 #[cfg(test)]
 mod tests {
+    use std::fs;
+    use std::os::unix::fs::PermissionsExt;
+    use std::path::PathBuf;
     use std::process::Command;
+    use std::sync::atomic::{AtomicU64, Ordering};
+    use std::time::{SystemTime, UNIX_EPOCH};
 
     use crate::config::Config;
-    use crate::tmux::{AttachMode, ExistingTarget};
 
-    use super::{attach_command, watch_command};
+    use super::{attach_command, REMOTE_ATTACH_COMMAND};
+
+    static TEST_NONCE: AtomicU64 = AtomicU64::new(0);
 
     #[test]
-    fn existing_attach_transports_only_encoded_identity_fields() {
+    fn interactive_attach_preserves_authentication_and_uses_separate_arguments() {
         let config = Config::default();
-        let mode = AttachMode::Existing(ExistingTarget {
-            id: "$9".into(),
-            server_started_at: 123,
-            created_at: 456,
-        });
-        let command =
-            attach_command(&config, "work", &mode).expect("valid attach command should build");
+        let command = attach_command(&config, "chetan@192.168.1.170")
+            .expect("valid SSH target should build a command");
         let arguments = arguments(&command);
-
         assert_eq!(
-            &arguments[arguments.len() - 4..],
-            [
-                "-tt",
-                "--",
-                "work",
-                "exec \"$HOME/.local/libexec/tmux-fleet\" attach --session-hex 2439 --server-started-at 123 --created-at 456",
-            ]
+            arguments,
+            ["-tt", "--", "chetan@192.168.1.170", REMOTE_ATTACH_COMMAND,]
         );
-        assert!(!arguments.iter().any(|argument| argument.contains("$9")));
-        assert!(has_option(&arguments, "BatchMode=no"));
-        assert!(has_option(&arguments, "ForwardAgent=no"));
+        assert!(!arguments
+            .iter()
+            .any(|argument| argument.starts_with("BatchMode=")));
+        assert!(!arguments
+            .iter()
+            .any(|argument| argument.starts_with("PasswordAuthentication=")));
+        assert!(!arguments
+            .iter()
+            .any(|argument| argument.starts_with("KbdInteractiveAuthentication=")));
+        assert!(!arguments
+            .iter()
+            .any(|argument| argument.starts_with("ControlMaster=")));
     }
 
     #[test]
-    fn watcher_is_noninteractive_and_uses_a_separate_host_argument() {
-        let config = Config::default();
-        let command = watch_command(&config, "work").expect("valid watch command should build");
-        let arguments = arguments(&command);
-
-        assert_eq!(
-            &arguments[arguments.len() - 4..],
-            [
-                "-T",
-                "--",
-                "work",
-                "exec \"$HOME/.local/libexec/tmux-fleet\" watch --reconcile-seconds 30",
-            ]
-        );
-        assert!(has_option(&arguments, "BatchMode=yes"));
-        assert!(has_option(&arguments, "PasswordAuthentication=no"));
-        assert!(has_option(&arguments, "KbdInteractiveAuthentication=no"));
+    fn remote_command_prefers_managed_helper_with_an_atomic_tmux_fallback() {
+        assert!(REMOTE_ATTACH_COMMAND.contains("tmux-fleet\" attach-latest"));
+        assert!(REMOTE_ATTACH_COMMAND.contains("TMUX_FLEET_MANAGED=1"));
+        assert!(REMOTE_ATTACH_COMMAND.contains("exec tmux start-server \\; if-shell -F"));
+        assert!(REMOTE_ATTACH_COMMAND.contains("'#{>:#{server_sessions},0}'"));
+        assert!(!REMOTE_ATTACH_COMMAND.contains("has-session"));
     }
 
     #[test]
-    fn control_paths_are_scoped_to_the_configured_alias() {
-        let config = Config::default();
-        let work =
-            arguments(&watch_command(&config, "work").expect("first watch command should build"));
-        let work_via_jump = arguments(
-            &watch_command(&config, "work-via-jump").expect("second watch command should build"),
+    fn unmanaged_fallback_uses_one_atomic_queue_and_preserves_switch_status() {
+        let (directory, log) = fake_tmux();
+        let status = Command::new("/bin/sh")
+            .arg("-c")
+            .arg(REMOTE_ATTACH_COMMAND)
+            .env_clear()
+            .env("HOME", &directory)
+            .env("PATH", &directory)
+            .env("TMUX_FAKE_LOG", &log)
+            .env("TMUX_FAKE_STATUS", "42")
+            .status()
+            .expect("fake shell fallback should run without a tmux socket");
+        assert_eq!(status.code(), Some(42));
+        assert_eq!(
+            fs::read_to_string(&log).expect("fake tmux should log arguments"),
+            "start-server\n;\nif-shell\n-F\n#{>:#{server_sessions},0}\nattach-session\nnew-session\n"
         );
+        fs::remove_dir_all(directory).expect("fake tmux directory should be removable");
+    }
 
-        assert_ne!(
-            option_value(&work, "ControlPath="),
-            option_value(&work_via_jump, "ControlPath=")
-        );
+    #[test]
+    fn invalid_targets_do_not_reach_the_ssh_command() {
+        assert!(attach_command(&Config::default(), "-oProxyCommand=bad").is_err());
     }
 
     fn arguments(command: &Command) -> Vec<String> {
@@ -172,15 +98,33 @@ mod tests {
             .collect()
     }
 
-    fn option_value<'a>(arguments: &'a [String], prefix: &str) -> Option<&'a str> {
-        arguments
-            .iter()
-            .find_map(|argument| argument.strip_prefix(prefix))
-    }
-
-    fn has_option(arguments: &[String], option: &str) -> bool {
-        arguments
-            .windows(2)
-            .any(|pair| pair[0] == "-o" && pair[1] == option)
+    fn fake_tmux() -> (PathBuf, PathBuf) {
+        let nonce = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .expect("system clock should be after Unix epoch")
+            .as_nanos();
+        let sequence = TEST_NONCE.fetch_add(1, Ordering::Relaxed);
+        let test_root = std::env::current_exe()
+            .expect("test executable path should be available")
+            .parent()
+            .expect("test executable should have a parent directory")
+            .to_path_buf();
+        let directory = test_root.join(format!(
+            "tmux-fleet-ssh-test-{}-{nonce}-{sequence}",
+            std::process::id()
+        ));
+        fs::create_dir(&directory).expect("fake tmux directory should be created");
+        fs::set_permissions(&directory, fs::Permissions::from_mode(0o700))
+            .expect("fake tmux directory should be private");
+        let executable = directory.join("tmux");
+        let log = directory.join("arguments");
+        fs::write(
+            &executable,
+            "#!/bin/sh\nprintf '%s\\n' \"$@\" >> \"$TMUX_FAKE_LOG\"\nexit \"$TMUX_FAKE_STATUS\"\n",
+        )
+        .expect("fake tmux executable should be written");
+        fs::set_permissions(&executable, fs::Permissions::from_mode(0o700))
+            .expect("fake tmux executable should become executable");
+        (directory, log)
     }
 }

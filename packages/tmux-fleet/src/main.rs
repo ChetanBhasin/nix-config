@@ -9,7 +9,6 @@ use anyhow::Result;
 use clap::{Parser, Subcommand};
 
 use config::Config;
-use tmux::{AttachMode, ExistingTarget};
 
 #[derive(Debug, Parser)]
 #[command(version, about)]
@@ -20,31 +19,13 @@ struct Cli {
 
 #[derive(Debug, Subcommand)]
 enum Command {
-    /// Open the cached local/SSH session picker and supervise attachments.
+    /// Open the current-host session and SSH target picker.
     Run,
-    /// Stream an initial snapshot and hook-driven updates as JSON lines.
-    #[command(hide = true)]
-    Watch {
-        #[arg(long)]
-        reconcile_seconds: Option<u64>,
-    },
-    /// Notify every watcher on this host that tmux state changed.
-    #[command(hide = true)]
-    Notify,
     /// Print the current local tmux session snapshot as JSON.
     Snapshot,
-    /// Attach a managed tmux client whose Prefix s may return exit 42.
+    /// Attach tmux's most-recent session, or create one when no server exists.
     #[command(hide = true)]
-    Attach {
-        #[arg(long)]
-        new: bool,
-        #[arg(long)]
-        session_hex: Option<String>,
-        #[arg(long)]
-        server_started_at: Option<u64>,
-        #[arg(long)]
-        created_at: Option<u64>,
-    },
+    AttachLatest,
 }
 
 fn main() -> Result<()> {
@@ -52,11 +33,6 @@ fn main() -> Result<()> {
     let config = Config::load()?;
     match cli.command.unwrap_or(Command::Run) {
         Command::Run => controller::run(config),
-        Command::Watch { reconcile_seconds } => tmux::run_watch(
-            &config,
-            reconcile_seconds.unwrap_or(config.reconcile_seconds),
-        ),
-        Command::Notify => tmux::notify_watchers(),
         Command::Snapshot => {
             println!(
                 "{}",
@@ -64,34 +40,8 @@ fn main() -> Result<()> {
             );
             Ok(())
         }
-        Command::Attach {
-            new,
-            session_hex,
-            server_started_at,
-            created_at,
-        } => {
-            let target = session_hex
-                .as_deref()
-                .map(runtime::hex_decode)
-                .transpose()?;
-            let mode = if new {
-                AttachMode::New(target)
-            } else {
-                let id = target
-                    .ok_or_else(|| anyhow::anyhow!("--session-hex is required without --new"))?;
-                let server_started_at = server_started_at.ok_or_else(|| {
-                    anyhow::anyhow!("--server-started-at is required without --new")
-                })?;
-                let created_at = created_at
-                    .ok_or_else(|| anyhow::anyhow!("--created-at is required without --new"))?;
-                AttachMode::Existing(ExistingTarget {
-                    id,
-                    server_started_at,
-                    created_at,
-                })
-            };
-            let child = tmux::spawn_managed(&config, mode)?;
-            let status = child.wait()?;
+        Command::AttachLatest => {
+            let status = tmux::attach_latest_or_new(&config)?;
             std::process::exit(status.code().unwrap_or(128));
         }
     }
