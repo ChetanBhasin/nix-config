@@ -19,16 +19,41 @@ const SPAWN_BUDGET_TITLE = "Grant subagent spawn budget?";
 const SPAWN_BUDGET_SUFFIX =
   "Usage is not reset. Compaction keeps the same budget; a new parent session starts a fresh one.";
 
-const AUTO_MODE_INSTRUCTIONS = `<auto-mode>
-Unattended Auto Mode is ON for this Pi process.
+const AUTO_MODE_SHARED_INSTRUCTIONS = `Unattended Auto Mode is ON for this Pi process.
 - Continue the current task without asking the user questions or waiting for user input.
 - Do not call ask_user_question or ask for clarification in prose.
 - Resolve ambiguity from available context. Prefer the safest reversible choice. If a decision is not safely inferable, skip only that blocked action, record the assumption or blocker, and continue all independent work.
 - Spawn-budget increases requested through pi-subagents are authorized and will be approved automatically.
 - Other interactive confirmations are denied; adapt by taking a safe, non-destructive path.
-- Child Pi processes inherit this runtime mode automatically. Include these constraints in child task contracts and resolve child clarification requests yourself instead of relaying them to the user.
-- Auto Mode does not authorize destructive, security-sensitive, privacy-sensitive, production, purchase, publication, merge, release, or account changes unless the user already authorized them explicitly.
-</auto-mode>`;
+- Auto Mode does not authorize destructive, security-sensitive, privacy-sensitive, production, purchase, publication, merge, release, or account changes unless the user already authorized them explicitly.`;
+
+const AUTO_MODE_PARENT_INSTRUCTIONS = `Owner-parent policy:
+- Remain the orchestrator and final authority. Resolve child questions yourself, verify the final source, diff, and tests, then deliver the final response.
+- Delegate every useful non-trivial independent or context-heavy lane; keep genuinely tiny deterministic work local.
+- Inspect executable agents and their authority, tools, and output contracts before assigning lanes.
+- Use one \`async: true\` workflow per wave. Normally assign 4–8 distinct useful lanes and never exceed 8 active lanes in a wave.
+- Use fresh contexts by default; fork only an \`oracle\` when conversation history is necessary evidence.
+- Give each child a bounded contract with goal, scope, cwd/worktree, authority, evidence, acceptance, validation, stop conditions, and output artifact.
+- Enforce one writer per cwd/worktree. Fan out read-only work only; hand back artifacts, not transcripts.
+- After wide fan-out, use an aggregation delegate so the parent reads synthesis plus load-bearing evidence rather than every report.
+- Consume artifacts at dependency barriers; do not poll child runs. Reject cloned or duplicative prompts.
+- Reserve run capacity for implementation, fixes, and review. Grant spawn budget only for named necessary lanes.
+- Child Pi processes inherit this runtime mode automatically; include the inherited-child boundary in every child task contract.`;
+
+const AUTO_MODE_CHILD_INSTRUCTIONS = `Inherited-child policy:
+- You are a bounded executor, not an orchestrator. Complete only the assigned contract.
+- Do not call, propose, or coordinate subagents.
+- Honor read-only or sole-writer authority exactly; do not mutate outside the authorized cwd/worktree.
+- Resolve routine details safely from the assigned contract and available evidence.
+- Escalate unapproved product, API, scope, architecture, authority, or protected-action decisions to the parent, never to the user.
+- Return a concise artifact with evidence, changes, commands, blockers, and residual risks, not a transcript.`;
+
+function enabledAutoModeInstructions(): string {
+  const roleInstructions = state.ownsControlFile
+    ? AUTO_MODE_PARENT_INSTRUCTIONS
+    : AUTO_MODE_CHILD_INSTRUCTIONS;
+  return `<auto-mode>\n${AUTO_MODE_SHARED_INSTRUCTIONS}\n${roleInstructions}\n</auto-mode>`;
+}
 
 const AUTO_MODE_OFF_INSTRUCTIONS = `<auto-mode>
 Unattended Auto Mode is now OFF for this Pi process. Resume normal interactive behavior and ask the user when a decision genuinely requires their input.
@@ -446,7 +471,9 @@ function controlMarker(record: ControlRecord): string {
 
 function childTransitionInstructions(enabled: boolean): string {
   const instruction = enabled
-    ? "The parent Pi process enabled unattended Auto Mode. Do not ask the user or pause for user input. Resolve ambiguity from context using the safest reversible choice, report assumptions, and continue independent work. Escalate only destructive or otherwise unauthorized actions to the parent."
+    ? `The owner parent Pi process enabled unattended Auto Mode. This signed tail carries the inherited-child boundary.
+${AUTO_MODE_SHARED_INSTRUCTIONS}
+${AUTO_MODE_CHILD_INSTRUCTIONS}`
     : "The parent Pi process disabled unattended Auto Mode. Resume the normal child-agent clarification and supervisor-coordination policy.";
   return `${controlMarker(state.record)}\n${instruction}\n</auto-mode-control>`;
 }
@@ -691,7 +718,7 @@ function handleContext(
   let instruction: string | undefined;
   if (state.enabled) {
     state.pendingOffInstruction = false;
-    instruction = AUTO_MODE_INSTRUCTIONS;
+    instruction = enabledAutoModeInstructions();
   } else if (state.pendingOffInstruction) {
     state.pendingOffInstruction = false;
     instruction = AUTO_MODE_OFF_INSTRUCTIONS;
@@ -720,12 +747,24 @@ function appendChildControl(message: string, enabled: boolean): string {
   return `${message.trimEnd()}\n\n${childTransitionInstructions(enabled)}`;
 }
 
+function shouldPromoteOwnerLaunchToAsync(input: Record<string, unknown>): boolean {
+  return (
+    state.enabled &&
+    state.ownsControlFile &&
+    !Object.hasOwn(input, "async") &&
+    input.foregroundOnly !== true
+  );
+}
+
 function propagateAutoModeToSubagent(input: Record<string, unknown>): void {
   const action = typeof input.action === "string" ? input.action : undefined;
   const isLaunch =
     action === undefined &&
     (typeof input.agent === "string" || typeof input.workflowScript === "string");
   if (isLaunch) {
+    if (shouldPromoteOwnerLaunchToAsync(input)) {
+      input.async = true;
+    }
     if (state.enabled && typeof input.task === "string") {
       input.task = appendChildControl(input.task, true);
     }

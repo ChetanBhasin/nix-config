@@ -4,7 +4,7 @@ This configuration installs vanilla Pi Coding Agent 0.84.3 with the Track B comp
 
 The ownership boundary is deliberate:
 
-- **Nix owns executables and fixed policy:** Pi, Node.js, Git, `agent-browser` 0.34.0, ast-grep, Chrome/Chromium, language servers, PI WEB 1.202608.2, wrappers, service definitions, and policy environment variables.
+- **Nix owns executables and fixed policy:** Pi, Node.js, Git, `agent-browser` 0.34.0, ast-grep, Chrome/Chromium, the Nix-patched `web_run` from exact `@howaboua/pi-codex-conversion@3.0.23`, language servers, PI WEB 1.202608.2, wrappers, service definitions, and policy environment variables.
 - **The portable projection owns reviewed Pi-native policy:** package pins, prompts, themes, extension policy, and the Codex extras-only configuration under `home/pi/config/`.
 - **Pi and the user own mutable evidence:** authentication, trust decisions, sessions, package realizations, browser profiles, caches, indexes, embeddings, SQLite databases, and logs.
 
@@ -34,10 +34,26 @@ Runtime responsibilities are non-overlapping:
 - **Hashline** replaces `read` and `grep`, disables built-in `edit`, and supplies anchored `replace`, `insert`, and undo. The built-in `write` remains available for whole-file creation/overwrite and Hashline returns fresh anchors afterward. Codex `apply_patch`/command adapters and Lens mutation tools remain inactive.
 - **Codex conversion** is captured in `pi-codex-conversion.json` as extras-only. It supplies `web_run`, `view_image`, image generation, and voice; structured adapter mode, Code/Notebook Mode, `apply_patch`, heavy prompt replacement, and Responses compaction are disabled.
 - **Magic Context** runs only in the parent. Its database, embeddings, model cache, and indexes stay local. Child processes receive `MAGIC_CONTEXT_PI_SUBAGENT=1` and explicit extension allowlists.
-- **Subagents** start fresh by default, hand back files rather than transcripts, allow one writer, cap depth at 1 and concurrency at 2, and enforce run/session spawn budgets of 8/24.
+- **Subagents** start fresh by default, hand back files rather than transcripts, and allow one writer. The `fork-only` intercom bridge leaves fresh launches without a bridge prompt or `contact_supervisor`; their bounded contracts and file artifacts carry escalation blockers. Only the policy-permitted, actually forked `oracle` has supervisor dialogue when inherited conversation is necessary evidence. The modern workflow operational wave maximum is 8 lanes by advisory policy, with two top-level async slots, 16 per-run admissions, a configured per-session budget of 64, and depth 1. Spawn-budget grants require named necessary lanes and can raise the effective per-session maximum to 128; they do not raise the per-run or wave limits. Legacy concurrency is 8; `globalConcurrencyLimit=8` does not throttle modern `runs.all`. Role mapping is scout=Luna, researcher/worker=Terra, and reviewer/oracle=Sol.
 - **Session coordinator** lets one idle long-lived (`tui`/`rpc`) Pi session queue `/after A B -- <prompt>` until exact, explicitly named independent sessions settle. It binds each name to one live instance and activity revision through a private local registry, requires a post-barrier heartbeat before trusting pre-existing settlement evidence, records `/tree` navigation as a new settled revision, and fails on duplicate live PID claims or lost bound processes. Release waits for the dependent session to become idle and for matching `before_agent_start` confirmation; synchronous or unconfirmed submissions remain available for `/after retry` or `/after cancel`. Bounded dependency text is labeled untrusted, incomplete model output is not marked completed, and barriers remain in memory until release/cancellation or waiting-session reload, switch, fork, or exit.
 - **Browser automation** uses `pi-agent-browser-native` over exact `agent-browser` 0.34.0 and a Nix-owned Chrome/Chromium executable. It uses neither MCP nor a downloaded browser.
 - **Footer** uses `pi-footer` with the checked-in `extensions/pi-footer.json` layout. It owns only Pi's footer, keeps the native header and editor, follows the active theme through Pi semantic colors, and leaves all extension statuses visible on a secondary row.
+
+## Auto Mode
+
+[Auto Mode](../home/pi/config/extensions/auto-mode/README.md) is off for every fresh top-level Pi process. Use `/auto`, `/auto on`, `/auto off`, and `/auto status` to control it.
+
+`researcher` loads Lens only to register inherited Lens flags. Its configured primitive task-tool allowlist is exactly `read` and `web_run`; a fresh launch has no `contact_supervisor` or bridge prompt. Pi may also expose the composition-only `multi_tool_use.parallel` wrapper, which cannot invoke capabilities outside that primitive allowlist. The researcher deliberately has no `pi-agent-browser-native`, `agent_browser`, or `view_image` surface.
+
+## Nix-owned `web_run`
+
+`packages/pi-codex-web-run.nix` fetches the exact `@howaboua/pi-codex-conversion@3.0.23` npm tarball by fixed hash, chooses the matching Darwin/Linux and x86_64/aarch64 helper, and patches only the Linux ELF against declared OpenSSL, libgcc, and glibc libraries. It does not enable `nix-ld` or modify Pi's mutable npm realization. On a supported host, use `nix build .#piCodexWebRun` for a direct helper diagnostic.
+
+Direct flake outputs cover `aarch64-darwin`, `aarch64-linux`, and `x86_64-linux`. The derivation retains its `x86_64-darwin` binary mapping and metadata for a compatible Nixpkgs, but this flake's pinned Nixpkgs 26.11 deliberately omits that direct output because upstream dropped `x86_64-darwin` support.
+
+The Pi wrapper and PI WEB service environment set `PI_CODEX_WEB_RUN_BIN` to that Nix-owned executable. Foreground Pi and Pi subagent children therefore inherit the same helper while portable JSON remains store-path-free. The normal `researcher` is a stateless one-angle lane: it batches 2–4 high-signal `search_query` entries in one `web_run` call, opens primary sources, cites final URLs, and returns compact evidence. It stops after the first setup, native-helper, or provider failure and never falls back to browser, shell, curl, or search-engine form automation. Browser and `view_image` portability are separate work; this change does not package or repair either one.
+
+After activation, start a **fresh** Pi process before using the lane; `/reload` does not replace an already-started process environment. Before high-fanout research, first pass `pi auth check --provider openai-codex`, then run one fresh `researcher` child with a narrow task requiring one batched `web_run.search_query` call against an official source. Its artifact must contain final official URLs, use only `web_run` (and optional `read`) for task work, and show no `contact_supervisor`, bridge prompt, loader-recovery message, browser, or image capability. A reported `multi_tool_use.parallel` wrapper is harmless because it cannot widen the primitive allowlist. Stop rollout on the first startup, authentication, provider, or throttling failure. A direct helper probe alone is not an end-to-end child smoke test.
 
 ## Portable projection
 
@@ -235,7 +251,7 @@ Expected invariants:
 
 - Lens reports no pipeline crash and does not download tools or servers.
 - Active mutation tools exclude built-in `edit`, Codex `apply_patch`/`exec_command`, Notebook Mode, and Lens `ast_grep_replace`; Hashline supplies anchored reads and edits.
-- `/subagents-doctor` reports depth 1 policy, 2 active async slots, run fan-out 8, session budget 24, and explicit role allowlists.
+- `/subagents-doctor` reports depth 1 policy, two top-level active async slots, 16 per-run admissions, a configured per-session budget of 64, legacy concurrency 8, and an advisory modern-workflow wave maximum of 8. Spawn-budget grants require named necessary lanes and can raise the effective per-session maximum to 128 without raising the per-run or wave limits. Role allowlists are scout=Luna, researcher/worker=Terra, and reviewer/oracle=Sol. `globalConcurrencyLimit=8` does not throttle modern `runs.all`.
 - `/ctx-status` opens the production database at migration v81 after every old Pi harness has reloaded.
 - `/footer` previews a one-line Nerd Font statusline with project and Git state on the left; model, thinking, context, and token usage on the right; and active extension statuses on a secondary row. Exit without saving unless intentionally changing the checked-in layout.
 - browser doctor reports agent-browser 0.34.0 and the smoke test uses Nix Chrome/Chromium.

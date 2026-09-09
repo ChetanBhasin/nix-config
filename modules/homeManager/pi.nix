@@ -15,6 +15,10 @@ let
   piPackage = pkgs.callPackage ../../packages/pi-coding-agent.nix { };
   piWebPackage = pkgs.callPackage ../../packages/pi-web.nix { piPackage = piPackage; };
   piConfig = pkgs.callPackage ../../packages/pi-config.nix { };
+  piCodexWebRun = pkgs.callPackage ../../packages/pi-codex-web-run.nix { };
+  piCodexConversionVersion = piCodexWebRun.passthru.codexConversionVersion;
+  piCodexConversionPackage = "npm:@howaboua/pi-codex-conversion@${piCodexConversionVersion}";
+  piPortableSettings = builtins.fromJSON (builtins.readFile ../../home/pi/config/settings.json);
 
   piWithPolicy = pkgs.symlinkJoin {
     name = "pi-coding-agent-policy-${lib.getVersion cfg.package}";
@@ -24,6 +28,7 @@ let
       cat > "$out/bin/pi" <<'EOF'
       #!${pkgs.runtimeShell}
       export AGENT_BROWSER_EXECUTABLE_PATH=${lib.escapeShellArg browserExecutable}
+      export PI_CODEX_WEB_RUN_BIN=${lib.escapeShellArg (lib.getExe piCodexWebRun)}
       export PI_LENS_DISABLE_LSP_INSTALL=1
       export PI_LENS_DISABLE_TOOL_INSTALL=1
       export PI_LENS_NO_CONTEXT_INJECTION=1
@@ -75,6 +80,10 @@ let
       browserConfigIsExplicit = true;
       browserExecutableIsNixOwned = true;
       subagentTasksUseFiles = true;
+      webRunBinaryIsNixOwned = true;
+      webRunBinaryIsExplicit = true;
+      webRunCodexConversionVersion = piCodexConversionVersion;
+      webRunSubagentEnvironmentInherited = true;
     };
   };
 
@@ -119,6 +128,7 @@ let
     agentBrowser
     pkgs.ast-grep
     browserPackage
+    piCodexWebRun
   ]
   ++ lib.optionals cfg.enableLspTooling lspPackages
   ++ cfg.extraPackages;
@@ -129,6 +139,7 @@ let
 
   serviceEnvironment = {
     AGENT_BROWSER_EXECUTABLE_PATH = browserExecutable;
+    PI_CODEX_WEB_RUN_BIN = lib.getExe piCodexWebRun;
     PATH = servicePath;
     PI_CODING_AGENT_DIR = config.home.homeDirectory + "/.pi/agent";
     PI_LENS_DISABLE_LSP_INSTALL = "1";
@@ -240,6 +251,13 @@ in
   };
 
   config = lib.mkIf cfg.enable {
+    assertions = [
+      {
+        assertion = builtins.elem piCodexConversionPackage piPortableSettings.packages;
+        message = "cb.pi requires ${piCodexConversionPackage} so its Nix-owned web_run helper matches the portable extension pin";
+      }
+    ];
+
     programs.pi-coding-agent = {
       enable = true;
       package = piWithPolicy;

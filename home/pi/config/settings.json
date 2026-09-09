@@ -53,7 +53,6 @@
           "~/.pi/agent/extensions/auto-mode/index.ts"
         ],
         "systemPromptMode": "append",
-        "thinking": "medium",
         "tools": [
           "read",
           "grep",
@@ -89,6 +88,7 @@
         "subagentOnlyExtensions": [
           "~/.pi/agent/extensions/auto-mode/index.ts"
         ],
+        "systemPrompt": "You are the oracle, a read-only decision-consistency challenger. In a fresh context, treat the supplied task and evidence as authoritative; do not presume inherited conversation decisions. Only when the context is actually forked or those decisions are explicitly supplied, reconstruct inherited conversation decisions and test them against the available evidence. Inspect only scoped sources needed to evaluate the decision. Return narrow, actionable recommendations with concise evidence and residual uncertainty; do not implement changes. Escalate to the supervisor only through the runtime bridge and only for material unknowns that scoped source inspection and supplied evidence cannot resolve. Keep the output concise.",
         "systemPromptMode": "append",
         "thinking": "max",
         "tools": [
@@ -113,27 +113,26 @@
       "researcher": {
         "acceptanceRole": "read-only",
         "defaultContext": "fresh",
-        "description": "Fresh web researcher using Codex discovery and a real browser for verification",
+        "description": "Stateless one-angle web researcher using Nix-owned Codex discovery",
         "extensions": [
           "~/.pi/agent/npm/node_modules/@narumitw/pi-accounts/dist/index.ts",
-          "~/.pi/agent/npm/node_modules/@howaboua/pi-codex-conversion/dist/index.js",
-          "~/.pi/agent/npm/node_modules/pi-agent-browser-native/dist/extensions/agent-browser/index.js"
+          "~/.pi/agent/npm/node_modules/pi-lens/dist/index.js",
+          "~/.pi/agent/npm/node_modules/@howaboua/pi-codex-conversion/dist/index.js"
         ],
         "inheritProjectContext": true,
         "inheritSkills": false,
-        "model": "openai-codex/gpt-5.6-sol",
+        "model": "openai-codex/gpt-5.6-terra",
         "output": "research.md",
         "outputMode": "file-only",
         "subagentOnlyExtensions": [
           "~/.pi/agent/extensions/auto-mode/index.ts"
         ],
+        "systemPrompt": "You are the researcher, a stateless one-angle web evidence specialist. Work only the assigned research angle. Use only `read` for provided local evidence and `web_run`; when search is needed, batch 2–4 high-signal `search_query` entries in one `web_run` call. Prioritize primary sources, open the most relevant primary sources with `web_run`, and cite final source URLs for every material claim. After one setup, native-helper, or provider failure, stop and report the failure; do not retry or fall back. Never use browser, shell, curl, or search-engine form automation. Return compact evidence: conclusion, final URLs, key support, and unresolved gap. Do not modify files, settings, code, or runtime state.",
         "systemPromptMode": "append",
-        "thinking": "medium",
+        "thinking": "max",
         "tools": [
           "read",
-          "web_run",
-          "view_image",
-          "agent_browser"
+          "web_run"
         ]
       },
       "reviewer": {
@@ -153,7 +152,7 @@
           "~/.pi/agent/extensions/auto-mode/index.ts"
         ],
         "systemPromptMode": "append",
-        "thinking": "high",
+        "thinking": "xhigh",
         "tools": [
           "read",
           "grep",
@@ -221,14 +220,14 @@
         ],
         "inheritProjectContext": true,
         "inheritSkills": false,
-        "model": "openai-codex/gpt-5.6-sol",
+        "model": "openai-codex/gpt-5.6-terra",
         "output": "implementation.md",
         "outputMode": "file-only",
         "subagentOnlyExtensions": [
           "~/.pi/agent/extensions/auto-mode/index.ts"
         ],
         "systemPromptMode": "append",
-        "thinking": "xhigh",
+        "thinking": "max",
         "tools": [
           "read",
           "grep",

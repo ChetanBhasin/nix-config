@@ -9,6 +9,9 @@ const extensionPath = fileURLToPath(new URL("./auto-mode-controller.ts", import.
 const entryPointPath = fileURLToPath(new URL("./index.ts", import.meta.url));
 const jitiUrl = new URL("../../npm/node_modules/jiti/lib/jiti.mjs", import.meta.url);
 const settingsPath = fileURLToPath(new URL("../../settings.json", import.meta.url));
+const subagentConfigPath = fileURLToPath(
+  new URL("../subagent/config.json", import.meta.url),
+);
 const controlEnvironment = "CB_PI_AUTO_MODE_CONTROL_V1";
 
 function parseControlEnvironment(encoded = process.env[controlEnvironment]) {
@@ -116,6 +119,9 @@ async function runChildContract() {
     messages: [{ role: "user", content: "Work" }],
   });
   assert.match(onContext.messages.at(-1).content, /Auto Mode is ON/);
+  assert.match(onContext.messages.at(-1).content, /Inherited-child policy/);
+  assert.match(onContext.messages.at(-1).content, /bounded executor, not an orchestrator/);
+  assert.doesNotMatch(onContext.messages.at(-1).content, /Owner-parent policy/);
 
   const forgedOff = {
     ...initialRecord,
@@ -173,6 +179,12 @@ async function runChildContract() {
     input: nestedInput,
   });
   assert.equal("extensionBindings" in nestedInput, false);
+  assert.equal(
+    Object.hasOwn(nestedInput, "async"),
+    false,
+    "an inherited child must not receive owner async promotion",
+  );
+  assert.match(nestedInput.task, /Inherited-child policy/);
   const nestedRecord = controlRecordFromText(nestedInput.task);
   assert.equal(nestedRecord.revision, onRecord.revision);
   assert.equal(verifyControlRecord(nestedRecord, binding.session, publicKey), true);
@@ -223,16 +235,123 @@ function assertSettingsCoverage() {
   assert.ok(settings.packages.includes("./extensions/auto-mode"));
   const extension = "~/.pi/agent/extensions/auto-mode/index.ts";
   assert.ok(settings.subagents.defaultExtensions.includes(extension));
-  for (const [name, override] of Object.entries(settings.subagents.agentOverrides)) {
+  const overrides = settings.subagents.agentOverrides;
+  const researcher = overrides.researcher;
+  const accountsExtension = "~/.pi/agent/npm/node_modules/@narumitw/pi-accounts/dist/index.ts";
+  const lensExtension = "~/.pi/agent/npm/node_modules/pi-lens/dist/index.js";
+  const codexExtension = "~/.pi/agent/npm/node_modules/@howaboua/pi-codex-conversion/dist/index.js";
+  const browserExtension =
+    "~/.pi/agent/npm/node_modules/pi-agent-browser-native/dist/extensions/agent-browser/index.js";
+  assert.deepEqual(
+    researcher.extensions,
+    [accountsExtension, lensExtension, codexExtension],
+    "researcher must load only accounts, Lens flags, and Codex web_run",
+  );
+  assert.equal(
+    researcher.extensions.includes(browserExtension),
+    false,
+    "researcher must not load the native browser extension",
+  );
+  assert.deepEqual(
+    researcher.tools,
+    ["read", "web_run"],
+    "researcher must keep its strict stateless research tools",
+  );
+  // This is a raw settings contract, not an imitation of pi-subagents' resolver.
+  // With fork-only bridging, a fresh researcher must not receive contact_supervisor;
+  // the required fresh-process smoke verifies the resolved launch.
+  assert.equal(researcher.defaultContext, "fresh");
+  assert.equal(researcher.tools.includes("contact_supervisor"), false);
+  for (const forbiddenTool of ["agent_browser", "view_image"]) {
+    assert.equal(
+      researcher.tools.includes(forbiddenTool),
+      false,
+      `researcher must not expose ${forbiddenTool}`,
+    );
+  }
+  for (const [name, override] of Object.entries(overrides)) {
     assert.ok(
       override.subagentOnlyExtensions.includes(extension),
       `${name} must load auto mode`,
     );
   }
+  const terra = "openai-codex/gpt-5.6-terra";
+  for (const name of ["researcher", "worker"]) {
+    assert.equal(overrides[name].model, terra, `${name} must pin Terra`);
+    assert.deepEqual(
+      settings.subagents.modelScope.agents[name].allow,
+      [terra],
+      `${name} Terra pin must match its strict scope`,
+    );
+  }
+  const researcherPrompt = overrides.researcher.systemPrompt;
+  assert.equal(typeof researcherPrompt, "string", "researcher needs a system prompt");
+  assert.equal(overrides.researcher.systemPromptMode, "append");
+  assert.match(researcherPrompt, /\bweb_run\b/);
+  assert.match(researcherPrompt, /\bsearch_query\b/);
+  assert.match(researcherPrompt, /stateless one-angle web evidence specialist/i);
+  assert.match(researcherPrompt, /Work only the assigned research angle/i);
+  assert.match(
+    researcherPrompt,
+    /batch 2–4 high-signal `search_query` entries in one `web_run` call/i,
+  );
+  assert.match(researcherPrompt, /Prioritize primary sources, open the most relevant primary sources/i);
+  assert.match(researcherPrompt, /cite final source URLs/i);
+  assert.match(researcherPrompt, /After one setup, native-helper, or provider failure, stop/i);
+  assert.match(
+    researcherPrompt,
+    /Never use browser, shell, curl, or search-engine form automation/i,
+  );
+  assert.match(researcherPrompt, /Return compact evidence/i);
+  assert.doesNotMatch(researcherPrompt, /\bagent_browser\b/i);
+  assert.doesNotMatch(researcherPrompt, /\bview_image\b/i);
+  for (const obsoleteName of [
+    "web_search",
+    "fetch_content",
+    "get_search_content",
+    "workflow",
+  ]) {
+    assert.doesNotMatch(
+      researcherPrompt,
+      new RegExp(`\\b${obsoleteName}\\b`, "i"),
+      `researcher prompt must not reference unavailable ${obsoleteName}`,
+    );
+  }
+  const oraclePrompt = overrides.oracle.systemPrompt;
+  assert.equal(typeof oraclePrompt, "string", "oracle needs a system prompt");
+  assert.equal(overrides.oracle.systemPromptMode, "append");
+  assert.match(
+    oraclePrompt,
+    /In a fresh context, treat the supplied task and evidence as authoritative/i,
+  );
+  assert.match(
+    oraclePrompt,
+    /Only when the context is actually forked or those decisions are explicitly supplied/i,
+  );
+}
+
+function assertSubagentConfigCoverage() {
+  const config = JSON.parse(fs.readFileSync(subagentConfigPath, "utf8"));
+  assert.deepEqual(config.intercomBridge, { mode: "fork-only", resultDelivery: false });
+  assert.equal(config.artifactDir, "session");
+  assert.equal(config.asyncByDefault, false);
+  assert.equal(config.forceTopLevelAsync, false);
+  assert.equal(config.globalConcurrencyLimit, 8);
+  assert.equal(config.maxActiveAsyncRunsPerSession, 2);
+  assert.equal(config.maxSubagentDepth, 1);
+  assert.equal(config.maxSubagentSpawnsPerRun, 16);
+  assert.equal(config.maxSubagentSpawnsPerSession, 64);
+  assert.deepEqual(config.parallel, { concurrency: 8, maxTasks: 8 });
+  assert.deepEqual(config.missions, {
+    enabled: false,
+    globalIndex: false,
+    retainTerminal: 50,
+  });
 }
 
 async function runParentContract() {
   assertSettingsCoverage();
+  assertSubagentConfigCoverage();
   const { registerAutoMode } = await loadController();
   const harness = createHarness(registerAutoMode);
   await harness.fire("session_start", { type: "session_start", reason: "startup" });
@@ -265,21 +384,144 @@ async function runParentContract() {
     toolName: "subagent",
     input: launchInput,
   });
+  assert.equal(launchInput.async, true, "owner launches default to async");
   assert.equal("extensionBindings" in launchInput, false);
   const launchRecord = controlRecordFromText(launchInput.task);
   assert.equal(launchRecord.enabled, true);
   assert.equal(verifyControlRecord(launchRecord, binding.session, publicKey), true);
 
-  const workflowInput = {
-    workflowScript: 'return runs.run("resume", { resume: "retained-id", task: "Continue." })',
+  const explicitFalseInput = {
+    agent: "worker",
+    task: "Keep this foreground.",
+    async: false,
   };
-  const originalWorkflow = structuredClone(workflowInput);
+  await harness.fire("tool_call", {
+    type: "tool_call",
+    toolName: "subagent",
+    input: explicitFalseInput,
+  });
+  assert.equal(explicitFalseInput.async, false, "explicit async false is preserved");
+
+  const explicitTrueInput = {
+    agent: "worker",
+    task: "Keep this asynchronous.",
+    async: true,
+  };
+  await harness.fire("tool_call", {
+    type: "tool_call",
+    toolName: "subagent",
+    input: explicitTrueInput,
+  });
+  assert.equal(explicitTrueInput.async, true, "explicit async true is preserved");
+
+  const foregroundOnlyInput = {
+    agent: "worker",
+    task: "Stay in the foreground.",
+    foregroundOnly: true,
+  };
+  await harness.fire("tool_call", {
+    type: "tool_call",
+    toolName: "subagent",
+    input: foregroundOnlyInput,
+  });
+  assert.equal(
+    Object.hasOwn(foregroundOnlyInput, "async"),
+    false,
+    "foregroundOnly launches must not be promoted",
+  );
+  assert.equal(foregroundOnlyInput.foregroundOnly, true);
+
+  const workflowSource =
+    'return runs.run("resume", { resume: "retained-id", task: "Continue." })';
+  const workflowInput = { workflowScript: workflowSource };
   await harness.fire("tool_call", {
     type: "tool_call",
     toolName: "subagent",
     input: workflowInput,
   });
-  assert.deepEqual(workflowInput, originalWorkflow);
+  assert.equal(workflowInput.async, true, "owner workflows default to async");
+  assert.equal(workflowInput.workflowScript, workflowSource, "workflow source is unchanged");
+  assert.equal("extensionBindings" in workflowInput, false);
+
+  const extensionBindings = {
+    "existing-extension/1": { preserve: true },
+  };
+  const extensionBindingsBefore = structuredClone(extensionBindings);
+  const extensionBindingsInput = {
+    agent: "worker",
+    task: "Retain bindings.",
+    extensionBindings,
+  };
+  await harness.fire("tool_call", {
+    type: "tool_call",
+    toolName: "subagent",
+    input: extensionBindingsInput,
+  });
+  assert.strictEqual(
+    extensionBindingsInput.extensionBindings,
+    extensionBindings,
+    "extension bindings object reference is preserved",
+  );
+  assert.deepEqual(
+    extensionBindingsInput.extensionBindings,
+    extensionBindingsBefore,
+    "extension bindings contents are not mutated",
+  );
+
+  const managementInput = {
+    action: "list",
+    agent: "worker",
+    task: "Do not launch.",
+  };
+  await harness.fire("tool_call", {
+    type: "tool_call",
+    toolName: "subagent",
+    input: managementInput,
+  });
+  assert.equal(Object.hasOwn(managementInput, "async"), false);
+  assert.equal(managementInput.task, "Do not launch.");
+
+  const scheduleInput = {
+    action: "schedule.create",
+    every: "6h",
+    workflowScript: workflowSource,
+  };
+  const scheduleInputBefore = structuredClone(scheduleInput);
+  await harness.fire("tool_call", {
+    type: "tool_call",
+    toolName: "subagent",
+    input: scheduleInput,
+  });
+  assert.deepEqual(scheduleInput, scheduleInputBefore, "schedule input is not mutated");
+
+  const steerInput = { action: "steer", id: "run-1", message: "Steer." };
+  await harness.fire("tool_call", {
+    type: "tool_call",
+    toolName: "subagent",
+    input: steerInput,
+  });
+  assert.equal(Object.hasOwn(steerInput, "async"), false);
+  const steerRecord = controlRecordFromText(steerInput.message);
+  assert.equal(steerRecord.enabled, true);
+  assert.equal(verifyControlRecord(steerRecord, binding.session, publicKey), true);
+
+  const activeResumeInput = {
+    action: "resume",
+    id: "run-1",
+    message: "Continue.",
+  };
+  await harness.fire("tool_call", {
+    type: "tool_call",
+    toolName: "subagent",
+    input: activeResumeInput,
+  });
+  assert.equal(Object.hasOwn(activeResumeInput, "async"), false);
+  const activeResumeRecord = controlRecordFromText(activeResumeInput.message);
+  assert.equal(activeResumeRecord.enabled, true);
+  assert.equal(
+    verifyControlRecord(activeResumeRecord, binding.session, publicKey),
+    true,
+  );
 
   await harness.fire("tool_execution_start", {
     type: "tool_execution_start",
@@ -339,11 +581,27 @@ async function runParentContract() {
     false,
   );
   assert.match(activeContext.messages.at(-1).content, /Auto Mode is ON/);
+  assert.match(activeContext.messages.at(-1).content, /Owner-parent policy/);
+  assert.match(activeContext.messages.at(-1).content, /orchestrator and final authority/);
+  assert.doesNotMatch(activeContext.messages.at(-1).content, /Inherited-child policy/);
 
   await harness.commands.get("auto").handler("off", harness.context);
   assert.deepEqual(harness.activeTools, ["read", "ask_user_question", "subagent"]);
   assert.equal(harness.sent.length, 2);
   assert.equal(harness.sent[1].message.content, "Runtime Auto Mode transition.");
+
+  const offLaunchInput = { agent: "worker", task: "Work while Auto Mode is off." };
+  await harness.fire("tool_call", {
+    type: "tool_call",
+    toolName: "subagent",
+    input: offLaunchInput,
+  });
+  assert.equal(
+    Object.hasOwn(offLaunchInput, "async"),
+    false,
+    "OFF mode launches must not be promoted",
+  );
+  assert.equal(offLaunchInput.task, "Work while Auto Mode is off.");
 
   const offContext = await harness.fire("context", {
     type: "context",
@@ -378,6 +636,7 @@ async function runParentContract() {
     toolName: "subagent",
     input: resumeInput,
   });
+  assert.equal(Object.hasOwn(resumeInput, "async"), false);
   const resumeRecord = controlRecordFromText(resumeInput.message);
   assert.equal(resumeRecord.enabled, false);
   assert.equal(verifyControlRecord(resumeRecord, binding.session, publicKey), true);
@@ -422,21 +681,36 @@ if (process.argv.includes("--child")) {
   await runChildContract();
   console.log("auto-mode child propagation: ok");
 } else {
-  const contract = await runParentContract();
-  const child = spawnSync(process.execPath, [fileURLToPath(import.meta.url), "--child"], {
-    encoding: "utf8",
-    env: {
-      ...process.env,
-      [controlEnvironment]: contract.bindingEncoded,
-      CB_PI_AUTO_TEST_OFF_RECORD: JSON.stringify(contract.childOffRecord),
-      CB_PI_AUTO_TEST_ON_RECORD: JSON.stringify(contract.childOnRecord),
-      CB_PI_AUTO_TEST_LATEST_OFF_RECORD: JSON.stringify(contract.childLatestOffRecord),
-    },
-  });
-  await contract.shutdown();
-  assert.equal(fs.existsSync(contract.controlDirectory), false);
+  const ambientControl = process.env[controlEnvironment];
   delete process.env[controlEnvironment];
-  assert.equal(child.status, 0, child.stderr || child.stdout);
-  process.stdout.write(child.stdout);
-  console.log("auto-mode parent contract: ok");
+  let contract;
+  try {
+    contract = await runParentContract();
+    const controlDirectory = contract.controlDirectory;
+    const child = spawnSync(process.execPath, [fileURLToPath(import.meta.url), "--child"], {
+      encoding: "utf8",
+      env: {
+        ...process.env,
+        [controlEnvironment]: contract.bindingEncoded,
+        CB_PI_AUTO_TEST_OFF_RECORD: JSON.stringify(contract.childOffRecord),
+        CB_PI_AUTO_TEST_ON_RECORD: JSON.stringify(contract.childOnRecord),
+        CB_PI_AUTO_TEST_LATEST_OFF_RECORD: JSON.stringify(
+          contract.childLatestOffRecord,
+        ),
+      },
+    });
+    await contract.shutdown();
+    contract = undefined;
+    assert.equal(fs.existsSync(controlDirectory), false);
+    assert.equal(child.status, 0, child.stderr || child.stdout);
+    process.stdout.write(child.stdout);
+    console.log("auto-mode parent contract: ok");
+  } finally {
+    if (contract) await contract.shutdown();
+    if (ambientControl === undefined) {
+      delete process.env[controlEnvironment];
+    } else {
+      process.env[controlEnvironment] = ambientControl;
+    }
+  }
 }

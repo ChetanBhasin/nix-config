@@ -14,10 +14,10 @@
   "fleetView": true,
   "fleetViewPlacement": "belowEditor",
   "forceTopLevelAsync": false,
-  "globalConcurrencyLimit": 2,
+  "globalConcurrencyLimit": 8,
   "inlineToolDisplay": "summary",
   "intercomBridge": {
-    "mode": "always",
+    "mode": "fork-only",
     "resultDelivery": false
   },
   "mainWindowRenderer": {
@@ -26,8 +26,8 @@
   },
   "maxActiveAsyncRunsPerSession": 2,
   "maxSubagentDepth": 1,
-  "maxSubagentSpawnsPerRun": 8,
-  "maxSubagentSpawnsPerSession": 24,
+  "maxSubagentSpawnsPerRun": 16,
+  "maxSubagentSpawnsPerSession": 64,
   "missions": {
     "enabled": false,
     "globalIndex": false,
@@ -37,8 +37,8 @@
     "enabled": false
   },
   "parallel": {
-    "concurrency": 2,
-    "maxTasks": 4
+    "concurrency": 8,
+    "maxTasks": 8
   },
   "resultScanLogging": "activity",
   "scheduledRuns": {
