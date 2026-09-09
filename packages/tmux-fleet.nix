@@ -10,9 +10,9 @@ rustPlatform.buildRustPackage {
   doCheck = true;
 
   meta = {
-    description = "On-demand local tmux and SSH target session picker";
+    description = "Unified local and SSH-backed tmux session picker";
     license = lib.licenses.mit;
     mainProgram = "tmux-fleet";
-    platforms = lib.platforms.unix;
+    platforms = lib.platforms.linux ++ lib.platforms.darwin;
   };
 }

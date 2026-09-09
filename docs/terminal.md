@@ -893,7 +893,7 @@ Like Legendary in Neovim or VS Code's Command Palette:
 
 **Session Management:**
 ```text
-C-Space s s      # Open the local/SSH picker when fleet is enabled; otherwise session tree
+C-Space S        # Open the unified local/SSH session picker directly
 C-Space s n      # New session
 C-Space s r      # Rename session in a centered input popup
 C-Space s k      # Kill session
@@ -960,6 +960,7 @@ C-Space ? a/d        # Help menu: list/describe keys
 - Tmux uses the Nix-managed Zsh executable instead of assuming `/bin/zsh` exists
 - The Alacritty terminfo entry is installed so direct Alacritty SSH sessions are recognized
 - Known Alacritty clients advertise RGB, clipboard, focus, and extended-key support; generic clients retain tmux's conservative defaults
+- Modified keys are forwarded to pane applications in CSI-u form, so Pi can distinguish `Shift+Enter` (newline) from plain `Enter` (submit)
 - A conservative `50ms` escape-sequence tolerance remains reliable when SSH clients join an existing server
 - Copy mode uses tmux's OSC 52 clipboard path, so the existing `y` and mouse bindings work on both Darwin and Linux
 

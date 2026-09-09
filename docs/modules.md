@@ -166,7 +166,7 @@ Modern tmux configuration with session management, FZF integration, and the Gruv
 | `cb.tmux.enableSessionPersistence` | boolean | `true` | Enable resurrect/continuum |
 | `cb.tmux.enableFzfIntegration` | boolean | `true` | Enable FZF-powered features |
 | `cb.tmux.enableThumbs` | boolean | `true` | Enable tmux-thumbs (vimium-like hints) |
-| `cb.tmux.fleet.enable` | boolean | `false` | Enable the on-demand local/SSH session manager under `Prefix s s` |
+| `cb.tmux.fleet.enable` | boolean | `false` | Enable the local/SSH session manager under `Prefix S` |
 | `cb.tmux.fleet.sshTargets` | list of strings | `[]` | Optional directional SSH targets (aliases, DNS names, IPv4/IPv6, or `[user@]host`) |
 | `cb.tmux.shell` | string | Nix-managed `zsh` | Default shell executable |
 | `cb.tmux.historyLimit` | integer | `50000` | Scrollback buffer size |
@@ -205,8 +205,8 @@ The default package pins tmux commit `fe8f9ff` from upstream PR [#5433](https://
 - **Prefix**: `C-Space` (ergonomic, no conflicts)
 - **Navigation**: vim-tmux-navigator for seamless splits
 - **Sessions**: resurrect, continuum for automatic save/restore
-- **Fleet picker**: Current-host tmux sessions plus on-demand configured or
-  remembered SSH targets, without remote inventory or nested tmux
+- **Fleet picker**: Searchable local and SSH-backed tmux sessions from a
+  daemon-maintained, per-host cache without nested tmux
 - **FZF**: Session switcher, URL picker, content extractor
 - **Theme**: Gruvbox Night custom status line with a muted-gold focus accent
 - **Pane focus**: Rounded four-sided active frame with a slight gutter, using
@@ -216,26 +216,28 @@ The default package pins tmux commit `fe8f9ff` from upstream PR [#5433](https://
 
 #### Fleet prerequisites and lifecycle
 
-Enable `cb.tmux.fleet` on a machine where you want the combined manager.
-Optional `sshTargets` are directional: they appear as SSH actions, but are never
-probed or enumerated until selected. An ad-hoc picker action also accepts a safe
-`[user@]host`, DNS name, IPv4/IPv6 address, or OpenSSH alias and remembers a
-bounded local history.
+Enable `cb.tmux.fleet` on every host whose sessions should be listed. On the
+origin, configured `sshTargets` are directional destinations and initially
+appear as one disconnected/reconnect row each. Ad-hoc targets accept safe
+`[user@]host`, DNS, IPv4/IPv6, or OpenSSH-alias values and are remembered in a
+bounded local history. No destination needs to reach another peer or connect
+back to the origin.
 
-`Prefix s` always opens the Sessions submenu. `Prefix s s` opens the combined
-picker when fleet mode is enabled, otherwise it uses tmux's normal session tree.
-The other session actions remain `Prefix s n/r/k/d`. SSH runs in the foreground
-with normal OpenSSH authentication and host-key behavior. On a managed remote,
-the helper atomically starts tmux and, in one tmux command queue, attaches the
-latest session when one exists or creates a new session. It preserves switch (42)
-naturally.
+`Prefix S` opens the centered, searchable combined picker directly when fleet
+mode is enabled; otherwise it uses tmux's normal session tree. Lowercase
+`Prefix s` always opens the Sessions submenu, whose actions remain
+`Prefix s n/r/k/d`. Selecting reconnect runs foreground OpenSSH authentication.
+After success, the per-user daemon retains a dedicated control master and
+refreshes that host's tmux sessions independently in the background. Healthy
+hosts therefore remain immediately available when another host fails.
 
-On an unmanaged remote, the fixed fallback exports `TMUX_FLEET_MANAGED=1` and
-runs that same one-process `start-server; if-shell` queue. When the remote host
-also has fleet enabled, `Prefix s s` from its managed tmux client returns to the
-origin picker; normal remote
-detach and SSH failure also return there with the target preselected. Select any
-local row in the origin picker to return to a local session.
+The same tmux-fleet generation and `~/.local/libexec/tmux-fleet` helper are
+required on each remote. Missing or incompatible helpers produce an explicit
+unsupported row. Ready hosts contribute every remote session plus a new-session
+action. Attach revalidates the cached host and session identity atomically;
+normal remote detach or managed `Prefix S` returns to the origin picker without
+nesting tmux. Home Manager manages the daemon as a systemd user service on Linux
+and a launchd agent on macOS.
 
 For protocol details, state paths, standalone configuration, and
 troubleshooting, see the
@@ -253,7 +255,7 @@ first chord.
 | `Prefix P` | Project switcher |
 | `Prefix S` | FZF session switcher |
 | `Prefix ?` | Show help menu |
-| `Prefix s` | Sessions submenu; `Prefix s s` opens the local/SSH manager when enabled |
+| `Prefix s` | Sessions submenu (`n/r/k/d`) |
 | `Prefix w` | Windows menu |
 | `Prefix p` | Panes menu |
 | `Prefix g` | Git menu |

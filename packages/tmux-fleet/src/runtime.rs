@@ -41,36 +41,6 @@ fn state_root() -> Result<PathBuf> {
     Ok(path)
 }
 
-pub struct ControllerDir {
-    path: PathBuf,
-}
-
-impl ControllerDir {
-    pub fn create() -> Result<Self> {
-        let root = runtime_root()?;
-        Self::create_at(&root)
-    }
-
-    fn create_at(root: &Path) -> Result<Self> {
-        // Verify the predictable root before walking into any child path.
-        ensure_private_dir(root)?;
-        let controllers = root.join("controllers");
-        ensure_private_dir(&controllers)?;
-        let path = create_unique_private_dir(&controllers, "controller")?;
-        Ok(Self { path })
-    }
-
-    pub fn path(&self) -> &Path {
-        &self.path
-    }
-}
-
-impl Drop for ControllerDir {
-    fn drop(&mut self) {
-        let _ = fs::remove_dir_all(&self.path);
-    }
-}
-
 #[derive(Deserialize, Serialize)]
 struct RecentSshState {
     targets: Vec<String>,
@@ -236,7 +206,7 @@ enum DirectoryCreation {
     Existing,
 }
 
-fn ensure_private_dir(path: &Path) -> Result<()> {
+pub(crate) fn ensure_private_dir(path: &Path) -> Result<()> {
     let creation = create_private_dir(path)?;
     let metadata = verify_owned_directory(path)?;
     if matches!(creation, DirectoryCreation::Existing) && metadata.permissions().mode() & 0o077 != 0
@@ -291,20 +261,6 @@ fn create_private_dir(path: &Path) -> Result<DirectoryCreation> {
     }
 }
 
-fn create_unique_private_dir(parent: &Path, prefix: &str) -> Result<PathBuf> {
-    for _ in 0..128 {
-        let path = parent.join(unique_name(prefix));
-        match create_private_dir(&path)? {
-            DirectoryCreation::Created => return Ok(path),
-            DirectoryCreation::Existing => continue,
-        }
-    }
-    bail!(
-        "failed to create a unique directory under {}",
-        parent.display()
-    );
-}
-
 fn verify_owned_directory(path: &Path) -> Result<fs::Metadata> {
     let metadata = fs::symlink_metadata(path)
         .with_context(|| format!("failed to inspect {}", path.display()))?;
@@ -333,7 +289,7 @@ fn unique_name(prefix: &str) -> String {
 #[cfg(test)]
 mod tests {
     use std::fs;
-    use std::os::unix::fs::{symlink, MetadataExt, PermissionsExt};
+    use std::os::unix::fs::PermissionsExt;
     use std::sync::atomic::{AtomicU64, Ordering};
     use std::sync::{Arc, Barrier};
     use std::thread;
@@ -341,49 +297,10 @@ mod tests {
 
     use super::{
         load_recent_ssh_targets_from, load_recent_ssh_targets_or_empty, remember_ssh_target_at,
-        ControllerDir, MAX_RECENT_SSH_TARGETS,
+        MAX_RECENT_SSH_TARGETS,
     };
 
     static TEST_NONCE: AtomicU64 = AtomicU64::new(0);
-
-    #[test]
-    fn controller_directories_are_created_privately_without_using_runtime_root() {
-        let base = temporary_directory();
-        let root = base.join("runtime");
-        let controller =
-            ControllerDir::create_at(&root).expect("controller directories should be created");
-        let controllers = root.join("controllers");
-
-        assert_private_directory(&root);
-        assert_private_directory(&controllers);
-        assert_private_directory(controller.path());
-        drop(controller);
-        fs::remove_dir_all(base).expect("temporary runtime directory should be removable");
-    }
-
-    #[test]
-    fn controller_creation_rejects_a_symlinked_intermediate_directory() {
-        let base = temporary_directory();
-        let root = base.join("runtime");
-        fs::create_dir(&root).expect("runtime fixture should be created");
-        fs::set_permissions(&root, fs::Permissions::from_mode(0o700))
-            .expect("runtime fixture should be private");
-        let outside = base.join("outside");
-        fs::create_dir(&outside).expect("outside fixture should be created");
-        fs::set_permissions(&outside, fs::Permissions::from_mode(0o700))
-            .expect("outside fixture should be private");
-        symlink(&outside, root.join("controllers")).expect("hostile symlink should be created");
-
-        assert!(ControllerDir::create_at(&root).is_err());
-        assert!(
-            fs::read_dir(&outside)
-                .expect("outside fixture should remain readable")
-                .next()
-                .is_none(),
-            "controller creation must not follow the hostile intermediate symlink"
-        );
-        fs::remove_dir_all(base).expect("temporary runtime directory should be removable");
-    }
 
     #[test]
     fn recent_ssh_targets_are_deduplicated_and_bounded() {
@@ -477,13 +394,6 @@ mod tests {
         fs::remove_dir_all(directory).expect("temporary state directory should be removable");
     }
 
-    fn assert_private_directory(path: &std::path::Path) {
-        let metadata = fs::symlink_metadata(path).expect("private directory should exist");
-        assert!(metadata.file_type().is_dir());
-        assert!(!metadata.file_type().is_symlink());
-        assert_eq!(metadata.uid(), super::effective_uid());
-        assert_eq!(metadata.permissions().mode() & 0o777, 0o700);
-    }
     fn temporary_directory() -> std::path::PathBuf {
         let nonce = SystemTime::now()
             .duration_since(UNIX_EPOCH)

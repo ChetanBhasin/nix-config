@@ -20,7 +20,7 @@ in
     tmuxFleetSshTargets = lib.mkOption {
       type = lib.types.listOf lib.types.str;
       default = [ ];
-      description = "Configured on-demand tmux-fleet SSH destinations";
+      description = "Configured tmux-fleet SSH inventory destinations";
     };
   };
 

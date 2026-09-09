@@ -7,6 +7,7 @@ use anyhow::{bail, Context, Result};
 use serde::Deserialize;
 
 pub const MAX_SSH_TARGET_BYTES: usize = 512;
+const MAX_CONFIGURED_SSH_TARGETS: usize = 64;
 #[derive(Clone, Debug, Deserialize)]
 #[serde(default)]
 pub struct Config {
@@ -14,6 +15,7 @@ pub struct Config {
     pub tmux_command: PathBuf,
     pub fzf_command: PathBuf,
     pub ssh_command: PathBuf,
+    pub false_command: PathBuf,
 }
 
 impl Default for Config {
@@ -23,6 +25,7 @@ impl Default for Config {
             tmux_command: PathBuf::from("tmux"),
             fzf_command: PathBuf::from("fzf"),
             ssh_command: PathBuf::from("ssh"),
+            false_command: PathBuf::from("false"),
         }
     }
 }
@@ -47,6 +50,9 @@ impl Config {
         let mut seen = HashSet::new();
         self.ssh_targets
             .retain(|target| seen.insert(target.clone()));
+        if self.ssh_targets.len() > MAX_CONFIGURED_SSH_TARGETS {
+            bail!("ssh_targets supports at most {MAX_CONFIGURED_SSH_TARGETS} unique destinations");
+        }
         for target in &self.ssh_targets {
             validate_ssh_target(target)?;
         }
@@ -55,6 +61,7 @@ impl Config {
             ("tmux_command", &self.tmux_command),
             ("fzf_command", &self.fzf_command),
             ("ssh_command", &self.ssh_command),
+            ("false_command", &self.false_command),
         ] {
             if command.as_os_str().is_empty() {
                 bail!("{name} cannot be empty");
@@ -94,7 +101,7 @@ fn config_path() -> Option<PathBuf> {
 
 #[cfg(test)]
 mod tests {
-    use super::{validate_ssh_target, Config};
+    use super::{validate_ssh_target, Config, MAX_CONFIGURED_SSH_TARGETS};
 
     #[test]
     fn accepts_safe_open_ssh_destinations() {
@@ -129,5 +136,16 @@ mod tests {
             .validate()
             .expect("valid SSH destinations should pass validation");
         assert_eq!(config.ssh_targets, ["hugh", "chetan@192.168.1.170"]);
+    }
+
+    #[test]
+    fn rejects_unbounded_configured_target_lists() {
+        let mut config = Config {
+            ssh_targets: (0..=MAX_CONFIGURED_SSH_TARGETS)
+                .map(|index| format!("host-{index}"))
+                .collect(),
+            ..Config::default()
+        };
+        assert!(config.validate().is_err());
     }
 }

@@ -75,14 +75,14 @@ items:
     key: "T"
     command: "cb-thumbs"
 
+  - name: "All sessions"
+    key: "S"
+    command: "cb-all-sessions"
+
   # Sessions submenu (simple commands only)
   - name: "+Sessions"
     key: "s"
     menu:
-      - name: "Switch session"
-        key: "s"
-        command: "if-shell -F '#{@cb_tmux_fleet}' 'tmux-fleet-switch' 'choose-tree -Zs'"
-
       - name: "New session"
         key: "n"
         command: "command-prompt -p \"Session name:\" \"new-session -s '%%'\""

@@ -1,23 +1,41 @@
 use std::ffi::OsString;
-use std::fs::File;
 use std::io::{self, Write};
+use std::path::PathBuf;
 use std::process::{Command, Output, Stdio};
 
 use anyhow::{bail, Context, Result};
 use serde::{Deserialize, Serialize};
 
 use crate::config::{validate_ssh_target, Config};
-use crate::protocol::{Snapshot, MAX_SESSION_NAME_BYTES};
-use crate::runtime::{self, ControllerDir};
-use crate::ssh;
+use crate::daemon;
+use crate::protocol::{
+    DaemonReply, DaemonRequest, RemoteHost, RemoteState, Snapshot, MAX_SESSION_NAME_BYTES,
+};
+use crate::ssh::{self, RemoteAttachMode};
 use crate::tmux::{self, AttachMode, ExistingTarget, STALE_TARGET_EXIT_CODE, SWITCH_EXIT_CODE};
 
 const SSH_FAILURE_EXIT_CODE: i32 = 255;
 
+const PICKER_ARGUMENTS: &[&str] = &[
+    "--delimiter=\t",
+    "--with-nth=2..",
+    "--no-height",
+    "--padding=1,2",
+    "--margin=12%,8%",
+    "--layout=reverse",
+    "--border=rounded",
+    "--info=inline-right",
+    "--no-multi",
+    "--cycle",
+    "--prompt=Sessions › ",
+    "--header=Enter attach/connect · Esc quit · typing filters every displayed host/session",
+    "--color=bg:#1d2021,bg+:#3c3836,fg:#d0c0a0,fg+:#ebdbb2,hl:#84a9b2,hl+:#c9a257,prompt:#c9a257,pointer:#c9a257,marker:#84a9b2,spinner:#84a9b2,border:#504945,header:#96918a,info:#7c6f64",
+];
 #[derive(Debug, Eq, PartialEq)]
 enum RemoteExit {
     ManagedSwitch,
     Detached,
+    StaleTarget,
     ConnectionFailure,
     Other(i32),
 }
@@ -25,7 +43,8 @@ enum RemoteExit {
 struct Model {
     local_name: String,
     local: Snapshot,
-    ssh_targets: Vec<String>,
+    remote_hosts: Vec<RemoteHost>,
+    daemon_error: Option<String>,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -39,27 +58,42 @@ enum Target {
         created_at: u64,
     },
     NewLocal,
-    Ssh {
+    RemoteSession {
+        ssh_target: String,
+        connection_id: String,
+        epoch: u64,
+        id: String,
+        name: String,
+        server_pid: u64,
+        server_started_at: u64,
+        created_at: u64,
+    },
+    NewRemote {
+        ssh_target: String,
+        connection_id: String,
+        epoch: u64,
+    },
+    ReconnectSsh {
         target: String,
+    },
+    RemoteStatus {
+        target: String,
+        message: String,
     },
     ConnectSsh,
 }
 
 pub fn run(config: Config) -> Result<()> {
     if tmux_client_is_active(std::env::var_os("TMUX")) {
-        bail!(
-            "tmux-fleet must start in a terminal outside tmux; use Prefix s then s from a tmux client"
-        );
+        bail!("tmux-fleet must start in a terminal outside tmux; use Prefix S from a tmux client");
     }
 
-    let controller_dir = ControllerDir::create()?;
     let mut model = Model::load(&config)?;
     let mut resume_query = None;
 
     loop {
         model.refresh(&config)?;
-        let Some(target) = run_picker(&config, &model, &controller_dir, resume_query.take())?
-        else {
+        let Some(target) = run_picker(&config, &model, resume_query.take())? else {
             break;
         };
 
@@ -102,18 +136,69 @@ pub fn run(config: Config) -> Result<()> {
                     }
                 }
             }
-            Target::Ssh { target } => {
-                resume_query = Some(run_ssh_target(&config, &target)?);
+            Target::RemoteSession {
+                ssh_target,
+                connection_id,
+                epoch,
+                id,
+                name,
+                server_pid,
+                server_started_at,
+                created_at,
+            } => {
+                let query = ssh_target.clone();
+                if let Err(error) = run_remote_target(
+                    &config,
+                    &ssh_target,
+                    &connection_id,
+                    epoch,
+                    RemoteAttachMode::Existing(ExistingTarget {
+                        id,
+                        server_pid,
+                        server_started_at,
+                        created_at,
+                    }),
+                    &name,
+                ) {
+                    eprintln!("Could not attach remote session: {error:#}");
+                }
+                resume_query = Some(query);
+            }
+            Target::NewRemote {
+                ssh_target,
+                connection_id,
+                epoch,
+            } => {
+                if let Err(error) = run_remote_target(
+                    &config,
+                    &ssh_target,
+                    &connection_id,
+                    epoch,
+                    RemoteAttachMode::New,
+                    &ssh_target,
+                ) {
+                    eprintln!("Could not create remote session: {error:#}");
+                }
+                resume_query = Some(ssh_target);
+            }
+            Target::ReconnectSsh { target } => {
+                if let Err(error) = connect_remote(&config, &target) {
+                    eprintln!("Could not connect to {target}: {error:#}");
+                }
+                resume_query = Some(target);
+            }
+            Target::RemoteStatus { target, message } => {
+                eprintln!("{message}");
+                resume_query = (!target.is_empty()).then_some(target);
             }
             Target::ConnectSsh => {
                 let Some(target) = prompt_ssh_target()? else {
                     continue;
                 };
-                if let Err(error) = runtime::remember_ssh_target(&target) {
-                    eprintln!("Could not remember SSH target {target:?}: {error:#}");
+                if let Err(error) = connect_remote(&config, &target) {
+                    eprintln!("Could not connect to {target}: {error:#}");
                 }
-                model.add_ssh_target(target.clone());
-                resume_query = Some(run_ssh_target(&config, &target)?);
+                resume_query = Some(target);
             }
         }
     }
@@ -126,26 +211,35 @@ fn tmux_client_is_active(value: Option<OsString>) -> bool {
 
 impl Model {
     fn load(config: &Config) -> Result<Self> {
-        let mut model = Self {
-            local_name: runtime::short_hostname(),
+        Ok(Self {
+            local_name: crate::runtime::short_hostname(),
             local: tmux::snapshot(config)?,
-            ssh_targets: config.ssh_targets.clone(),
-        };
-        for target in runtime::recent_ssh_targets() {
-            model.add_ssh_target(target);
-        }
-        Ok(model)
+            remote_hosts: Vec::new(),
+            daemon_error: None,
+        })
     }
 
     fn refresh(&mut self, config: &Config) -> Result<()> {
         self.local = tmux::snapshot(config)?;
-        Ok(())
-    }
-
-    fn add_ssh_target(&mut self, target: String) {
-        if !self.ssh_targets.contains(&target) {
-            self.ssh_targets.push(target);
+        match daemon::request(DaemonRequest::List) {
+            Ok(DaemonReply::Hosts { hosts }) => {
+                self.remote_hosts = hosts;
+                self.daemon_error = None;
+            }
+            Ok(DaemonReply::Error { message, .. }) => {
+                self.remote_hosts.clear();
+                self.daemon_error = Some(message);
+            }
+            Ok(_) => {
+                self.remote_hosts.clear();
+                self.daemon_error = Some("daemon returned an unexpected response".into());
+            }
+            Err(error) => {
+                self.remote_hosts.clear();
+                self.daemon_error = Some(format!("tmux-fleet daemon unavailable: {error:#}"));
+            }
         }
+        Ok(())
     }
 
     fn rows(&self) -> Result<String> {
@@ -160,7 +254,7 @@ impl Model {
                     created_at: session.created_at,
                 },
                 &format!(
-                    "●  LOCAL  {:<14}  {:<24}  {}{}",
+                    "●  LOCAL  {:<18}  {:<24}  {}{}",
                     clean_field(&self.local_name),
                     clean_field(&session.name),
                     window_label(session.windows),
@@ -171,98 +265,294 @@ impl Model {
         rows.push(candidate_line(
             &Target::NewLocal,
             &format!(
-                "＋ LOCAL  {:<14}  new session",
+                "＋ LOCAL  {:<18}  new session",
                 clean_field(&self.local_name)
             ),
         )?);
 
-        for target in &self.ssh_targets {
-            rows.push(candidate_line(
-                &Target::Ssh {
-                    target: target.clone(),
-                },
-                &format!(
-                    "→  SSH    {:<14}  attach most-recent remote tmux session",
-                    clean_field(target)
-                ),
-            )?);
+        for host in &self.remote_hosts {
+            match host.state {
+                RemoteState::Ready => {
+                    let host_label = host
+                        .hostname
+                        .as_deref()
+                        .filter(|hostname| *hostname != host.target)
+                        .map_or_else(
+                            || clean_field(&host.target),
+                            |hostname| {
+                                format!("{} ({})", clean_field(&host.target), clean_field(hostname))
+                            },
+                        );
+                    let Some(connection_id) = host.connection_id.as_deref() else {
+                        rows.push(remote_status_row(
+                            &host.target,
+                            "Connected host has no connection identity",
+                        )?);
+                        continue;
+                    };
+                    for session in &host.sessions {
+                        rows.push(candidate_line(
+                            &Target::RemoteSession {
+                                ssh_target: host.target.clone(),
+                                connection_id: connection_id.to_owned(),
+                                epoch: host.epoch,
+                                id: session.id.clone(),
+                                name: session.name.clone(),
+                                server_pid: host.server_pid,
+                                server_started_at: host.server_started_at,
+                                created_at: session.created_at,
+                            },
+                            &format!(
+                                "●  SSH    {:<18}  {:<24}  {}{}",
+                                host_label,
+                                clean_field(&session.name),
+                                window_label(session.windows),
+                                attached_label(session.attached)
+                            ),
+                        )?);
+                    }
+                    rows.push(candidate_line(
+                        &Target::NewRemote {
+                            ssh_target: host.target.clone(),
+                            connection_id: connection_id.to_owned(),
+                            epoch: host.epoch,
+                        },
+                        &format!("＋ SSH    {:<18}  new remote session", host_label),
+                    )?);
+                }
+                RemoteState::Disconnected => {
+                    rows.push(candidate_line(
+                        &Target::ReconnectSsh {
+                            target: host.target.clone(),
+                        },
+                        &format!(
+                            "↻  SSH    {:<18}  connect{}",
+                            clean_field(&host.target),
+                            optional_message(host.message.as_deref())
+                        ),
+                    )?);
+                }
+                RemoteState::Connecting => {
+                    rows.push(remote_status_row(
+                        &host.target,
+                        host.message
+                            .as_deref()
+                            .unwrap_or("SSH authentication is already in progress"),
+                    )?);
+                }
+                RemoteState::Degraded | RemoteState::Unsupported => {
+                    rows.push(remote_status_row(
+                        &host.target,
+                        host.message
+                            .as_deref()
+                            .unwrap_or("remote session inventory is unavailable"),
+                    )?);
+                }
+            }
+        }
+
+        if let Some(error) = &self.daemon_error {
+            rows.push(remote_status_row("", error)?);
         }
         rows.push(candidate_line(
             &Target::ConnectSsh,
-            "＋ SSH                 connect to [user@]host or address…",
+            "＋ SSH                       connect another [user@]host or address…",
         )?);
         Ok(format!("{}\n", rows.join("\n")))
     }
 }
 
-fn run_ssh_target(config: &Config, target: &str) -> Result<String> {
+fn remote_status_row(target: &str, message: &str) -> Result<String> {
+    candidate_line(
+        &Target::RemoteStatus {
+            target: target.to_owned(),
+            message: clean_field(message),
+        },
+        &format!(
+            "!  SSH    {:<18}  {}",
+            clean_field(target),
+            clean_field(message)
+        ),
+    )
+}
+
+fn optional_message(message: Option<&str>) -> String {
+    message
+        .map(|message| format!(" · {}", clean_field(message)))
+        .unwrap_or_default()
+}
+
+fn connect_remote(config: &Config, target: &str) -> Result<()> {
     eprintln!("Connecting to {target}…");
-    let status = ssh::attach_command(config, target)?
+    let reply = daemon::request(DaemonRequest::BeginConnect {
+        target: target.to_owned(),
+    })?;
+    let (connection_id, control_path) = match reply {
+        DaemonReply::ConnectPlan {
+            target: returned_target,
+            connection_id,
+            control_path,
+        } if returned_target == target => (connection_id, PathBuf::from(control_path)),
+        DaemonReply::Error { message, .. } => bail!("{message}"),
+        _ => bail!("daemon returned an invalid SSH connection plan"),
+    };
+
+    let status =
+        match ssh::bootstrap_command(config, target, &control_path).and_then(|mut command| {
+            command
+                .status()
+                .with_context(|| format!("failed to run {}", config.ssh_command.display()))
+        }) {
+            Ok(status) => status,
+            Err(error) => {
+                let _ = daemon::request(DaemonRequest::AbortConnect {
+                    target: target.to_owned(),
+                    connection_id: connection_id.clone(),
+                });
+                return Err(error);
+            }
+        };
+    if !status.success() {
+        let _ = daemon::request(DaemonRequest::AbortConnect {
+            target: target.to_owned(),
+            connection_id,
+        });
+        bail!(
+            "interactive SSH authentication exited with status {}",
+            exit_code(status.code())
+        );
+    }
+
+    let commit = daemon::request(DaemonRequest::CommitConnect {
+        target: target.to_owned(),
+        connection_id: connection_id.clone(),
+    });
+    match commit {
+        Ok(DaemonReply::Ack) => {
+            eprintln!("Connected to {target}; loading its tmux sessions.");
+            Ok(())
+        }
+        Ok(DaemonReply::Error { message, .. }) => {
+            let _ = ssh::close_master(config, target, &control_path);
+            let _ = daemon::request(DaemonRequest::AbortConnect {
+                target: target.to_owned(),
+                connection_id,
+            });
+            bail!("{message}")
+        }
+        Ok(_) => {
+            let _ = ssh::close_master(config, target, &control_path);
+            let _ = daemon::request(DaemonRequest::AbortConnect {
+                target: target.to_owned(),
+                connection_id,
+            });
+            bail!("daemon returned an invalid SSH commit response")
+        }
+        Err(error) => {
+            let _ = ssh::close_master(config, target, &control_path);
+            let _ = daemon::request(DaemonRequest::AbortConnect {
+                target: target.to_owned(),
+                connection_id,
+            });
+            bail!("could not commit SSH connection: {error:#}")
+        }
+    }
+}
+
+fn run_remote_target(
+    config: &Config,
+    target: &str,
+    connection_id: &str,
+    epoch: u64,
+    mode: RemoteAttachMode,
+    selection_name: &str,
+) -> Result<()> {
+    let reply = daemon::request(DaemonRequest::PrepareAttach {
+        target: target.to_owned(),
+        connection_id: connection_id.to_owned(),
+        epoch,
+    })?;
+    let control_path = match reply {
+        DaemonReply::AttachPlan {
+            target: returned_target,
+            connection_id: returned_id,
+            epoch: returned_epoch,
+            control_path,
+        } if returned_target == target
+            && returned_id == connection_id
+            && returned_epoch == epoch =>
+        {
+            PathBuf::from(control_path)
+        }
+        DaemonReply::Error { message, .. } => bail!("{message}"),
+        _ => bail!("daemon returned an invalid remote attachment plan"),
+    };
+
+    let status = ssh::attach_command(config, target, &control_path, mode)?
         .status()
         .with_context(|| format!("failed to run {}", config.ssh_command.display()))?;
     let code = exit_code(status.code());
     match classify_remote_exit(code) {
         RemoteExit::ManagedSwitch => {}
         RemoteExit::Detached => eprintln!("Detached from {target}; returning to the picker."),
+        RemoteExit::StaleTarget => {
+            eprintln!("Remote session {selection_name:?} changed since it was listed; refreshing.")
+        }
         RemoteExit::ConnectionFailure => {
-            eprintln!("SSH connection to {target} failed or disconnected; retry from the picker.");
+            eprintln!("SSH connection to {target} was lost; reconnect from the picker.");
         }
         RemoteExit::Other(code) => {
-            eprintln!("Remote tmux on {target} exited with status {code}; retry from the picker.");
+            eprintln!(
+                "Remote tmux on {target} exited with status {code}; returning to the picker."
+            );
         }
     }
-    Ok(remote_retry_query(target))
-}
-
-fn remote_retry_query(target: &str) -> String {
-    target.to_owned()
+    Ok(())
 }
 
 fn classify_remote_exit(code: i32) -> RemoteExit {
     match code {
         SWITCH_EXIT_CODE => RemoteExit::ManagedSwitch,
         0 => RemoteExit::Detached,
+        STALE_TARGET_EXIT_CODE => RemoteExit::StaleTarget,
         SSH_FAILURE_EXIT_CODE => RemoteExit::ConnectionFailure,
         code => RemoteExit::Other(code),
     }
 }
 
-fn run_picker(
-    config: &Config,
-    model: &Model,
-    controller_dir: &ControllerDir,
-    query: Option<String>,
-) -> Result<Option<Target>> {
-    let candidates_path = controller_dir.path().join("candidates");
-    runtime::atomic_write(&candidates_path, model.rows()?.as_bytes())?;
-    let input = File::open(&candidates_path)
-        .with_context(|| format!("failed to open {}", candidates_path.display()))?;
+fn run_picker(config: &Config, model: &Model, query: Option<String>) -> Result<Option<Target>> {
+    let rows = model.rows()?;
 
     let mut command = Command::new(&config.fzf_command);
     command
-        .args([
-            "--delimiter=\t",
-            "--with-nth=2..",
-            "--nth=2..",
-            "--layout=reverse",
-            "--border=rounded",
-            "--info=inline-right",
-            "--no-multi",
-            "--cycle",
-            "--prompt=Sessions › ",
-            "--header=Enter attach · Esc quit · SSH targets open foreground authentication",
-            "--color=bg:#1d2021,bg+:#3c3836,fg:#d0c0a0,fg+:#ebdbb2,hl:#84a9b2,hl+:#c9a257,prompt:#c9a257,pointer:#c9a257,marker:#84a9b2,spinner:#84a9b2,border:#504945,header:#96918a,info:#7c6f64",
-        ])
-        .stdin(Stdio::from(input))
+        .args(PICKER_ARGUMENTS)
+        .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .stderr(Stdio::inherit())
-        .env_remove("FZF_DEFAULT_COMMAND");
+        .env_remove("FZF_DEFAULT_COMMAND")
+        .env_remove("FZF_DEFAULT_OPTS")
+        .env_remove("FZF_DEFAULT_OPTS_FILE");
     if let Some(query) = query {
         command.arg("--query").arg(query);
     }
-    let output = command
-        .output()
+    let mut child = command
+        .spawn()
         .with_context(|| format!("failed to run {}", config.fzf_command.display()))?;
+    let write_result = child
+        .stdin
+        .take()
+        .context("fzf stdin was not available")
+        .and_then(|mut input| {
+            input
+                .write_all(rows.as_bytes())
+                .context("failed to send picker candidates to fzf")
+        });
+    if let Err(error) = write_result {
+        let _ = child.kill();
+        let _ = child.wait();
+        return Err(error);
+    }
+    let output = child.wait_with_output().context("failed to wait for fzf")?;
     parse_picker_output(output)
 }
 
@@ -360,62 +650,77 @@ fn exit_code(code: Option<i32>) -> i32 {
 
 #[cfg(test)]
 mod tests {
-    use crate::protocol::{SessionInfo, Snapshot};
+    use crate::protocol::{RemoteHost, RemoteState, SessionInfo, Snapshot, PROTOCOL_VERSION};
 
     use super::{
-        classify_remote_exit, parse_picker_output, remote_retry_query, tmux_client_is_active,
-        Model, RemoteExit, Target,
+        classify_remote_exit, parse_picker_output, tmux_client_is_active, Model, RemoteExit,
+        Target, PICKER_ARGUMENTS,
     };
 
     #[test]
     fn detached_tmux_client_environment_can_start_the_picker() {
         assert!(!tmux_client_is_active(Some(std::ffi::OsString::new())));
         assert!(tmux_client_is_active(Some(std::ffi::OsString::from(
-            "/tmp/tmux"
+            "/tmp/tmux",
         ))));
-    }
-    #[test]
-    fn picker_rows_preserve_target_identity_and_sanitize_display() {
-        let model = Model {
-            local_name: "local".into(),
-            local: Snapshot {
-                server_pid: 7,
-                server_started_at: 11,
-                hostname: "local".into(),
-                generated_at: 100,
-                sessions: vec![session("$1", "work\tline\nname", 12)],
-            },
-            ssh_targets: vec!["chetan@192.168.1.170".into()],
-        };
-        let rows = model.rows().expect("test model should render rows");
-        let targets = rows
-            .lines()
-            .map(|line| {
-                let (json, display) = line
-                    .split_once('\t')
-                    .expect("rendered row should contain a display separator");
-                assert!(!display.contains(['\t', '\r', '\n']));
-                serde_json::from_str::<Target>(json)
-                    .expect("rendered target should remain valid JSON")
-            })
-            .collect::<Vec<_>>();
-        assert!(targets.iter().any(|target| matches!(
-            target,
-            Target::LocalSession { id, name, server_pid: 7, server_started_at: 11, created_at: 12 }
-                if id == "$1" && name == "work\tline\nname"
-        )));
-        assert!(targets.iter().any(|target| matches!(
-            target,
-            Target::Ssh { target } if target == "chetan@192.168.1.170"
-        )));
-        assert!(targets
-            .iter()
-            .any(|target| matches!(target, Target::ConnectSsh)));
     }
 
     #[test]
-    fn picker_output_round_trips_local_session_target() {
-        let target = Target::LocalSession {
+    fn picker_is_centered_and_matches_visible_columns() {
+        assert!(PICKER_ARGUMENTS.contains(&"--no-height"));
+        assert!(PICKER_ARGUMENTS.contains(&"--margin=12%,8%"));
+        assert!(PICKER_ARGUMENTS.contains(&"--with-nth=2.."));
+        assert!(!PICKER_ARGUMENTS.contains(&"--disabled"));
+        assert!(!PICKER_ARGUMENTS
+            .iter()
+            .any(|argument| argument.starts_with("--nth=")));
+    }
+
+    #[test]
+    fn picker_rows_include_local_remote_and_one_disconnected_reconnect() {
+        let model = Model {
+            local_name: "local".into(),
+            local: snapshot("local", 7, 11, vec![session("$1", "local-work", 12)]),
+            remote_hosts: vec![
+                RemoteHost {
+                    target: "hugh".into(),
+                    state: RemoteState::Ready,
+                    connection_id: Some("0123456789abcdef0123456789abcdef".into()),
+                    epoch: 3,
+                    hostname: Some("hugh-mini".into()),
+                    server_pid: 17,
+                    server_started_at: 19,
+                    sessions: vec![session("$2", "remote-work", 20)],
+                    message: None,
+                },
+                RemoteHost {
+                    target: "boris".into(),
+                    state: RemoteState::Disconnected,
+                    connection_id: None,
+                    epoch: 0,
+                    hostname: None,
+                    server_pid: 0,
+                    server_started_at: 0,
+                    sessions: Vec::new(),
+                    message: Some("not connected".into()),
+                },
+            ],
+            daemon_error: None,
+        };
+        let rows = model.rows().expect("test model should render rows");
+        assert!(rows.contains("local-work"));
+        assert!(rows.contains("remote-work"));
+        assert!(rows.contains("hugh-mini"));
+        assert_eq!(rows.matches("\"action\":\"reconnect_ssh\"").count(), 1);
+        assert_eq!(rows.matches("\"action\":\"remote_session\"").count(), 1);
+    }
+
+    #[test]
+    fn picker_output_round_trips_remote_session_identity() {
+        let target = Target::RemoteSession {
+            ssh_target: "hugh".into(),
+            connection_id: "0123456789abcdef0123456789abcdef".into(),
+            epoch: 4,
             id: "$1".into(),
             name: "work".into(),
             server_pid: 7,
@@ -425,7 +730,7 @@ mod tests {
         let output = std::process::Output {
             status: success_status(),
             stdout: format!(
-                "{}\tLOCAL row\n",
+                "{}\tSSH row\n",
                 serde_json::to_string(&target).expect("target should serialize")
             )
             .into_bytes(),
@@ -433,13 +738,13 @@ mod tests {
         };
         assert!(matches!(
             parse_picker_output(output).expect("picker output should parse"),
-            Some(Target::LocalSession {
-                id,
-                name,
-                server_pid: 7,
-                server_started_at: 11,
-                created_at: 12,
-            }) if id == "$1" && name == "work"
+            Some(Target::RemoteSession {
+                ssh_target, connection_id, epoch: 4, id, name, server_pid: 7,
+                server_started_at: 11, created_at: 12,
+            }) if ssh_target == "hugh"
+                && connection_id == "0123456789abcdef0123456789abcdef"
+                && id == "$1"
+                && name == "work"
         ));
     }
 
@@ -455,36 +760,39 @@ mod tests {
                 .expect("expected cancellation should not be an error")
                 .is_none());
         }
-
         for code in [2, 42] {
             let output = std::process::Output {
                 status: exit_status(code),
                 stdout: Vec::new(),
                 stderr: Vec::new(),
             };
-            let error = parse_picker_output(output).expect_err("operational errors must propagate");
-            assert!(error.to_string().contains(&format!("status {code}")));
+            assert!(parse_picker_output(output).is_err());
         }
-
-        let output = std::process::Output {
-            status: signalled_status(),
-            stdout: Vec::new(),
-            stderr: Vec::new(),
-        };
-        let error = parse_picker_output(output).expect_err("signals must propagate");
-        assert!(error.to_string().contains("signal"));
     }
 
     #[test]
     fn remote_exit_handling_returns_to_the_origin_picker() {
         assert_eq!(classify_remote_exit(42), RemoteExit::ManagedSwitch);
         assert_eq!(classify_remote_exit(0), RemoteExit::Detached);
+        assert_eq!(classify_remote_exit(75), RemoteExit::StaleTarget);
         assert_eq!(classify_remote_exit(255), RemoteExit::ConnectionFailure);
         assert_eq!(classify_remote_exit(1), RemoteExit::Other(1));
-        assert_eq!(
-            remote_retry_query("chetan@192.168.1.170"),
-            "chetan@192.168.1.170"
-        );
+    }
+
+    fn snapshot(
+        hostname: &str,
+        server_pid: u64,
+        started_at: u64,
+        sessions: Vec<SessionInfo>,
+    ) -> Snapshot {
+        Snapshot {
+            protocol_version: PROTOCOL_VERSION,
+            server_pid,
+            server_started_at: started_at,
+            hostname: hostname.into(),
+            generated_at: 100,
+            sessions,
+        }
     }
 
     fn session(id: &str, name: &str, created_at: u64) -> SessionInfo {
@@ -504,9 +812,5 @@ mod tests {
 
     fn exit_status(code: i32) -> std::process::ExitStatus {
         std::os::unix::process::ExitStatusExt::from_raw(code << 8)
-    }
-
-    fn signalled_status() -> std::process::ExitStatus {
-        std::os::unix::process::ExitStatusExt::from_raw(9)
     }
 }

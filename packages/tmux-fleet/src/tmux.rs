@@ -5,7 +5,10 @@ use std::thread;
 use anyhow::{bail, Context, Result};
 
 use crate::config::Config;
-use crate::protocol::{unix_timestamp, SessionInfo, Snapshot, MAX_SESSION_NAME_BYTES};
+use crate::protocol::{
+    unix_timestamp, valid_session_id, SessionInfo, Snapshot, MAX_SESSION_NAME_BYTES,
+    PROTOCOL_VERSION,
+};
 use crate::runtime;
 
 const FIELD_SEPARATOR: char = '\u{1f}';
@@ -132,6 +135,7 @@ pub fn snapshot(config: &Config) -> Result<Snapshot> {
     });
 
     Ok(Snapshot {
+        protocol_version: PROTOCOL_VERSION,
         server_pid,
         server_started_at,
         hostname: runtime::short_hostname(),
@@ -143,6 +147,9 @@ pub fn snapshot(config: &Config) -> Result<Snapshot> {
 fn new_session_name_argument(name: &str) -> Result<String> {
     if name.len() > MAX_SESSION_NAME_BYTES {
         bail!("tmux session name exceeds {MAX_SESSION_NAME_BYTES} bytes");
+    }
+    if name.chars().any(char::is_control) {
+        bail!("tmux session name cannot contain control characters");
     }
     // tmux expands #() and #{} even in direct argv; ## is the literal # escape.
     Ok(name.replace('#', "##"))
@@ -213,41 +220,65 @@ fn spawn_managed_command(
     Ok(ManagedChild { child })
 }
 
-fn valid_session_id(value: &str) -> bool {
-    value.strip_prefix('$').is_some_and(|digits| {
-        !digits.is_empty() && digits.bytes().all(|byte| byte.is_ascii_digit())
-    })
-}
-
 fn parse_session(line: &str) -> Result<(SessionInfo, u64, u64)> {
-    let fields = line.split(FIELD_SEPARATOR).collect::<Vec<_>>();
-    if fields.len() != 8 {
-        bail!(
-            "unexpected tmux session record with {} fields",
-            fields.len()
-        );
-    }
-    if !valid_session_id(fields[0]) {
+    let (id, fields) = line
+        .split_once(FIELD_SEPARATOR)
+        .context("unexpected tmux session record without a session ID")?;
+    if !valid_session_id(id) {
         bail!("invalid tmux session ID in snapshot");
     }
+    let mut fields = fields.rsplitn(7, FIELD_SEPARATOR);
+    let server_started_at = fields
+        .next()
+        .context("tmux session record is missing the server start time")?
+        .parse()
+        .context("invalid tmux server start time")?;
+    let server_pid = fields
+        .next()
+        .context("tmux session record is missing the server PID")?
+        .parse()
+        .context("invalid tmux server PID")?;
+    let activity_at = fields
+        .next()
+        .context("tmux session record is missing the activity time")?
+        .parse()
+        .context("invalid tmux activity time")?;
+    let created_at = fields
+        .next()
+        .context("tmux session record is missing the creation time")?
+        .parse()
+        .context("invalid tmux creation time")?;
+    let attached = fields
+        .next()
+        .context("tmux session record is missing the attached count")?
+        .parse()
+        .context("invalid tmux attached count")?;
+    let windows = fields
+        .next()
+        .context("tmux session record is missing the window count")?
+        .parse()
+        .context("invalid tmux window count")?;
+    let name = fields
+        .next()
+        .context("tmux session record is missing the session name")?;
+
     Ok((
         SessionInfo {
-            id: fields[0].to_owned(),
-            name: fields[1].to_owned(),
-            windows: fields[2].parse().context("invalid tmux window count")?,
-            attached: fields[3].parse().context("invalid tmux attached count")?,
-            created_at: fields[4].parse().context("invalid tmux creation time")?,
-            activity_at: fields[5].parse().context("invalid tmux activity time")?,
+            id: id.to_owned(),
+            name: name.to_owned(),
+            windows,
+            attached,
+            created_at,
+            activity_at,
         },
-        fields[6].parse().context("invalid tmux server PID")?,
-        fields[7]
-            .parse()
-            .context("invalid tmux server start time")?,
+        server_pid,
+        server_started_at,
     ))
 }
 
 fn empty_snapshot() -> Snapshot {
     Snapshot {
+        protocol_version: PROTOCOL_VERSION,
         server_pid: 0,
         server_started_at: 0,
         hostname: runtime::short_hostname(),
@@ -276,14 +307,14 @@ mod tests {
     static TEST_NONCE: AtomicU64 = AtomicU64::new(0);
 
     #[test]
-    fn parses_tmux_record_with_spaces_and_punctuation() {
-        let record = "$3\u{1f}work ! now\u{1f}4\u{1f}1\u{1f}10\u{1f}20\u{1f}321\u{1f}5";
+    fn parses_tmux_record_when_name_contains_the_field_separator() {
+        let record = "$3\u{1f}work ! \u{1f} now\u{1f}4\u{1f}1\u{1f}10\u{1f}20\u{1f}321\u{1f}5";
         let (session, server_pid, server_started_at) =
             parse_session(record).expect("valid tmux record should parse");
         assert_eq!(server_pid, 321);
         assert_eq!(server_started_at, 5);
         assert_eq!(session.id, "$3");
-        assert_eq!(session.name, "work ! now");
+        assert_eq!(session.name, "work ! \u{1f} now");
         assert_eq!(session.windows, 4);
         assert_eq!(session.attached, 1);
     }
@@ -304,6 +335,8 @@ mod tests {
         );
         let oversized = "x".repeat(MAX_SESSION_NAME_BYTES + 1);
         assert!(new_session_name_argument(&oversized).is_err());
+        assert!(new_session_name_argument("line\nbreak").is_err());
+        assert!(new_session_name_argument("field\u{1f}separator").is_err());
     }
 
     #[test]

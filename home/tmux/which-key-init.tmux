@@ -27,8 +27,7 @@ set -g @wk_cfg_pos_y "C"
 #
 
 set -g @wk_menu_sessions \
-'"Switch session" "s" "if-shell -F \"#{@cb_tmux_fleet}\" \"tmux-fleet-switch\" \"choose-tree -Zs\"" \
-"New session" "n" "command-prompt -p \"Session name:\" \"new-session -s '%%'\"" \
+'"New session" "n" "command-prompt -p \"Session name:\" \"new-session -s '%%'\"" \
 "Rename session" "r" rename-session-popup \
 "Kill session" "k" "confirm-before -p \"Kill session? (y/n)\" kill-session" \
 Detach "d" detach-client'
@@ -97,6 +96,7 @@ set -g @wk_menu_root \
 "Copy mode" "[" copy-mode \
 "Paste buffer" "]" paste-buffer \
 "Thumbs (hints)" "T" cb-thumbs \
+"All sessions" "S" cb-all-sessions \
 "+Sessions" "s" "show-wk-menu #{@wk_menu_sessions}" \
 "+Windows" "w" "show-wk-menu #{@wk_menu_windows}" \
 "+Panes" "p" "show-wk-menu #{@wk_menu_panes}" \

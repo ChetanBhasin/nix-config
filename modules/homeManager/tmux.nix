@@ -33,6 +33,16 @@ let
 
   sshCommand =
     if pkgs.stdenv.hostPlatform.isDarwin then "/usr/bin/ssh" else "${pkgs.openssh}/bin/ssh";
+  tmuxFleetConfig = pkgs.writeText "tmux-fleet-config.json" (
+    builtins.toJSON {
+      ssh_targets = cfg.fleet.sshTargets;
+      tmux_command = "${cfg.package}/bin/tmux";
+      fzf_command = "${pkgs.fzf}/bin/fzf";
+      ssh_command = sshCommand;
+      false_command = "${pkgs.coreutils}/bin/false";
+    }
+    + "\n"
+  );
 in
 {
   options.cb.tmux = {
@@ -79,7 +89,7 @@ in
     };
 
     fleet = {
-      enable = lib.mkEnableOption "the local tmux and on-demand SSH target picker";
+      enable = lib.mkEnableOption "the unified local and SSH-backed tmux session picker";
 
       sshTargets = lib.mkOption {
         type = lib.types.listOf lib.types.str;
@@ -89,9 +99,9 @@ in
           "workstation"
         ];
         description = ''
-          Optional directional OpenSSH destinations displayed by tmux-fleet.
-          They are opened only after selection; tmux-fleet never inventories or
-          requires SSH connectivity between the listed machines.
+          Optional directional OpenSSH destinations tracked by tmux-fleet.
+          Each begins disconnected and is inventoried only after explicit foreground
+          authentication; the listed machines never need connectivity to each other.
         '';
       };
     };
@@ -182,14 +192,41 @@ in
     xdg.configFile."tmux/which-key-init.tmux".source = tmuxConfigPath + "/which-key-init.tmux";
 
     xdg.configFile."tmux-fleet/config.json" = lib.mkIf cfg.fleet.enable {
-      text =
-        builtins.toJSON {
-          ssh_targets = cfg.fleet.sshTargets;
-          tmux_command = "${cfg.package}/bin/tmux";
-          fzf_command = "${pkgs.fzf}/bin/fzf";
-          ssh_command = sshCommand;
-        }
-        + "\n";
+      source = tmuxFleetConfig;
+    };
+
+    systemd.user.services.tmux-fleet = lib.mkIf (cfg.fleet.enable && pkgs.stdenv.hostPlatform.isLinux) {
+      Unit = {
+        Description = "tmux-fleet SSH connection and session inventory";
+        X-Restart-Triggers = [ tmuxFleetConfig ];
+      };
+      Service = {
+        Environment = [ "TMUX_FLEET_CONFIG=${tmuxFleetConfig}" ];
+        ExecStart = "${tmuxFleet}/bin/tmux-fleet daemon";
+        Restart = "on-failure";
+        RestartSec = 1;
+        KillMode = "process";
+        TimeoutStopSec = 5;
+      };
+      Install.WantedBy = [ "default.target" ];
+    };
+
+    launchd.agents.tmux-fleet = lib.mkIf (cfg.fleet.enable && pkgs.stdenv.hostPlatform.isDarwin) {
+      enable = true;
+      config = {
+        ProgramArguments = [
+          "${tmuxFleet}/bin/tmux-fleet"
+          "daemon"
+        ];
+        EnvironmentVariables.TMUX_FLEET_CONFIG = "${tmuxFleetConfig}";
+        KeepAlive = true;
+        RunAtLoad = true;
+        ProcessType = "Background";
+        ThrottleInterval = 2;
+        AbandonProcessGroup = true;
+        StandardOutPath = "/dev/null";
+        StandardErrorPath = "/dev/null";
+      };
     };
 
     # Stable path used by foreground SSH commands across profile layouts.
