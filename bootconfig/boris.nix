@@ -23,7 +23,6 @@
 
   boot.initrd.luks.devices."mars-cryptroot".device =
     "/dev/disk/by-uuid/51df36f8-ea58-46e1-ba27-c90e2f34179b";
-
   fileSystems = {
     "/" = {
       device = "/dev/mapper/mars-cryptroot";
