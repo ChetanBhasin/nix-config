@@ -12,6 +12,40 @@ let
   rgb = colour: "rgb(${removePrefix "#" colour})";
   font = "JetBrainsMono Nerd Font";
   terminal = "alacritty";
+  toLua = generators.toLua { };
+  luaCall = name: args: generators.mkLuaInline "${name}(${concatMapStringsSep ", " toLua args})";
+  dsp = name: args: luaCall "hl.dsp.${name}" args;
+  windowDsp = name: args: dsp "window.${name}" args;
+  execDsp = command: dsp "exec_cmd" [ command ];
+  resizeDsp =
+    x: y:
+    windowDsp "resize" [
+      {
+        inherit x y;
+        relative = true;
+      }
+    ];
+  lockedOptions = {
+    locked = true;
+  };
+  repeatingLockedOptions = lockedOptions // {
+    repeating = true;
+  };
+  mkBind = keys: dispatcher: {
+    _args = [
+      keys
+      dispatcher
+    ];
+  };
+  mkBindWith = keys: dispatcher: options: {
+    _args = [
+      keys
+      dispatcher
+      options
+    ];
+  };
+  lockedBind = keys: command: mkBindWith keys (execDsp command) lockedOptions;
+  repeatingLockedBind = keys: command: mkBindWith keys (execDsp command) repeatingLockedOptions;
   arrangeWindow = pkgs.writeShellApplication {
     name = "hyprland-arrange-window";
     runtimeInputs = [
@@ -21,9 +55,12 @@ let
     text = builtins.readFile ./arrange-window.bash;
   };
   quickshell = getExe pkgs.quickshell;
+  launcherCommand = "${quickshell} ipc --config gruvbox-night call launcher toggle";
+  dashboardCommand = "${quickshell} ipc --config gruvbox-night call dashboard toggle";
+  arrangeCommand = action: "${arrangeWindow}/bin/hyprland-arrange-window ${action}";
   # A fresh Hyprland install gives no hint that SUPER is the modkey, so one
-  # bind prints the map. The body is built here and shell-escaped because a
-  # hyprlang `bind =` entry is single-line: real newlines cannot live in it.
+  # bind prints the map. The helper passes the complete body as one
+  # shell-escaped argument to libnotify.
   keybindHelp = concatStringsSep "\n" [
     "SUPER + Return      terminal"
     "SUPER + D / Space   launcher"
@@ -68,191 +105,229 @@ in
       # portals; installing them again here would shadow the system session.
       package = null;
       portalPackage = null;
-      # The default is stateVersion-gated (lua from 26.05, hyprlang before).
-      # Pin it so the generated file stays a plain hyprland.conf.
-      configType = "hyprlang";
+      # Hyprland 0.55 deprecated Hyprlang and 0.57 removes it. Use Home
+      # Manager's native Lua renderer so compositor upgrades remain safe.
+      configType = "lua";
+      # Curves must be registered before animations that reference them.
+      importantPrefixes = [
+        "curve"
+        "monitor"
+        "config"
+      ];
 
       # Home Manager creates hyprland-session.target; Quickshell, hypridle and
       # the tray applets bind to that session lifecycle.
 
       settings = {
-        "$mod" = "SUPER";
-        "$terminal" = terminal;
-        "$menu" = "${quickshell} ipc --config gruvbox-night call launcher toggle";
-
         # The display's native geometry is not known at build time, so let Hyprland pick.
-        monitor = [ ",preferred,auto,auto" ];
+        monitor = [
+          {
+            output = "";
+            mode = "preferred";
+            position = "auto";
+            scale = "auto";
+          }
+        ];
 
-        input = {
-          kb_layout = "us";
-          follow_mouse = 1;
-          sensitivity = 0;
-          touchpad = {
-            natural_scroll = true;
-            disable_while_typing = true;
-            # libinput defaults this off; a laptop user expects a tap to click.
-            "tap-to-click" = true;
+        config = {
+          input = {
+            kb_layout = "us";
+            follow_mouse = 1;
+            sensitivity = 0;
+            touchpad = {
+              natural_scroll = true;
+              disable_while_typing = true;
+              # libinput defaults this off; a laptop user expects a tap to click.
+              tap_to_click = true;
+            };
           };
+
+          general = {
+            gaps_in = 4;
+            gaps_out = 8;
+            border_size = 2;
+            col = {
+              active_border = rgb theme.activeBorder;
+              inactive_border = rgb theme.inactiveBorder;
+            };
+            layout = "dwindle";
+            resize_on_border = true;
+          };
+
+          decoration = {
+            rounding = 6;
+            # Blur and shadow are the two most expensive effects; a laptop keeps
+            # more battery and a steadier frame rate without them.
+            blur.enabled = false;
+            shadow.enabled = false;
+          };
+
+          animations.enabled = true;
+
+          misc = {
+            disable_hyprland_logo = true;
+            disable_splash_rendering = true;
+            # A solid themed background means no wallpaper daemon and no image
+            # asset need to be shipped at all.
+            background_color = rgb theme.base00;
+            force_default_wallpaper = 0;
+          };
+
+          dwindle.preserve_split = true;
         };
 
-        general = {
-          gaps_in = 4;
-          gaps_out = 8;
-          border_size = 2;
-          "col.active_border" = rgb theme.activeBorder;
-          "col.inactive_border" = rgb theme.inactiveBorder;
-          layout = "dwindle";
-          resize_on_border = true;
-        };
+        curve = [
+          {
+            _args = [
+              "snap"
+              {
+                type = "bezier";
+                points = [
+                  [
+                    0.05
+                    0.9
+                  ]
+                  [
+                    0.1
+                    1.05
+                  ]
+                ];
+              }
+            ];
+          }
+        ];
 
-        decoration = {
-          rounding = 6;
-          # Blur and shadow are the two most expensive effects; a laptop keeps
-          # more battery and a steadier frame rate without them.
-          blur.enabled = false;
-          shadow.enabled = false;
-        };
+        animation = [
+          {
+            leaf = "windows";
+            enabled = true;
+            speed = 3;
+            bezier = "snap";
+          }
+          {
+            leaf = "fade";
+            enabled = true;
+            speed = 3;
+            bezier = "default";
+          }
+          {
+            leaf = "workspaces";
+            enabled = true;
+            speed = 3;
+            bezier = "default";
+          }
+        ];
 
-        animations = {
-          enabled = true;
-          bezier = [ "snap, 0.05, 0.9, 0.1, 1.05" ];
-          animation = [
-            "windows, 1, 3, snap"
-            "fade, 1, 3, default"
-            "workspaces, 1, 3, default"
-          ];
-        };
-
-        misc = {
-          disable_hyprland_logo = true;
-          disable_splash_rendering = true;
-          # A solid themed background means no wallpaper daemon and no image
-          # asset need to be shipped at all.
-          background_color = rgb theme.base00;
-          force_default_wallpaper = 0;
-        };
-
-        dwindle = {
-          preserve_split = true;
-        };
-
-        # No exec-once: Quickshell and the remaining session daemons are
-        # Home Manager services started by hyprland-session.target.
-
+        # No startup hook: Quickshell and the remaining session daemons are Home
+        # Manager services started by hyprland-session.target.
         bind = [
-          "$mod, Return, exec, $terminal"
-          "$mod, Q, killactive"
-          "$mod, M, exit"
-          "$mod, V, togglefloating"
-          "$mod, F, fullscreen"
-          "$mod, P, pseudo"
-          "$mod, D, exec, $menu"
-          "$mod, SPACE, exec, $menu"
-          "$mod, N, exec, ${quickshell} ipc --config gruvbox-night call dashboard toggle"
-          "$mod, slash, exec, ${cheatsheet}"
+          (mkBind "SUPER + Return" (dsp "exec_cmd" [ terminal ]))
+          (mkBind "SUPER + Q" (windowDsp "close" [ ]))
+          (mkBind "SUPER + M" (dsp "exit" [ ]))
+          (mkBind "SUPER + V" (windowDsp "float" [ { action = "toggle"; } ]))
+          (mkBind "SUPER + F" (windowDsp "fullscreen" [ ]))
+          (mkBind "SUPER + P" (windowDsp "pseudo" [ ]))
+          (mkBind "SUPER + D" (execDsp launcherCommand))
+          (mkBind "SUPER + SPACE" (execDsp launcherCommand))
+          (mkBind "SUPER + N" (execDsp dashboardCommand))
+          (mkBind "SUPER + slash" (dsp "exec_cmd" [ "${cheatsheet}" ]))
 
-          # $mod+J and $mod+L are taken by vim-style focus movement below, so
+          # SUPER+J and SUPER+L are taken by Vim-style focus movement below, so
           # togglesplit and the lock screen keep their mnemonic letters one
-          # modifier over rather than firing alongside a movefocus.
-          "$mod ALT, J, layoutmsg, togglesplit"
-          "$mod ALT, L, exec, hyprlock"
+          # modifier over rather than firing alongside a focus move.
+          (mkBind "SUPER + ALT + J" (dsp "layout" [ "togglesplit" ]))
+          (mkBind "SUPER + ALT + L" (dsp "exec_cmd" [ "hyprlock" ]))
 
           # Match macOS Mission Control's default desktop navigation.
-          "CTRL, left, workspace, r-1"
-          "CTRL, right, workspace, r+1"
+          (mkBind "CTRL + left" (dsp "focus" [ { workspace = "r-1"; } ]))
+          (mkBind "CTRL + right" (dsp "focus" [ { workspace = "r+1"; } ]))
 
           # Mirror Hammerspoon's Ctrl+Option window arrangement layer. The
           # H/J/K/L variants provide the same placements without leaving home row.
-          "CTRL ALT, Return, exec, ${arrangeWindow}/bin/hyprland-arrange-window maximize"
-          "CTRL ALT, C, exec, ${arrangeWindow}/bin/hyprland-arrange-window center"
-          "CTRL ALT, left, exec, ${arrangeWindow}/bin/hyprland-arrange-window left"
-          "CTRL ALT, down, exec, ${arrangeWindow}/bin/hyprland-arrange-window down"
-          "CTRL ALT, up, exec, ${arrangeWindow}/bin/hyprland-arrange-window up"
-          "CTRL ALT, right, exec, ${arrangeWindow}/bin/hyprland-arrange-window right"
-          "CTRL ALT, H, exec, ${arrangeWindow}/bin/hyprland-arrange-window left"
-          "CTRL ALT, J, exec, ${arrangeWindow}/bin/hyprland-arrange-window down"
-          "CTRL ALT, K, exec, ${arrangeWindow}/bin/hyprland-arrange-window up"
-          "CTRL ALT, L, exec, ${arrangeWindow}/bin/hyprland-arrange-window right"
+          (mkBind "CTRL + ALT + Return" (execDsp (arrangeCommand "maximize")))
+          (mkBind "CTRL + ALT + C" (execDsp (arrangeCommand "center")))
+          (mkBind "CTRL + ALT + left" (execDsp (arrangeCommand "left")))
+          (mkBind "CTRL + ALT + down" (execDsp (arrangeCommand "down")))
+          (mkBind "CTRL + ALT + up" (execDsp (arrangeCommand "up")))
+          (mkBind "CTRL + ALT + right" (execDsp (arrangeCommand "right")))
+          (mkBind "CTRL + ALT + H" (execDsp (arrangeCommand "left")))
+          (mkBind "CTRL + ALT + J" (execDsp (arrangeCommand "down")))
+          (mkBind "CTRL + ALT + K" (execDsp (arrangeCommand "up")))
+          (mkBind "CTRL + ALT + L" (execDsp (arrangeCommand "right")))
 
-          "$mod, H, movefocus, l"
-          "$mod, J, movefocus, d"
-          "$mod, K, movefocus, u"
-          "$mod, L, movefocus, r"
-          "$mod, left, movefocus, l"
-          "$mod, down, movefocus, d"
-          "$mod, up, movefocus, u"
-          "$mod, right, movefocus, r"
+          (mkBind "SUPER + H" (dsp "focus" [ { direction = "left"; } ]))
+          (mkBind "SUPER + J" (dsp "focus" [ { direction = "down"; } ]))
+          (mkBind "SUPER + K" (dsp "focus" [ { direction = "up"; } ]))
+          (mkBind "SUPER + L" (dsp "focus" [ { direction = "right"; } ]))
+          (mkBind "SUPER + left" (dsp "focus" [ { direction = "left"; } ]))
+          (mkBind "SUPER + down" (dsp "focus" [ { direction = "down"; } ]))
+          (mkBind "SUPER + up" (dsp "focus" [ { direction = "up"; } ]))
+          (mkBind "SUPER + right" (dsp "focus" [ { direction = "right"; } ]))
 
-          "$mod SHIFT, H, movewindow, l"
-          "$mod SHIFT, J, movewindow, d"
-          "$mod SHIFT, K, movewindow, u"
-          "$mod SHIFT, L, movewindow, r"
-          "$mod SHIFT, left, movewindow, l"
-          "$mod SHIFT, down, movewindow, d"
-          "$mod SHIFT, up, movewindow, u"
-          "$mod SHIFT, right, movewindow, r"
+          (mkBind "SUPER + SHIFT + H" (windowDsp "move" [ { direction = "left"; } ]))
+          (mkBind "SUPER + SHIFT + J" (windowDsp "move" [ { direction = "down"; } ]))
+          (mkBind "SUPER + SHIFT + K" (windowDsp "move" [ { direction = "up"; } ]))
+          (mkBind "SUPER + SHIFT + L" (windowDsp "move" [ { direction = "right"; } ]))
+          (mkBind "SUPER + SHIFT + left" (windowDsp "move" [ { direction = "left"; } ]))
+          (mkBind "SUPER + SHIFT + down" (windowDsp "move" [ { direction = "down"; } ]))
+          (mkBind "SUPER + SHIFT + up" (windowDsp "move" [ { direction = "up"; } ]))
+          (mkBind "SUPER + SHIFT + right" (windowDsp "move" [ { direction = "right"; } ]))
 
-          "$mod CTRL, H, resizeactive, -40 0"
-          "$mod CTRL, J, resizeactive, 0 40"
-          "$mod CTRL, K, resizeactive, 0 -40"
-          "$mod CTRL, L, resizeactive, 40 0"
-          "$mod CTRL, left, resizeactive, -40 0"
-          "$mod CTRL, down, resizeactive, 0 40"
-          "$mod CTRL, up, resizeactive, 0 -40"
-          "$mod CTRL, right, resizeactive, 40 0"
+          (mkBind "SUPER + CTRL + H" (resizeDsp (-40) 0))
+          (mkBind "SUPER + CTRL + J" (resizeDsp 0 40))
+          (mkBind "SUPER + CTRL + K" (resizeDsp 0 (-40)))
+          (mkBind "SUPER + CTRL + L" (resizeDsp 40 0))
+          (mkBind "SUPER + CTRL + left" (resizeDsp (-40) 0))
+          (mkBind "SUPER + CTRL + down" (resizeDsp 0 40))
+          (mkBind "SUPER + CTRL + up" (resizeDsp 0 (-40)))
+          (mkBind "SUPER + CTRL + right" (resizeDsp 40 0))
 
-          "$mod, 1, workspace, 1"
-          "$mod, 2, workspace, 2"
-          "$mod, 3, workspace, 3"
-          "$mod, 4, workspace, 4"
-          "$mod, 5, workspace, 5"
-          "$mod, 6, workspace, 6"
-          "$mod, 7, workspace, 7"
-          "$mod, 8, workspace, 8"
-          "$mod, 9, workspace, 9"
-          "$mod, 0, workspace, 10"
+          (mkBind "SUPER + 1" (dsp "focus" [ { workspace = "1"; } ]))
+          (mkBind "SUPER + 2" (dsp "focus" [ { workspace = "2"; } ]))
+          (mkBind "SUPER + 3" (dsp "focus" [ { workspace = "3"; } ]))
+          (mkBind "SUPER + 4" (dsp "focus" [ { workspace = "4"; } ]))
+          (mkBind "SUPER + 5" (dsp "focus" [ { workspace = "5"; } ]))
+          (mkBind "SUPER + 6" (dsp "focus" [ { workspace = "6"; } ]))
+          (mkBind "SUPER + 7" (dsp "focus" [ { workspace = "7"; } ]))
+          (mkBind "SUPER + 8" (dsp "focus" [ { workspace = "8"; } ]))
+          (mkBind "SUPER + 9" (dsp "focus" [ { workspace = "9"; } ]))
+          (mkBind "SUPER + 0" (dsp "focus" [ { workspace = "10"; } ]))
 
-          "$mod SHIFT, 1, movetoworkspace, 1"
-          "$mod SHIFT, 2, movetoworkspace, 2"
-          "$mod SHIFT, 3, movetoworkspace, 3"
-          "$mod SHIFT, 4, movetoworkspace, 4"
-          "$mod SHIFT, 5, movetoworkspace, 5"
-          "$mod SHIFT, 6, movetoworkspace, 6"
-          "$mod SHIFT, 7, movetoworkspace, 7"
-          "$mod SHIFT, 8, movetoworkspace, 8"
-          "$mod SHIFT, 9, movetoworkspace, 9"
-          "$mod SHIFT, 0, movetoworkspace, 10"
+          (mkBind "SUPER + SHIFT + 1" (windowDsp "move" [ { workspace = "1"; } ]))
+          (mkBind "SUPER + SHIFT + 2" (windowDsp "move" [ { workspace = "2"; } ]))
+          (mkBind "SUPER + SHIFT + 3" (windowDsp "move" [ { workspace = "3"; } ]))
+          (mkBind "SUPER + SHIFT + 4" (windowDsp "move" [ { workspace = "4"; } ]))
+          (mkBind "SUPER + SHIFT + 5" (windowDsp "move" [ { workspace = "5"; } ]))
+          (mkBind "SUPER + SHIFT + 6" (windowDsp "move" [ { workspace = "6"; } ]))
+          (mkBind "SUPER + SHIFT + 7" (windowDsp "move" [ { workspace = "7"; } ]))
+          (mkBind "SUPER + SHIFT + 8" (windowDsp "move" [ { workspace = "8"; } ]))
+          (mkBind "SUPER + SHIFT + 9" (windowDsp "move" [ { workspace = "9"; } ]))
+          (mkBind "SUPER + SHIFT + 0" (windowDsp "move" [ { workspace = "10"; } ]))
 
-          "$mod, S, togglespecialworkspace, magic"
-          "$mod SHIFT, S, movetoworkspace, special:magic"
+          (mkBind "SUPER + S" (dsp "workspace.toggle_special" [ "magic" ]))
+          (mkBind "SUPER + SHIFT + S" (windowDsp "move" [ { workspace = "special:magic"; } ]))
 
-          "$mod, mouse_down, workspace, e+1"
-          "$mod, mouse_up, workspace, e-1"
+          (mkBind "SUPER + mouse_down" (dsp "focus" [ { workspace = "e+1"; } ]))
+          (mkBind "SUPER + mouse_up" (dsp "focus" [ { workspace = "e-1"; } ]))
 
-          ", Print, exec, grim - | wl-copy"
-          "SHIFT, Print, exec, grim -g \"$(slurp)\" - | wl-copy"
-        ];
+          (mkBind "Print" (dsp "exec_cmd" [ "grim - | wl-copy" ]))
+          (mkBind "SHIFT + Print" (dsp "exec_cmd" [ "grim -g \"$(slurp)\" - | wl-copy" ]))
 
-        bindm = [
-          "$mod, mouse:272, movewindow"
-          "$mod, mouse:273, resizewindow"
-        ];
+          (mkBindWith "SUPER + mouse:272" (windowDsp "drag" [ ]) { mouse = true; })
+          (mkBindWith "SUPER + mouse:273" (windowDsp "resize" [ ]) { mouse = true; })
 
-        # bindel repeats on hold and still fires on the lock screen.
-        bindel = [
-          ", XF86AudioRaiseVolume, exec, pamixer -i 5"
-          ", XF86AudioLowerVolume, exec, pamixer -d 5"
-          ", XF86MonBrightnessUp, exec, brightnessctl set 5%+"
-          ", XF86MonBrightnessDown, exec, brightnessctl set 5%-"
-        ];
+          # These bindings repeat on hold and remain active on the lock screen.
+          (repeatingLockedBind "XF86AudioRaiseVolume" "pamixer -i 5")
+          (repeatingLockedBind "XF86AudioLowerVolume" "pamixer -d 5")
+          (repeatingLockedBind "XF86MonBrightnessUp" "brightnessctl set 5%+")
+          (repeatingLockedBind "XF86MonBrightnessDown" "brightnessctl set 5%-")
 
-        # bindl fires on the lock screen but must not repeat.
-        bindl = [
-          ", XF86AudioMute, exec, pamixer -t"
-          ", XF86AudioMicMute, exec, pamixer --default-source -t"
-          ", XF86AudioPlay, exec, playerctl play-pause"
-          ", XF86AudioNext, exec, playerctl next"
-          ", XF86AudioPrev, exec, playerctl previous"
+          # These remain active on the lock screen but must not repeat.
+          (lockedBind "XF86AudioMute" "pamixer -t")
+          (lockedBind "XF86AudioMicMute" "pamixer --default-source -t")
+          (lockedBind "XF86AudioPlay" "playerctl play-pause")
+          (lockedBind "XF86AudioNext" "playerctl next")
+          (lockedBind "XF86AudioPrev" "playerctl previous")
         ];
       };
     };

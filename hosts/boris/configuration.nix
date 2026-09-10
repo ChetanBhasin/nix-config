@@ -108,8 +108,9 @@ in
   # UWSM cannot manage here (`programs.uwsm.waylandCompositors` is empty), so
   # the user would land in a bare compositor with no bar, notifications or
   # tray. `--remember-session` goes with it, being meaningless without a list.
-  # `Hyprland` stays unqualified on purpose: PATH resolves it to the
-  # /run/wrappers capability wrapper that grants the compositor SCHED_RR.
+  # `start-hyprland` supplies the upstream crash watchdog. It resolves
+  # `Hyprland` through the login PATH, whose /run/wrappers entry retains the
+  # NixOS CAP_SYS_NICE wrapper used for real-time compositor scheduling.
   services.greetd = {
     enable = true;
     useTextGreeter = true;
@@ -117,7 +118,7 @@ in
       (lib.getExe pkgs.tuigreet)
       "--time"
       "--remember"
-      "--cmd Hyprland"
+      "--cmd ${lib.getExe' pkgs.hyprland "start-hyprland"}"
     ];
   };
 
