@@ -12,6 +12,14 @@ let
   rgb = colour: "rgb(${removePrefix "#" colour})";
   font = "JetBrainsMono Nerd Font";
   terminal = "alacritty";
+  arrangeWindow = pkgs.writeShellApplication {
+    name = "hyprland-arrange-window";
+    runtimeInputs = [
+      pkgs.hyprland
+      pkgs.jq
+    ];
+    text = builtins.readFile ./arrange-window.bash;
+  };
   quickshell = getExe pkgs.quickshell;
   # A fresh Hyprland install gives no hint that SUPER is the modkey, so one
   # bind prints the map. The body is built here and shell-escaped because a
@@ -26,6 +34,10 @@ let
     "SUPER + SHIFT + …   move window"
     "SUPER + CTRL + …    resize window"
     "SUPER + 1..0        workspace"
+    "CTRL + Left/Right      previous/next workspace"
+    "CTRL + ALT + arrows    align window to screen half"
+    "CTRL + ALT + H/J/K/L   same alignment (Vim aliases)"
+    "CTRL + ALT + Return/C  maximize/center window"
     "SUPER + SHIFT + 1..0  move to workspace"
     "SUPER + V / F / P   float / fullscreen / pseudo"
     "SUPER + ALT + L     lock screen"
@@ -144,6 +156,23 @@ in
           # modifier over rather than firing alongside a movefocus.
           "$mod ALT, J, layoutmsg, togglesplit"
           "$mod ALT, L, exec, hyprlock"
+
+          # Match macOS Mission Control's default desktop navigation.
+          "CTRL, left, workspace, r-1"
+          "CTRL, right, workspace, r+1"
+
+          # Mirror Hammerspoon's Ctrl+Option window arrangement layer. The
+          # H/J/K/L variants provide the same placements without leaving home row.
+          "CTRL ALT, Return, exec, ${arrangeWindow}/bin/hyprland-arrange-window maximize"
+          "CTRL ALT, C, exec, ${arrangeWindow}/bin/hyprland-arrange-window center"
+          "CTRL ALT, left, exec, ${arrangeWindow}/bin/hyprland-arrange-window left"
+          "CTRL ALT, down, exec, ${arrangeWindow}/bin/hyprland-arrange-window down"
+          "CTRL ALT, up, exec, ${arrangeWindow}/bin/hyprland-arrange-window up"
+          "CTRL ALT, right, exec, ${arrangeWindow}/bin/hyprland-arrange-window right"
+          "CTRL ALT, H, exec, ${arrangeWindow}/bin/hyprland-arrange-window left"
+          "CTRL ALT, J, exec, ${arrangeWindow}/bin/hyprland-arrange-window down"
+          "CTRL ALT, K, exec, ${arrangeWindow}/bin/hyprland-arrange-window up"
+          "CTRL ALT, L, exec, ${arrangeWindow}/bin/hyprland-arrange-window right"
 
           "$mod, H, movefocus, l"
           "$mod, J, movefocus, d"
@@ -334,6 +363,8 @@ in
       libnotify
       pavucontrol
       adwaita-icon-theme
+      # Keep nm-applet's symbolic tray icons in the stable Home Manager profile.
+      networkmanagerapplet
     ];
   };
 }
