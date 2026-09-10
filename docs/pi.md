@@ -1,11 +1,11 @@
 # Pi Track B and Writable Runtime
 
-This configuration installs vanilla Pi Coding Agent 0.84.3 with the Track B composition: Lens code intelligence, Hashline editing, isolated specialist subagents, parent-only Magic Context, native browser automation, Gruvbox Night, native model controls, and separately packaged PI WEB.
+This configuration installs vanilla Pi Coding Agent 0.84.4 with the Track B composition: Lens code intelligence, Hashline editing, isolated specialist subagents, parent-only Magic Context, native browser automation, Gruvbox Night, native model controls, and separately packaged PI WEB.
 
 The ownership boundary is deliberate:
 
-- **Nix owns executables and fixed policy:** Pi, Node.js, Git, `agent-browser` 0.34.0, ast-grep, Chrome/Chromium, FFmpeg (`ffmpeg` and `ffprobe`), the Nix-patched `web_run` from exact `@howaboua/pi-codex-conversion@3.0.23`, language servers, PI WEB 1.202608.2, wrappers, service definitions, and policy environment variables.
-- **The portable projection owns reviewed Pi-native policy:** package pins, prompts, themes, extension policy, and the Codex extras-only configuration under `home/pi/config/`.
+- **Nix owns executables and fixed policy:** Pi, Node.js, Git, `agent-browser` 0.34.0, ast-grep, Chrome/Chromium, FFmpeg (`ffmpeg` and `ffprobe`), language servers, PI WEB 1.202608.2, wrappers, service definitions, and policy environment variables.
+- **The portable projection owns reviewed Pi-native policy:** exact package pins, including standalone Codex Web Run, plus prompts, themes, and extension policy under `home/pi/config/`.
 - **Pi and the user own mutable evidence:** authentication, trust decisions, sessions, package realizations, browser profiles, caches, indexes, embeddings, SQLite databases, and logs.
 
 Home Manager keeps upstream Pi's live directory at `~/.pi/agent`. Its `settings`, `keybindings`, and `models` module values are empty and `context` is empty. Home Manager never projects those files as store symlinks and does not globally set `PI_CODING_AGENT_DIR` or `PI_CODING_AGENT_SESSION_DIR`. `pi-config` remains the copy-and-reconcile boundary. By default, activation only preflights Pi state; `cb.pi.forceApplyOnActivation` opts into a transactional, flake-authoritative copy after the write boundary. This repository enables that option in `home/pi/default.nix` for all three hosts.
@@ -15,7 +15,7 @@ The module exposes only these options:
 | Option | Default | Purpose |
 |--------|---------|---------|
 | `cb.pi.enable` | `false` | Install Pi, Track B policy, and `pi-config` |
-| `cb.pi.package` | pinned package | Select Pi; the current package is 0.84.3 |
+| `cb.pi.package` | pinned package | Select Pi 0.84.4 or newer; the current package is 0.84.4 |
 | `cb.pi.forceApplyOnActivation` | `false` | Run `pi-config apply --force` after the Home Manager write boundary |
 | `cb.pi.enableLspTooling` | `true` | Add the curated language-server toolchain to Pi's wrapper |
 | `cb.pi.extraPackages` | `[]` | Add more tools to Pi and its shell environment |
@@ -28,13 +28,13 @@ Links into `/nix/store` created imperatively inside writable realization trees a
 
 ## Track B policy
 
-The portable package graph contains 13 exact npm pins. PI WEB is intentionally absent because Nix packages and services it independently. `@narumitw/pi-btw@0.55.3` replaces the former Juicesharp BTW package. `pi-footer@0.5.1` owns the statusline; Pi's extension loader supplies its coding-agent and TUI runtime imports from the Nix-owned Pi process, while the existing `@earendil-works/pi-tui@0.84.3` pin remains for Magic Context's peer dependency.
+The portable package graph contains 13 exact npm pins. PI WEB is intentionally absent because Nix packages and services it independently. `@howaboua/pi-codex-web-run@0.0.2` supplies only the standalone `web_run` tool and does not re-register Pi's `openai-codex` provider. `@narumitw/pi-btw@0.55.3` replaces the former Juicesharp BTW package. `pi-footer@0.5.1` owns the statusline; Pi's extension loader supplies its coding-agent and TUI runtime imports from the Nix-owned Pi process, while the `@earendil-works/pi-tui@0.84.4` pin remains for Magic Context's peer dependency.
 
 Runtime responsibilities are non-overlapping:
 
 - **Lens** owns symbols, navigation, AST search, repository reports, and explicit diagnostics. Its install, context-injection, autoformat, autofix, read-guard, tests, and mutation hooks are disabled. The wrapper adds Lens-owned hard-disable flags only after the mutable Lens extension exists, so a fresh Pi installation can start before its npm tree is hydrated. It resolves only Nix-provided tools and language servers.
 - **Hashline** replaces `read` and `grep`, disables built-in `edit`, and supplies anchored `replace`, `insert`, and undo. The built-in `write` remains available for whole-file creation/overwrite and Hashline returns fresh anchors afterward. Codex `apply_patch`/command adapters and Lens mutation tools remain inactive.
-- **Codex conversion** is captured in `pi-codex-conversion.json` as extras-only. It supplies `web_run`, `view_image`, image generation, and voice; structured adapter mode, Code/Notebook Mode, `apply_patch`, heavy prompt replacement, and Responses compaction are disabled.
+- **Codex Web Run** supplies only `web_run` through the portable `@howaboua/pi-codex-web-run@0.0.2` package pin. It uses Pi's local Codex authentication without overriding the active provider catalog. Codex conversion, image generation, and voice packages are intentionally absent.
 - **Magic Context** runs only in the parent. Its database, embeddings, model cache, and indexes stay local. Child processes receive `MAGIC_CONTEXT_PI_SUBAGENT=1` and explicit extension allowlists.
 - **Subagents** start fresh by default, hand back files rather than transcripts, and allow one writer. The `fork-only` intercom bridge leaves fresh launches without a bridge prompt or `contact_supervisor`; their bounded contracts and file artifacts carry escalation blockers. Only the policy-permitted, actually forked `oracle` has supervisor dialogue when inherited conversation is necessary evidence. The modern workflow operational wave maximum is 8 lanes by advisory policy, with two top-level async slots, 16 per-run admissions, a configured per-session budget of 64, and depth 1. Spawn-budget grants require named necessary lanes and can raise the effective per-session maximum to 128; they do not raise the per-run or wave limits. Legacy concurrency is 8; `globalConcurrencyLimit=8` does not throttle modern `runs.all`. Role mapping is scout=Luna, researcher/worker=Terra, and reviewer/oracle=Sol.
 - **Session coordinator** lets one idle long-lived (`tui`/`rpc`) Pi session queue `/after A B -- <prompt>` until exact, explicitly named independent sessions settle. It binds each name to one live instance and activity revision through a private local registry, requires a post-barrier heartbeat before trusting pre-existing settlement evidence, records `/tree` navigation as a new settled revision, and fails on duplicate live PID claims or lost bound processes. Release waits for the dependent session to become idle and for matching `before_agent_start` confirmation; synchronous or unconfirmed submissions remain available for `/after retry` or `/after cancel`. Bounded dependency text is labeled untrusted, incomplete model output is not marked completed, and barriers remain in memory until release/cancellation or waiting-session reload, switch, fork, or exit.
@@ -47,15 +47,15 @@ Runtime responsibilities are non-overlapping:
 
 `researcher` loads Lens only to register inherited Lens flags. Its configured primitive task-tool allowlist is exactly `read` and `web_run`; a fresh launch has no `contact_supervisor` or bridge prompt. Pi may also expose the composition-only `multi_tool_use.parallel` wrapper, which cannot invoke capabilities outside that primitive allowlist. The researcher deliberately has no `pi-agent-browser-native`, `agent_browser`, or `view_image` surface.
 
-## Nix-owned `web_run`
+## Standalone `web_run`
 
-`packages/pi-codex-web-run.nix` fetches the exact `@howaboua/pi-codex-conversion@3.0.23` npm tarball by fixed hash, chooses the matching Darwin/Linux and x86_64/aarch64 helper, and patches only the Linux ELF against declared OpenSSL, libgcc, and glibc libraries. It does not enable `nix-ld` or modify Pi's mutable npm realization. On a supported host, use `nix build .#piCodexWebRun` for a direct helper diagnostic.
+`@howaboua/pi-codex-web-run@0.0.2` is captured as an exact package declaration in `home/pi/config/settings.json`. It requires Pi 0.84.4 or newer and Node.js 22.19 or newer; the Nix-owned Pi wrapper satisfies both requirements. Pi's package manager realizes the declaration into the writable npm tree. There is no native helper derivation, direct helper flake output, or `PI_CODEX_WEB_RUN_BIN` policy.
 
-Direct flake outputs cover `aarch64-darwin`, `aarch64-linux`, and `x86_64-linux`. The derivation retains its `x86_64-darwin` binary mapping and metadata for a compatible Nixpkgs, but this flake's pinned Nixpkgs 26.11 deliberately omits that direct output because upstream dropped `x86_64-darwin` support.
+The standalone TypeScript extension uses Pi's local `openai-codex` authentication, including when the active conversation uses another provider. It does not register models or replace the provider, so Pi's native and remotely discovered Codex catalog remains authoritative. `openai-codex/gpt-6-astra:max` is included in `enabledModels` for the parent model cycle.
 
-The Pi wrapper and PI WEB service environment set `PI_CODEX_WEB_RUN_BIN` to that Nix-owned executable. Foreground Pi and Pi subagent children therefore inherit the same helper while portable JSON remains store-path-free. The normal `researcher` is a stateless one-angle lane: it batches 2–4 high-signal `search_query` entries in one `web_run` call, opens primary sources, cites final URLs, and returns compact evidence. It stops after the first setup, native-helper, or provider failure and never falls back to browser, shell, curl, or search-engine form automation. Browser and `view_image` portability are separate work; this change does not package or repair either one.
+The normal `researcher` is a stateless one-angle lane: it loads the standalone extension explicitly, batches 2–4 high-signal `search_query` entries in one `web_run` call, opens primary sources, cites final URLs, and returns compact evidence. It stops after the first setup, authentication, or provider failure and never falls back to browser, shell, curl, or search-engine form automation. Image generation and voice are not installed; the researcher also has no browser or image-viewing capability.
 
-After activation, start a **fresh** Pi process before using the lane; `/reload` does not replace an already-started process environment. Before high-fanout research, first pass `pi auth check --provider openai-codex`, then run one fresh `researcher` child with a narrow task requiring one batched `web_run.search_query` call against an official source. Its artifact must contain final official URLs, use only `web_run` (and optional `read`) for task work, and show no `contact_supervisor`, bridge prompt, loader-recovery message, browser, or image capability. A reported `multi_tool_use.parallel` wrapper is harmless because it cannot widen the primitive allowlist. Stop rollout on the first startup, authentication, provider, or throttling failure. A direct helper probe alone is not an end-to-end child smoke test.
+After activation, start a **fresh** Pi process before using the lane so package reconciliation and extension loading use the new declaration. Before high-fanout research, first pass `pi auth check --provider openai-codex`, then run one fresh `researcher` child with a narrow task requiring one batched `web_run.search_query` call against an official source. Its artifact must contain final official URLs, use only `web_run` (and optional `read`) for task work, and show no `contact_supervisor`, bridge prompt, loader-recovery message, browser, or image capability. A reported `multi_tool_use.parallel` wrapper is harmless because it cannot widen the primitive allowlist. Stop rollout on the first startup, authentication, provider, or throttling failure; the end-to-end child smoke is the acceptance gate.
 
 ## Portable projection
 
@@ -66,7 +66,6 @@ home/pi/config/
 ├── settings.json
 ├── keybindings.json
 ├── models.json
-├── pi-codex-conversion.json
 ├── AGENTS.md
 ├── SYSTEM.md
 ├── APPEND_SYSTEM.md
@@ -88,9 +87,9 @@ Only the listed names are synchronized. In particular, the projection excludes:
 
 Package declarations inside `settings.json` are portable and are captured. The generated `npm/` and `git/` contents that realize those declarations remain machine-local.
 
-Portable settings and extension policy must not contain `/nix/store`. Generation-specific paths belong only in wrappers, package outputs, and service definitions. `pi-codex-conversion.json` contains policy and portable voice defaults; it contains no credentials, device path, native helper path, or store reference. Machine-specific audio setup must be reviewed before capture just like any other portable change.
+Portable settings and extension policy must not contain `/nix/store`. Generation-specific paths belong only in wrappers, package outputs, and service definitions. Standalone Codex Web Run needs no separate configuration file for the stock `openai-codex` route; optional proxy route aliases, if ever introduced, must be reviewed before adding `pi-codex-tools.json` to the managed projection. Image generation and voice have no package or portable configuration in this setup.
 
-Unmanaged files beside the projection in `~/.pi/agent` or `home/pi/config` are not removed. A deletion within the projection is meaningful, however: if a managed file or top-level managed directory was present in the baseline and is absent from the selected source, synchronization removes that managed target. Managed directories are replaced as whole directories so deleted or stale children cannot survive.
+Unmanaged files beside the projection in `~/.pi/agent` or `home/pi/config` are not removed. A deletion within the projection is meaningful, however: if a managed file or top-level managed directory was present in the baseline and is absent from the selected source, synchronization removes that managed target. Managed directories are replaced as whole directories so deleted or stale children cannot survive. The retired `pi-codex-conversion.json` name remains a one-way synchronization tombstone: `pi-config apply --force` removes an existing live copy, while capture excludes it so the obsolete policy cannot return to the portable snapshot.
 
 ## Commands
 
@@ -157,12 +156,11 @@ Absence participates in the same matrix, so directional deletions are synchroniz
 
 All synchronization commands refuse to run while a directory whose name ends in `.lock` exists anywhere under `~/.pi/agent` or the current project's `.pi`. This applies to `status` and `diff` as well as mutations. Exit Pi before running them. Concurrent `pi-config` mutations are also rejected with a nonblocking CLI lock.
 
-The four JSON files must contain JSON objects. Comparison and capture canonicalize their formatting:
+The three active managed JSON files must contain JSON objects. Comparison and capture canonicalize their formatting:
 
 - `settings.json` omits `lastChangelogVersion` and `trackingId` from comparison and capture. Apply replaces every portable setting from the flake while preserving the current runtime values of those two keys. If they are the only remaining settings, the runtime file is retained with just those values.
 - `keybindings.json` is compared semantically and captured in canonical form.
 - `models.json` is compared semantically and rejects literal values under sensitive API-key, token, authentication, authorization-header, cookie, and related fields. Exact environment references such as `$API_KEY` and `${API_KEY}` are allowed, as are command references beginning with `!`, such as `!security find-generic-password -w`.
-- `pi-codex-conversion.json` is compared semantically and captured in canonical form.
 
 Top-level managed files must be regular files, and managed directory trees may contain only real directories and regular files. Symlinks and special files are rejected rather than followed, preventing an escape from the projected tree. Executable bits are preserved in both directions, and installed content is made owner-writable.
 
@@ -259,6 +257,7 @@ Expected invariants:
 
 - Lens reports no pipeline crash and does not download tools or servers.
 - Active mutation tools exclude built-in `edit`, Codex `apply_patch`/`exec_command`, Notebook Mode, and Lens `ast_grep_replace`; Hashline supplies anchored reads and edits.
+- The package graph includes standalone `@howaboua/pi-codex-web-run@0.0.2`, excludes `pi-codex-conversion` and `pi-codex-imagegen`, and exposes no Codex voice controls.
 - `/subagents-doctor` reports depth 1 policy, two top-level active async slots, 16 per-run admissions, a configured per-session budget of 64, legacy concurrency 8, and an advisory modern-workflow wave maximum of 8. Spawn-budget grants require named necessary lanes and can raise the effective per-session maximum to 128 without raising the per-run or wave limits. Role allowlists are scout=Luna, researcher/worker=Terra, and reviewer/oracle=Sol. `globalConcurrencyLimit=8` does not throttle modern `runs.all`.
 - `/ctx-status` opens the production database at migration v81 after every old Pi harness has reloaded.
 - `/footer` previews a one-line Nerd Font statusline with project and Git state on the left; model, thinking, context, and token usage on the right; and active extension statuses on a secondary row. Exit without saving unless intentionally changing the checked-in layout.
@@ -266,7 +265,7 @@ Expected invariants:
 - PI WEB reports both services current and `/api/config` reports `spawnSessions=false`, `subsessions=false`, `askUser=true`, and `environmentFacts=true`.
 - both `pi-config status` panels are `equal`, `pi-config diff` is empty, and neither portable source nor live portable settings contains `/nix/store`.
 
-The Luna/Terra/Sol cycle is matched against authenticated available models. Until `pi auth check --provider openai-codex` is ready, Pi can list the extension-registered models but warns that the scoped patterns have no available matches. Authenticate before treating model acceptance as complete.
+The parent model cycle includes Luna, Terra, Sol, and Astra, while subagent role scope remains scout=Luna, researcher/worker=Terra, and reviewer/oracle=Sol. These entries are matched against authenticated available models. Until `pi auth check --provider openai-codex` is ready, Pi can list discovered Codex models but warns that scoped patterns have no available matches. Authenticate before treating model acceptance as complete.
 
 The current mutable npm tree reports five high-severity transitive advisories through Magic Context (`adm-zip`, `onnxruntime-node`, `sharp`, and `@huggingface/transformers`), with no npm fix available for the pinned graph. Keep the pins and reassess on package updates; do not run `npm audit fix --force` across Pi's managed tree.
 

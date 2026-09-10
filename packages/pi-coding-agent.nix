@@ -6,16 +6,16 @@
 }:
 
 let
-  version = "0.84.3";
+  version = "0.84.4";
   src = fetchFromGitHub {
     owner = "earendil-works";
     repo = "pi";
     tag = "v${version}";
-    hash = "sha256-fC9pKgP2qD61ae5d7iOqP8anl88J1N1Bq8X8+aAjA2A=";
+    hash = "sha256-7z8OXao1PzmBEepDkIqVqyfQBPHulBlKcGymDYsnMvc=";
   };
   modelData = fetchurl {
     url = "https://registry.npmjs.org/@earendil-works/pi-ai/-/pi-ai-${version}.tgz";
-    hash = "sha512-M0YUV8vNO3y2WwWSyY8ijKJV5W4gkSUixuvk+Z00ZBjsyMfsdXfITsHEwP1UIf09YRWXT6oGn0GlCamt+P32XQ==";
+    hash = "sha512-AClAZxf5+c4RRu44NJPS6wyQy+Nmq+Mzyyrdvm4ZVMNuixelO02RZX4G4Aq1F145Yzp43wnM5S+hLlSI7ypfVw==";
   };
 in
 pi-coding-agent.overrideAttrs (_previous: {
@@ -23,11 +23,11 @@ pi-coding-agent.overrideAttrs (_previous: {
 
   npmDeps = fetchNpmDeps {
     inherit src;
-    hash = "sha256-cDx28+c4bwtQpiy5+BCvZhZezoZb4WRqfZj2eoEeMbw=";
+    hash = "sha256-35GC3Q4Jf4URvqoEYHeM63x49tTmrth62//PvKm4I7Q=";
   };
 
   # Kept in sync with npmDeps for nixpkgs' npm config hook diagnostics.
-  npmDepsHash = "sha256-cDx28+c4bwtQpiy5+BCvZhZezoZb4WRqfZj2eoEeMbw=";
+  npmDepsHash = "sha256-35GC3Q4Jf4URvqoEYHeM63x49tTmrth62//PvKm4I7Q=";
 
   # The upstream model-data generator requires network access. Hydrate the
   # matching published pi-ai data exactly as the nixpkgs derivation does.

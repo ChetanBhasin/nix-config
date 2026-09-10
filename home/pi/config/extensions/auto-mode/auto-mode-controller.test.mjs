@@ -233,19 +233,41 @@ async function runChildContract() {
 function assertSettingsCoverage() {
   const settings = JSON.parse(fs.readFileSync(settingsPath, "utf8"));
   assert.ok(settings.packages.includes("./extensions/auto-mode"));
+  assert.ok(
+    settings.packages.includes("npm:@howaboua/pi-codex-web-run@0.0.2"),
+    "portable settings must pin standalone Codex Web Run",
+  );
+  assert.ok(
+    settings.packages.includes("npm:@earendil-works/pi-tui@0.84.4"),
+    "the Pi TUI peer must match the 0.84.4 runtime",
+  );
+  assert.ok(
+    settings.enabledModels.includes("openai-codex/gpt-6-astra:max"),
+    "Astra must be available in the model cycle",
+  );
+  for (const forbiddenPrefix of [
+    "npm:@howaboua/pi-codex-conversion@",
+    "npm:@howaboua/pi-codex-imagegen@",
+  ]) {
+    assert.equal(
+      settings.packages.some((source) => source.startsWith(forbiddenPrefix)),
+      false,
+      `portable settings must not include ${forbiddenPrefix}`,
+    );
+  }
   const extension = "~/.pi/agent/extensions/auto-mode/index.ts";
   assert.ok(settings.subagents.defaultExtensions.includes(extension));
   const overrides = settings.subagents.agentOverrides;
   const researcher = overrides.researcher;
   const accountsExtension = "~/.pi/agent/npm/node_modules/@narumitw/pi-accounts/dist/index.ts";
   const lensExtension = "~/.pi/agent/npm/node_modules/pi-lens/dist/index.js";
-  const codexExtension = "~/.pi/agent/npm/node_modules/@howaboua/pi-codex-conversion/dist/index.js";
+  const webRunExtension = "~/.pi/agent/npm/node_modules/@howaboua/pi-codex-web-run/index.ts";
   const browserExtension =
     "~/.pi/agent/npm/node_modules/pi-agent-browser-native/dist/extensions/agent-browser/index.js";
   assert.deepEqual(
     researcher.extensions,
-    [accountsExtension, lensExtension, codexExtension],
-    "researcher must load only accounts, Lens flags, and Codex web_run",
+    [accountsExtension, lensExtension, webRunExtension],
+    "researcher must load only accounts, Lens flags, and standalone Codex Web Run",
   );
   assert.equal(
     researcher.extensions.includes(browserExtension),
@@ -297,7 +319,7 @@ function assertSettingsCoverage() {
   );
   assert.match(researcherPrompt, /Prioritize primary sources, open the most relevant primary sources/i);
   assert.match(researcherPrompt, /cite final source URLs/i);
-  assert.match(researcherPrompt, /After one setup, native-helper, or provider failure, stop/i);
+  assert.match(researcherPrompt, /After one setup, authentication, or provider failure, stop/i);
   assert.match(
     researcherPrompt,
     /Never use browser, shell, curl, or search-engine form automation/i,

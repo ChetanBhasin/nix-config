@@ -303,12 +303,6 @@ function configTargets(agentDir: string): ConfigTarget[] {
       path: join(agentDir, "extensions", "pi-footer.json"),
     },
     {
-      id: "codex",
-      label: "Codex Conversion",
-      description: "Codex adapter settings",
-      path: join(agentDir, "pi-codex-conversion.json"),
-    },
-    {
       id: "gruvbox-night",
       label: "Gruvbox Night theme",
       description: "Active Pi color theme",
@@ -377,7 +371,6 @@ async function showModelMenu(ctx: HubContext): Promise<HubAction | undefined> {
     { value: "/model", label: "Active model", description: "Select the model for this session" },
     { value: "/scoped-models", label: "Scoped models", description: "Configure models for different workloads" },
     { value: "/accounts", label: "Accounts", description: "Manage provider accounts and credentials" },
-    { value: "/codex", label: "Codex Conversion", description: "Configure the Codex adapter" },
     { value: "/usage", label: "Usage", description: "View account and model usage" },
   ]);
   return selected ? { kind: "submit", text: selected } : undefined;
@@ -407,7 +400,6 @@ async function showLensMenu(ctx: HubContext): Promise<HubAction | undefined> {
 async function showExtensionMenu(ctx: HubContext): Promise<HubAction | "advanced" | undefined> {
   const selected = await choose(ctx, "Extensions", "Open settings screens and runtime controls supplied by extensions.", [
     { value: "/footer", label: "Pi Footer", description: "Configure footer visibility and layout" },
-    { value: "/codex", label: "Codex Conversion", description: "Configure Codex integration" },
     { value: "/subagents", label: "Pi Subagents", description: "Open the subagent administration screen" },
     { value: "/accounts", label: "Accounts", description: "Manage provider accounts" },
     { value: "auto-mode", label: "Auto Mode", description: "Unattended execution controls" },

@@ -71,7 +71,7 @@ buildNpmPackage (finalAttrs: {
     local piRoot="${piPackage}/lib/node_modules/pi-monorepo"
 
     # npm prunes the SDK peers because upstream also lists them as development
-    # dependencies. Supply the matching Nix-owned Pi 0.84.3 runtime instead of
+    # dependencies. Supply the matching Nix-owned Pi runtime instead of
     # duplicating or mutating Pi's writable package tree.
     rm -rf "$packageRoot/node_modules/@earendil-works"
     mkdir -p "$packageRoot/node_modules/@earendil-works"
@@ -99,7 +99,7 @@ buildNpmPackage (finalAttrs: {
       cd "$packageRoot"
       node --input-type=module -e '
         import { readFileSync } from "node:fs";
-        const expected = "0.84.3";
+        const expected = "${lib.getVersion piPackage}";
         for (const name of [
           "@earendil-works/pi-agent-core",
           "@earendil-works/pi-ai",

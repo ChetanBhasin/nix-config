@@ -267,14 +267,14 @@ first chord.
 
 ### `homeManagerModules.pi`
 
-Regular Pi Coding Agent in package-only mode. Nix installs the pinned Pi 0.84.3 binary, its wrapper toolchain, and `pi-config`; Pi and the user retain ownership of writable state, while an optional activation step can make the flake snapshot authoritative for managed portable paths.
+Regular Pi Coding Agent in package-only mode. Nix installs the pinned Pi 0.84.4 binary, its wrapper toolchain, and `pi-config`; Pi and the user retain ownership of writable state, while an optional activation step can make the flake snapshot authoritative for managed portable paths.
 
 #### Options
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `cb.pi.enable` | boolean | `false` | Enable the package-only Pi configuration and install `pi-config` |
-| `cb.pi.package` | package | pinned Pi package (0.84.3 currently) | Override the installed Pi package |
+| `cb.pi.package` | package | pinned Pi package (0.84.4 currently) | Override the installed Pi package; requires 0.84.4 or newer |
 | `cb.pi.forceApplyOnActivation` | boolean | `false` | Force the embedded snapshot over managed live Pi paths after the Home Manager write boundary |
 | `cb.pi.enableLspTooling` | boolean | `true` | Expose the curated language-server toolchain to Pi |
 | `cb.pi.extraPackages` | list of packages | `[]` | Add tools to Pi and its shell environment |
@@ -283,6 +283,7 @@ Regular Pi Coding Agent in package-only mode. Nix installs the pinned Pi 0.84.3 
 
 - Regular Pi at its upstream default `~/.pi/agent` location
 - Node.js, Git, and FFmpeg (`ffmpeg` and `ffprobe`) in Pi's wrapper environment
+- Exact portable Pi package pins, including standalone Codex `web_run` without provider replacement, image generation, or voice
 - Optional curated tooling for Rust, Nix, Python, Go, Lua, TypeScript, web formats, shell, infrastructure, Markdown, TOML, Just, Bazel, and Starlark
 - `pi-config capture`, conservative `pi-config apply`, and explicit `pi-config apply --force` synchronization for a writable portable snapshot
 - A read-only activation preflight, plus optional transactional forced synchronization after the write boundary

@@ -22,7 +22,7 @@ A comprehensive Nix configuration for reproducible development environments acro
 - 🚀 **Modern Terminal Setup**: Zsh + FZF + Alacritty with enhanced productivity workflows
 - 🧠 **Powerful IDE**: Neovim with LSP, type annotations, smart navigation, and Claude AI integration
 - 🎯 **Terminal Multiplexers**: Zellij and tmux with discoverable bindings, session management, and persistence
-- 🤖 **Coding Agent**: Regular Pi 0.84.3 in package-only mode, with curated tooling and transactional writable-configuration synchronization
+- 🤖 **Coding Agent**: Regular Pi 0.84.4 in package-only mode, with curated tooling and transactional writable-configuration synchronization
 - 📦 **Package Management**: Nix + Home Manager for reproducible environments
 - 🔧 **Cross-Platform**: macOS (Darwin) and Linux (NixOS) support
 - 🎨 **Consistent Theming**: Custom Gruvbox Night palette with muted-gold focus accents across all applications

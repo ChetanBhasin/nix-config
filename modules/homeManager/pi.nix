@@ -15,9 +15,7 @@ let
   piPackage = pkgs.callPackage ../../packages/pi-coding-agent.nix { };
   piWebPackage = pkgs.callPackage ../../packages/pi-web.nix { piPackage = piPackage; };
   piConfig = pkgs.callPackage ../../packages/pi-config.nix { };
-  piCodexWebRun = pkgs.callPackage ../../packages/pi-codex-web-run.nix { };
-  piCodexConversionVersion = piCodexWebRun.passthru.codexConversionVersion;
-  piCodexConversionPackage = "npm:@howaboua/pi-codex-conversion@${piCodexConversionVersion}";
+  piCodexWebRunPackage = "npm:@howaboua/pi-codex-web-run@0.0.2";
   piPortableSettings = builtins.fromJSON (builtins.readFile ../../home/pi/config/settings.json);
 
   piWithPolicy = pkgs.symlinkJoin {
@@ -28,7 +26,6 @@ let
       cat > "$out/bin/pi" <<'EOF'
       #!${pkgs.runtimeShell}
       export AGENT_BROWSER_EXECUTABLE_PATH=${lib.escapeShellArg browserExecutable}
-      export PI_CODEX_WEB_RUN_BIN=${lib.escapeShellArg (lib.getExe piCodexWebRun)}
       export PI_LENS_DISABLE_LSP_INSTALL=1
       export PI_LENS_DISABLE_TOOL_INSTALL=1
       export PI_LENS_NO_CONTEXT_INJECTION=1
@@ -80,10 +77,8 @@ let
       browserConfigIsExplicit = true;
       browserExecutableIsNixOwned = true;
       subagentTasksUseFiles = true;
-      webRunBinaryIsNixOwned = true;
-      webRunBinaryIsExplicit = true;
-      webRunCodexConversionVersion = piCodexConversionVersion;
-      webRunSubagentEnvironmentInherited = true;
+      webRunUsesStandaloneExtension = true;
+      webRunPackage = piCodexWebRunPackage;
     };
   };
 
@@ -129,7 +124,6 @@ let
     pkgs.ast-grep
     browserPackage
     pkgs.ffmpeg
-    piCodexWebRun
   ]
   ++ lib.optionals cfg.enableLspTooling lspPackages
   ++ cfg.extraPackages;
@@ -140,7 +134,6 @@ let
 
   serviceEnvironment = {
     AGENT_BROWSER_EXECUTABLE_PATH = browserExecutable;
-    PI_CODEX_WEB_RUN_BIN = lib.getExe piCodexWebRun;
     PATH = servicePath;
     PI_CODING_AGENT_DIR = config.home.homeDirectory + "/.pi/agent";
     PI_LENS_DISABLE_LSP_INSTALL = "1";
@@ -214,7 +207,7 @@ in
     package = lib.mkOption {
       type = lib.types.package;
       default = piPackage;
-      description = "Pi Coding Agent package to install";
+      description = "Pi Coding Agent package to install (version 0.84.4 or newer)";
     };
 
     forceApplyOnActivation = lib.mkOption {
@@ -254,8 +247,12 @@ in
   config = lib.mkIf cfg.enable {
     assertions = [
       {
-        assertion = builtins.elem piCodexConversionPackage piPortableSettings.packages;
-        message = "cb.pi requires ${piCodexConversionPackage} so its Nix-owned web_run helper matches the portable extension pin";
+        assertion = lib.versionAtLeast (lib.getVersion cfg.package) "0.84.4";
+        message = "cb.pi.package must be Pi 0.84.4 or newer for standalone Codex Web Run";
+      }
+      {
+        assertion = builtins.elem piCodexWebRunPackage piPortableSettings.packages;
+        message = "cb.pi requires ${piCodexWebRunPackage} to supply the standalone web_run tool";
       }
     ];
 

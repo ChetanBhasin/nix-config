@@ -5,7 +5,7 @@ A live Pi extension that turns `/settings` into a unified control center while p
 ## What it manages
 
 - Core Pi settings through the native `/settings` UI
-- Models, scoped models, accounts, Codex configuration, and usage
+- Models, scoped models, accounts, and usage
 - Active/default tools
 - Global package resources: extensions, skills, prompts, and themes
 - Extension-provided settings and runtime controls

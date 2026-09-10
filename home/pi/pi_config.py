@@ -28,13 +28,14 @@ FILE_NAMES = (
     "settings.json",
     "keybindings.json",
     "models.json",
-    "pi-codex-conversion.json",
     "AGENTS.md",
     "SYSTEM.md",
     "APPEND_SYSTEM.md",
 )
+# One-way cleanup tombstones: apply sees these paths, while capture excludes them.
+RETIRED_FILE_NAMES = ("pi-codex-conversion.json",)
 DIRECTORY_NAMES = ("extensions", "skills", "prompts", "themes")
-MANAGED_NAMES = FILE_NAMES + DIRECTORY_NAMES
+MANAGED_NAMES = FILE_NAMES + RETIRED_FILE_NAMES + DIRECTORY_NAMES
 RUNTIME_SETTING_KEYS = ("lastChangelogVersion", "trackingId")
 BASE_MARKER = ".initialized"
 ENV_REFERENCE = re.compile(
@@ -451,7 +452,8 @@ def read_entry(
     elif name in {
         "keybindings.json",
         "models.json",
-        "pi-codex-conversion.json",
+        # Preserve semantic comparison with baselines captured before retirement.
+        *RETIRED_FILE_NAMES,
     }:
         value = _read_json_object(data, path)
         if name == "models.json":
@@ -460,7 +462,12 @@ def read_entry(
     return Entry("file", mode, file=FileData(data, mode))
 
 
-def read_projection(root: Path, *, normalized: bool = True) -> Projection:
+def read_projection(
+    root: Path,
+    *,
+    normalized: bool = True,
+    excluded_names: Iterable[str] = (),
+) -> Projection:
     try:
         root_stat = root.lstat()
     except FileNotFoundError:
@@ -469,8 +476,11 @@ def read_projection(root: Path, *, normalized: bool = True) -> Projection:
         raise PiConfigError(f"configuration root must not be a symlink: {root}")
     if not stat.S_ISDIR(root_stat.st_mode):
         raise PiConfigError(f"configuration root must be a directory: {root}")
+    excluded = frozenset(excluded_names)
     entries: dict[str, Entry] = {}
     for name in MANAGED_NAMES:
+        if name in excluded:
+            continue
         entry = read_entry(root / name, name, normalized=normalized)
         if entry is not None:
             entries[name] = entry
@@ -1212,7 +1222,9 @@ class SyncEngine:
         )
 
     def _plan_capture(self, config: Path, take_runtime: bool) -> OperationView:
-        runtime = read_projection(self.paths.runtime)
+        runtime = read_projection(
+            self.paths.runtime, excluded_names=RETIRED_FILE_NAMES
+        )
         flake = read_projection(config)
         base = load_baseline(self.state / "capture-base")
         other = load_baseline(self.state / "applied-base")

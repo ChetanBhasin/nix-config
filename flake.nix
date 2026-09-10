@@ -220,19 +220,6 @@
       # Usage: inputs.nix-config.homeManagerModules.neovim
       homeManagerModules = import ./modules/homeManager;
 
-      # Native helper diagnostic: `nix build .#piCodexWebRun` on either host platform.
-      packages = {
-        "aarch64-darwin".piCodexWebRun =
-          nixpkgs.legacyPackages.aarch64-darwin.callPackage ./packages/pi-codex-web-run.nix
-            { };
-        "aarch64-linux".piCodexWebRun =
-          nixpkgs.legacyPackages.aarch64-linux.callPackage ./packages/pi-codex-web-run.nix
-            { };
-        "x86_64-linux".piCodexWebRun =
-          nixpkgs.legacyPackages.x86_64-linux.callPackage ./packages/pi-codex-web-run.nix
-            { };
-      };
-
       darwinConfigurations = {
         hugh = darwin.lib.darwinSystem {
           system = "aarch64-darwin";
