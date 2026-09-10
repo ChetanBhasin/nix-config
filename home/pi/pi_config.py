@@ -197,6 +197,49 @@ class RuntimePaths:
     def agent_skills(self) -> Path:
         return self.home / ".agents/skills"
 
+    @property
+    def global_mutable_realization_roots(self) -> tuple[Path, ...]:
+        """Writable global roots for Pi packages and downloaded tools."""
+        return (
+            self.runtime / "bin",
+            self.runtime / "npm",
+            self.runtime / "git",
+        )
+
+    @property
+    def project_mutable_realization_roots(self) -> tuple[Path, ...]:
+        """Writable project-local roots where Pi installs packages."""
+        return (
+            self.project_pi / "npm",
+            self.project_pi / "git",
+        )
+
+    @property
+    def mutable_realization_roots(self) -> tuple[Path, ...]:
+        """All writable roots where Pi realizes packages and tools."""
+        return (
+            self.global_mutable_realization_roots
+            + self.project_mutable_realization_roots
+        )
+
+    def is_global_mutable_realization_root(self, path: Path) -> bool:
+        """Return whether path is one of Pi's global realization roots."""
+        return path in self.global_mutable_realization_roots
+
+    def is_mutable_realization_root(self, path: Path) -> bool:
+        """Return whether path is one of Pi's global or project roots."""
+        return path in self.mutable_realization_roots
+
+    def is_global_mutable_realization_entry(self, path: Path) -> bool:
+        """Return whether path is strictly below a global realization root."""
+        return any(
+            root in path.parents for root in self.global_mutable_realization_roots
+        )
+
+    def is_mutable_realization_entry(self, path: Path) -> bool:
+        """Return whether path is strictly below a global or project root."""
+        return any(root in path.parents for root in self.mutable_realization_roots)
+
 
 def default_npm_cache(home: Path) -> Path:
     configured = os.environ.get("npm_config_cache") or os.environ.get(
@@ -204,7 +247,7 @@ def default_npm_cache(home: Path) -> Path:
     )
     if configured:
         return Path(configured).expanduser()
-    try:
+    with contextlib.suppress(OSError, subprocess.SubprocessError):
         result = subprocess.run(
             ["npm", "config", "get", "cache"],
             check=True,
@@ -216,8 +259,6 @@ def default_npm_cache(home: Path) -> Path:
         value = result.stdout.strip()
         if value:
             return Path(value).expanduser()
-    except (OSError, subprocess.SubprocessError):
-        pass
     return home / ".npm"
 
 
@@ -230,7 +271,7 @@ def _lstat(path: Path) -> os.stat_result:
 
 def _is_missing(path: Path) -> bool:
     try:
-        path.lstat()
+        _ = path.lstat()
         return False
     except FileNotFoundError:
         return True
@@ -403,7 +444,7 @@ def read_entry(
         value = _read_json_object(data, path)
         if normalized:
             for key in RUNTIME_SETTING_KEYS:
-                value.pop(key, None)
+                _ = value.pop(key, None)
             if not value:
                 return None
             data = _canonical_json(value)
@@ -476,7 +517,7 @@ def materialize_entry(
     if entry.kind == "file":
         assert entry.file is not None
         destination.parent.mkdir(parents=True, exist_ok=True)
-        destination.write_bytes(entry.file.data)
+        _ = destination.write_bytes(entry.file.data)
         mode = entry.file.mode
         if owner_writable:
             mode |= stat.S_IRUSR | stat.S_IWUSR
@@ -496,7 +537,7 @@ def materialize_entry(
     for relative, file_data in entry.files:
         target = destination / relative
         target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_bytes(file_data.data)
+        _ = target.write_bytes(file_data.data)
         mode = file_data.mode
         if owner_writable:
             mode |= stat.S_IRUSR | stat.S_IWUSR
@@ -512,7 +553,7 @@ def materialize_projection(
         if entry is not None:
             materialize_entry(entry, destination / name)
     if marker:
-        (destination / BASE_MARKER).write_text("pi-nix-sync-v1\n", encoding="utf-8")
+        _ = (destination / BASE_MARKER).write_text("pi-nix-sync-v1\n", encoding="utf-8")
 
 
 def remove_path(path: Path) -> None:
@@ -534,7 +575,7 @@ def _nearest_existing_directory(path: Path) -> Path:
         except FileNotFoundError:
             parent = candidate.parent
             if parent == candidate:
-                raise PiConfigError(f"no existing ancestor for {path}")
+                raise PiConfigError(f"no existing ancestor for {path}") from None
             candidate = parent
             continue
         if stat.S_ISLNK(candidate_stat.st_mode) or not stat.S_ISDIR(
@@ -561,10 +602,8 @@ def _mkdir_with_tracking(path: Path) -> list[Path]:
 
 def _prune_created(directories: Iterable[Path]) -> None:
     for directory in directories:
-        try:
+        with contextlib.suppress(OSError):
             directory.rmdir()
-        except OSError:
-            pass
 
 
 def _fsync_path(path: Path) -> None:
@@ -652,16 +691,14 @@ def _desired_apply_projection(source: Projection, runtime: Path) -> Projection:
         assert portable_entry.file is not None
         portable = _read_json_object(portable_entry.file.data, Path("settings.json"))
         mode = portable_entry.file.mode
-    try:
+    with contextlib.suppress(FileNotFoundError):
         current_stat = (runtime / "settings.json").lstat()
         if stat.S_ISREG(current_stat.st_mode):
             mode = stat.S_IMODE(current_stat.st_mode)
-    except FileNotFoundError:
-        pass
     portable.update(extras)
     settings = _settings_entry(portable, mode)
     if settings is None:
-        entries.pop("settings.json", None)
+        _ = entries.pop("settings.json", None)
     else:
         entries["settings.json"] = settings
     return Projection(entries)
@@ -870,7 +907,7 @@ class Transaction:
             "baseline": str(base),
             "absent": absent,
         }
-        (backup / "metadata.json").write_text(
+        _ = (backup / "metadata.json").write_text(
             json.dumps(metadata, indent=2, sort_keys=True) + "\n", encoding="utf-8"
         )
         self._durable("backup", backup)
@@ -942,7 +979,7 @@ class Transaction:
                 "paths": list(names),
             }
             journal_tmp = self.state / f".transaction-{os.getpid()}.tmp"
-            journal_tmp.write_text(
+            _ = journal_tmp.write_text(
                 json.dumps(journal_value, sort_keys=True) + "\n", encoding="utf-8"
             )
             _fsync_path(journal_tmp)
@@ -1363,11 +1400,7 @@ class SyncEngine:
                 )
             )
         journal = self.state / "transaction.json"
-        try:
-            journal.lstat()
-        except FileNotFoundError:
-            pass
-        else:
+        if not _is_missing(journal):
             problems.append(
                 f"pending transaction journal requires manual recovery: {journal}"
             )
@@ -1408,8 +1441,17 @@ class SyncEngine:
                 for name in tuple(directory_names) + tuple(file_names):
                     child = current_path / name
                     child_stat = child.lstat()
+                    if self.paths.is_mutable_realization_root(
+                        child
+                    ) and not stat.S_ISDIR(child_stat.st_mode):
+                        problems.append(
+                            f"mutable realization root is not a real directory: {child}"
+                        )
+                        continue
                     if stat.S_ISLNK(child_stat.st_mode):
-                        if _points_into_store(child):
+                        if _points_into_store(
+                            child
+                        ) and not self.paths.is_mutable_realization_entry(child):
                             problems.append(f"store-linked path: {child}")
                         continue
                     if enforce_owner and child_stat.st_uid != self.uid:
@@ -1444,8 +1486,19 @@ class SyncEngine:
                         Path(current) / name for name in directory_names + file_names
                     ):
                         item_stat = item.lstat()
+                        if self.paths.is_global_mutable_realization_root(
+                            item
+                        ) and not stat.S_ISDIR(item_stat.st_mode):
+                            problems.append(
+                                f"mutable realization root is not a real directory: {item}"
+                            )
+                            continue
                         if stat.S_ISLNK(item_stat.st_mode):
-                            if _points_into_store(item):
+                            if _points_into_store(
+                                item
+                            ) and not self.paths.is_global_mutable_realization_entry(
+                                item
+                            ):
                                 problems.append(f"store-linked Pi path: {item}")
                             continue
                         if item_stat.st_uid != self.uid:
@@ -1505,12 +1558,9 @@ def _entry_diff_lines(entry: Entry | None) -> list[str]:
 def _points_into_store(path: Path) -> bool:
     if not path.is_symlink():
         return False
-    target = os.readlink(path)
-    resolved = (
-        (path.parent / target).resolve(strict=False)
-        if not os.path.isabs(target)
-        else Path(target)
-    )
+    target = Path(os.readlink(path))
+    candidate = target if target.is_absolute() else path.parent / target
+    resolved = candidate.resolve(strict=False)
     return str(resolved) == "/nix/store" or str(resolved).startswith("/nix/store/")
 
 
@@ -1555,21 +1605,25 @@ def build_parser() -> argparse.ArgumentParser:
         required=True,
         metavar="{doctor,status,diff,apply,capture}",
     )
-    commands.add_parser(
+    _ = commands.add_parser(
         "doctor", help="check that Pi's ordinary state locations are writable"
     )
-    commands.add_parser("status", help="show apply and capture synchronization state")
-    commands.add_parser("diff", help="diff the embedded snapshot against ~/.pi/agent")
+    _ = commands.add_parser(
+        "status", help="show apply and capture synchronization state"
+    )
+    _ = commands.add_parser(
+        "diff", help="diff the embedded snapshot against ~/.pi/agent"
+    )
     apply_parser = commands.add_parser(
         "apply", help="apply the embedded snapshot to ~/.pi/agent"
     )
     apply_resolution = apply_parser.add_mutually_exclusive_group()
-    apply_resolution.add_argument(
+    _ = apply_resolution.add_argument(
         "--take-flake",
         action="store_true",
         help="resolve two-sided conflicts in favor of the flake",
     )
-    apply_resolution.add_argument(
+    _ = apply_resolution.add_argument(
         "--force",
         action="store_true",
         help="replace every differing managed path with the flake snapshot",
@@ -1577,15 +1631,15 @@ def build_parser() -> argparse.ArgumentParser:
     capture_parser = commands.add_parser(
         "capture", help="capture ~/.pi/agent into home/pi/config"
     )
-    capture_parser.add_argument(
+    _ = capture_parser.add_argument(
         "--take-runtime",
         action="store_true",
         help="resolve two-sided conflicts in favor of runtime",
     )
-    capture_parser.add_argument(
+    _ = capture_parser.add_argument(
         "--flake-root", type=Path, help="flake root containing home/pi/config"
     )
-    commands.add_parser("_activation-preflight")
+    _ = commands.add_parser("_activation-preflight")
     commands._choices_actions = [
         action
         for action in commands._choices_actions
@@ -1642,7 +1696,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         if arguments.command == "diff":
             output, different = engine.diff()
             if output:
-                sys.stdout.write(output)
+                _ = sys.stdout.write(output)
             return 1 if different else 0
         if arguments.command == "apply":
             result = engine.apply(

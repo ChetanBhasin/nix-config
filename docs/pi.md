@@ -4,7 +4,7 @@ This configuration installs vanilla Pi Coding Agent 0.84.3 with the Track B comp
 
 The ownership boundary is deliberate:
 
-- **Nix owns executables and fixed policy:** Pi, Node.js, Git, `agent-browser` 0.34.0, ast-grep, Chrome/Chromium, the Nix-patched `web_run` from exact `@howaboua/pi-codex-conversion@3.0.23`, language servers, PI WEB 1.202608.2, wrappers, service definitions, and policy environment variables.
+- **Nix owns executables and fixed policy:** Pi, Node.js, Git, `agent-browser` 0.34.0, ast-grep, Chrome/Chromium, FFmpeg (`ffmpeg` and `ffprobe`), the Nix-patched `web_run` from exact `@howaboua/pi-codex-conversion@3.0.23`, language servers, PI WEB 1.202608.2, wrappers, service definitions, and policy environment variables.
 - **The portable projection owns reviewed Pi-native policy:** package pins, prompts, themes, extension policy, and the Codex extras-only configuration under `home/pi/config/`.
 - **Pi and the user own mutable evidence:** authentication, trust decisions, sessions, package realizations, browser profiles, caches, indexes, embeddings, SQLite databases, and logs.
 
@@ -22,7 +22,9 @@ The module exposes only these options:
 | `cb.pi.enableWeb` | `false` | Enable Nix-managed PI WEB services |
 | `cb.pi.webPackage` | pinned package | Select standalone PI WEB; currently 1.202608.2 |
 
-The wrapper always includes Node.js, Git, agent-browser, ast-grep, and a Nix-owned browser executable. `ast-grep`, `agent-browser`, Pi, and PI WEB are also available interactively after activation. Pi's package commands still realize pinned declarations into its writable npm tree; the mutable npm `.bin` directory is never added to global or service `PATH`.
+The wrapper always includes Node.js, Git, agent-browser, ast-grep, FFmpeg (`ffmpeg` and `ffprobe`), and a Nix-owned browser executable. `ast-grep`, `agent-browser`, `ffmpeg`, `ffprobe`, Pi, and PI WEB are also available interactively after activation. Pi's package commands still realize pinned declarations into its writable npm tree; the mutable npm `.bin` directory is never added to global or service `PATH`.
+
+Links into `/nix/store` created imperatively inside writable realization trees are not garbage-collection roots. Put required executables in `cb.pi.extraPackages` instead; the scoped link allowance keeps Pi-managed package/tool state writable but does not make ad hoc store paths durable.
 
 ## Track B policy
 
@@ -96,7 +98,7 @@ Run Pi and `pi-config` as the ordinary user. Exit every Pi process before any sy
 
 ### `pi-config doctor`
 
-`doctor` is read-only. It checks the existing hierarchy at `~/.pi` and `~/.pi/agent`, the current project's `.pi`, `~/.agents/skills`, `TMPDIR`, and the npm cache selected by npm configuration. Optional absent paths are accepted and are not created. Existing Pi, project, and global-skill paths must be owned by the current user and writable; managed paths linked into `/nix/store` are rejected.
+`doctor` is read-only. It checks the existing hierarchy at `~/.pi` and `~/.pi/agent`, the current project's `.pi`, `~/.agents/skills`, `TMPDIR`, and the npm cache selected by npm configuration. Optional absent paths are accepted and are not created. Existing Pi, project, and global-skill paths must be owned by the current user and writable. Store links are accepted only for entries below the writable realization roots `~/.pi/agent/bin`, `~/.pi/agent/npm`, `~/.pi/agent/git`, and the current project's `.pi/npm` and `.pi/git`; those roots themselves must remain real directories. All other Pi and project paths linked into `/nix/store` are rejected.
 
 It also reports `PI_CODING_AGENT_DIR`, because synchronization deliberately supports only Pi's default `~/.pi/agent` directory.
 
@@ -176,13 +178,19 @@ POSIX rename is atomic for one path, not for a group of managed paths plus a bas
 
 ## Home Manager activation
 
-The module always adds a read-only check before Home Manager's write boundary. If `~/.pi` is absent, the Pi-state check succeeds without creating it; the independent legacy-link checks described below can still stop activation. If `~/.pi` exists, the preflight recursively rejects foreign-owned, unwritable, or `/nix/store`-linked Pi paths and prints remediation. `pi-config doctor` performs the broader post-activation check that also covers project state, global skills, temporary storage, and npm cache.
+The module always adds a read-only check before Home Manager's write boundary. If `~/.pi` is absent, the Pi-state check succeeds without creating it; the independent legacy-link checks described below can still stop activation. If `~/.pi` exists, the preflight recursively rejects foreign-owned or unwritable Pi paths. It also rejects `/nix/store` links except for entries below Pi's writable `~/.pi/agent/bin`, `~/.pi/agent/npm`, and `~/.pi/agent/git` realization roots; the roots themselves must remain real directories. `pi-config doctor` performs the broader post-activation check that also covers project state, applies the same scoped policy to project `.pi/npm` and `.pi/git`, and checks global skills, temporary storage, and npm cache.
 
 With `cb.pi.forceApplyOnActivation = false`, activation does not repair, copy, unlink, or delete anything beneath `~/.pi`. When the option is `true`, a second activation step runs `pi-config apply --force` after the write boundary. Home Manager dry-runs print that step without executing it. The repository's shared Pi configuration enables the option for `hugh`, `markus`, and `boris`.
 
 The force step remains transactional: it preserves unmanaged paths and Pi's runtime-only settings keys, records a recovery backup when anything changes, and refuses unsafe ownership, symlinks, a pending journal, or any running Pi process. Exit Pi before activation. Capture runtime-managed edits first if they should survive; otherwise the flake snapshot, including managed absences, wins.
 
 ## Build, activate, and reload
+
+Run the focused synchronization policy tests:
+
+```sh
+python3 -m unittest discover -s home/pi -p 'test_*.py' -v
+```
 
 Build before activation:
 
@@ -209,7 +217,7 @@ PI WEB is a standalone Nix package, not a Pi npm package. Its two user services 
 - bind `127.0.0.1:8504`;
 - browser-created sessions and subsessions disabled;
 - ask-user and environment-facts relays enabled;
-- the same Nix-owned Pi, browser, agent-browser, ast-grep, and LSP paths as the parent wrapper; and
+- the same Nix-owned Pi, browser, agent-browser, ast-grep, FFmpeg, and LSP paths as the parent wrapper; and
 - no mutable `~/.pi/agent/npm/node_modules/.bin` entry in `PATH`.
 
 Upstream Relay auto-install is patched out because its bundled relative source would resolve into the current `/nix/store` generation and pollute portable Pi settings. Install any Relay implementation explicitly instead.

@@ -15,6 +15,12 @@ writeShellApplication {
     export PI_CONFIG_SNAPSHOT=${../home/pi/config}
     exec ${lib.getExe python3} ${../home/pi/pi_config.py} "$@"
   '';
+  derivationArgs = {
+    postCheck = ''
+      PYTHONPATH=${../home/pi} ${lib.getExe python3} -m unittest discover \
+        -s ${../home/pi} -p 'test_*.py' -v
+    '';
+  };
   meta = {
     description = "Reconcile writable Pi configuration with a Nix flake snapshot";
     license = lib.licenses.mit;

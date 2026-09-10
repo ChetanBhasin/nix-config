@@ -128,6 +128,7 @@ let
     agentBrowser
     pkgs.ast-grep
     browserPackage
+    pkgs.ffmpeg
     piCodexWebRun
   ]
   ++ lib.optionals cfg.enableLspTooling lspPackages

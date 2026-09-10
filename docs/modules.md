@@ -282,7 +282,7 @@ Regular Pi Coding Agent in package-only mode. Nix installs the pinned Pi 0.84.3 
 #### Included Features
 
 - Regular Pi at its upstream default `~/.pi/agent` location
-- Node.js and Git in Pi's wrapper environment
+- Node.js, Git, and FFmpeg (`ffmpeg` and `ffprobe`) in Pi's wrapper environment
 - Optional curated tooling for Rust, Nix, Python, Go, Lua, TypeScript, web formats, shell, infrastructure, Markdown, TOML, Just, Bazel, and Starlark
 - `pi-config capture`, conservative `pi-config apply`, and explicit `pi-config apply --force` synchronization for a writable portable snapshot
 - A read-only activation preflight, plus optional transactional forced synchronization after the write boundary
@@ -299,7 +299,7 @@ Regular Pi Coding Agent in package-only mode. Nix installs the pinned Pi 0.84.3 
 }
 ```
 
-Pi credentials, sessions, package realizations, and project-local resources remain ordinary writable application state. Managed portable files are also writable between activations, but `forceApplyOnActivation = true` replaces uncaptured edits with the flake snapshot. Run `pi-config doctor` after activation and see the [Pi Configuration Guide](pi.md) for synchronization and recovery details.
+Pi credentials, sessions, package realizations, and project-local resources remain ordinary writable application state. Store-linked entries are accepted only below `~/.pi/agent/bin`, `~/.pi/agent/npm`, `~/.pi/agent/git`, and project `.pi/npm` or `.pi/git`; those realization roots themselves must remain real directories. Managed portable files are also writable between activations, but `forceApplyOnActivation = true` replaces uncaptured edits with the flake snapshot. Run `pi-config doctor` after activation and see the [Pi Configuration Guide](pi.md) for synchronization and recovery details.
 
 ---
 
