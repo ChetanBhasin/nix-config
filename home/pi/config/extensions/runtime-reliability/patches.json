@@ -1,0 +1,192 @@
+{
+  "schema": 1,
+  "packages": [
+    {
+      "name": "pi-agent-browser-native",
+      "version": "0.5.0",
+      "patches": [
+        {
+          "file": "dist/extensions/agent-browser/lib/process-identity.js",
+          "beforeHash": "dafa75193167149ce7bb7574f2fd30e602ec683aed8a9cf59b1b91da3410c6a3",
+          "afterHash": "8d0bdac7c601bb0f716fde29ac02f68c5e39bd5d8eed7071a7b5b9eb1db322fa",
+          "edits": [
+            {
+              "before": "        return [];\n    return platform === \"win32\"\n        ? [primary]\n        : [primary, ...(platform === \"android\" ? [{ ...primary, file: \"/bin/ps\" }, { ...primary, file: \"/usr/bin/ps\" }] : [{ ...primary, file: \"/usr/bin/ps\" }])];\n}\nexport function normalizeProcessStartIdentity(stdout) {\n    return stdout.trim().replace(/\\s+/g, \" \") || undefined;\n",
+              "after": "        return [];\n    return platform === \"win32\"\n        ? [primary]\n        : [\n            primary,\n            ...(platform === \"android\" ? [{ ...primary, file: \"/bin/ps\" }] : []),\n            { ...primary, file: \"/usr/bin/ps\" },\n            ...(platform === \"linux\" ? [\n                { ...primary, file: \"/run/current-system/sw/bin/ps\" },\n                { ...primary, file: \"/nix/var/nix/profiles/default/bin/ps\" },\n            ] : []),\n        ];\n}\nexport function normalizeProcessStartIdentity(stdout) {\n    return stdout.trim().replace(/\\s+/g, \" \") || undefined;\n"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "@howaboua/pi-codex-web-run",
+      "version": "0.0.2",
+      "patches": [
+        {
+          "file": "index.ts",
+          "beforeHash": "882c0ea337a519ebf569ca4f0a38b6af7045cc25099f2dec4d05b54fb5c02133",
+          "afterHash": "0ad89fe6d08b16914fd74334e40e0d86745099d5b57adc521828bd830fe6fc7b",
+          "edits": [
+            {
+              "before": "\tconst missing = error.message.match(\n\t\t/Cannot find (?:package|module) ['\"]([^'\"]+)['\"]/,\n\t)?.[1];\n\treturn missing === CODE_MODE_PACKAGE || missing === CODE_MODE_MODULE;\n}\n\nfunction isOutdatedCodeModeExtension(error: unknown): boolean {\n",
+              "after": "\tconst missing = error.message.match(\n\t\t/Cannot find (?:package|module) ['\"]([^'\"]+)['\"]/,\n\t)?.[1];\n\tconst normalizedMissing = missing?.replace(/\\\\/g, \"/\");\n\treturn normalizedMissing === CODE_MODE_PACKAGE || normalizedMissing === CODE_MODE_MODULE\n\t\t|| normalizedMissing?.endsWith(`/node_modules/${CODE_MODE_PACKAGE}`) === true\n\t\t|| normalizedMissing?.endsWith(`/node_modules/${CODE_MODE_MODULE}`) === true;\n}\n\nfunction isOutdatedCodeModeExtension(error: unknown): boolean {\n"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "@cortexkit/pi-magic-context",
+      "version": "0.40.0",
+      "patches": [
+        {
+          "file": "dist/index.js",
+          "beforeHash": "4dd5365adbd1eee88335b6366241d8845bffa2184f39172a18dc5818adca4213",
+          "afterHash": "9419e68a0cd840eaf3aa517d0313e25c4a0715eec7a6112fd3d842b00dbc9a2f",
+          "edits": [
+            {
+              "before": "      let assertTailHygieneLastWriter;\n      const tNoteNudges = performance.now();\n      try {\n        if (!options.compactionOff) {\n          outputMessages = applyNoteNudges({\n            sessionId,\n            db: options.db,\n",
+              "after": "      let assertTailHygieneLastWriter;\n      const tNoteNudges = performance.now();\n      try {\n        if (!options.compactionOff || options.injection?.memoryEnabled === true) {\n          outputMessages = applyNoteNudges({\n            sessionId,\n            db: options.db,\n"
+            },
+            {
+              "before": "      }\n      logTransformTiming(sessionId, \"noteNudges\", tNoteNudges);\n      const tAutoSearch = performance.now();\n      if (options.autoSearch?.enabled && !options.compactionOff) {\n        try {\n          outputMessages = await runAutoSearchHintForPi({\n            sessionId,\n",
+              "after": "      }\n      logTransformTiming(sessionId, \"noteNudges\", tNoteNudges);\n      const tAutoSearch = performance.now();\n      if (options.autoSearch?.enabled) {\n        try {\n          outputMessages = await runAutoSearchHintForPi({\n            sessionId,\n"
+            }
+          ]
+        },
+        {
+          "file": "dist/index-kamc8t8p.js",
+          "beforeHash": "22edab74f92822e30af631fec8fa2a70b4abd18df0a5a758250dfb3dcfa1889a",
+          "afterHash": "bef29bdb6d7fdc1e54dcf946229e433bbfeff68935092c6fe9abb0fed08fa82d",
+          "edits": [
+            {
+              "before": "    return part;\n  });\n}\nfunction convertEntriesToRawMessages(entries) {\n  const result = [];\n  let nextOrdinal = 1;\n",
+              "after": "    return part;\n  });\n}\n// Stable recovery adapter for the local native-compaction history bridge.\nexport { convertEntriesToRawMessages as cbConvertLegacyMessages };\nfunction convertEntriesToRawMessages(entries) {\n  const result = [];\n  let nextOrdinal = 1;\n"
+            },
+            {
+              "before": "\nctx_expand(start=120, end=245)  ← the heading's start/end range\n\nReturns the raw transcript as [N] U:/A: lines, capped at ~15K tokens; an oversized range returns the head and tells you where to continue. Also works with ordinals from ctx_search message results — expand a window around a hit (e.g. start=N-10, end=N+5). Ranges after the last compartment are your live tail — already visible in context, not expandable.\n\nTwo recovery modes for finer detail:\n- ctx_expand(start=120, end=245, verbose=true) — lists each message SEPARATELY with its ordinal [N] and a per-part preview (each tool call shown with its output size). Use this to find the exact message or tool call you want, then recover it in full by ordinal.\n",
+              "after": "\nctx_expand(start=120, end=245)  ← the heading's start/end range\n\nReturns the retained raw transcript as [N] U:/A: lines, capped at ~15K tokens; an oversized range returns the head and tells you where to continue. Also works with ordinals from ctx_search results and ranges hidden by native Pi compaction. Avoid re-reading the already-visible tail unnecessarily.\n\nTwo recovery modes for finer detail:\n- ctx_expand(start=120, end=245, verbose=true) — lists each message SEPARATELY with its ordinal [N] and a per-part preview (each tool call shown with its output size). Use this to find the exact message or tool call you want, then recover it in full by ordinal.\n"
+            },
+            {
+              "before": "        if (typeof params.start !== \"number\" || typeof params.end !== \"number\" || params.start < 1 || params.end < params.start) {\n          return err(\"Error: provide either message=<ordinal>, or start and end (positive integers, start <= end).\");\n        }\n        const lastCompartmentEnd = getLastCompartmentEndMessage(deps.db, sessionId);\n        if (lastCompartmentEnd >= 0 && params.start > lastCompartmentEnd) {\n          return ok(`Range ${params.start}-${params.end} is entirely within the live tail (after the last compacted message ${lastCompartmentEnd}); those messages are already visible in context.`);\n        }\n        const effectiveEnd = lastCompartmentEnd >= 0 ? Math.min(params.end, lastCompartmentEnd) : params.end;\n        if (params.verbose === true) {\n          const v = renderVerboseRange(sessionId, params.start, effectiveEnd, CTX_EXPAND_TOKEN_BUDGET);\n          if (!v.text) {\n",
+              "after": "        if (typeof params.start !== \"number\" || typeof params.end !== \"number\" || params.start < 1 || params.end < params.start) {\n          return err(\"Error: provide either message=<ordinal>, or start and end (positive integers, start <= end).\");\n        }\n        // Native compaction can hide ranges after the last MC compartment.\n        // Raw history is authoritative and the existing renderer remains bounded.\n        const effectiveEnd = params.end;\n        if (params.verbose === true) {\n          const v = renderVerboseRange(sessionId, params.start, effectiveEnd, CTX_EXPAND_TOKEN_BUDGET);\n          if (!v.text) {\n"
+            },
+            {
+              "before": "  }\n  return stmt;\n}\nfunction getBatchedFtsCountStatement(db, queryCount, cutoff) {\n  let statements = batchedFtsCountStatements.get(db);\n  if (!statements) {\n    statements = new Map;\n    batchedFtsCountStatements.set(db, statements);\n  }\n  const key = `${queryCount}:${cutoff === null ? \"all\" : \"cutoff\"}`;\n  let statement = statements.get(key);\n  if (!statement) {\n    const cutoffSql = cutoff === null ? \"\" : \" AND CAST(message_ordinal AS INTEGER) <= ?\";\n    statement = db.prepare(Array.from({ length: queryCount }, (_, index) => `SELECT ${index} AS queryIndex, COUNT(*) AS count\n                       FROM message_history_fts\n                      WHERE session_id = ? AND message_history_fts MATCH ?${cutoffSql}`).join(`\nUNION ALL\n`));\n    statements.set(key, statement);\n  }\n  return statement;\n}\nfunction countSessionFtsMatchesBatch(db, sessionId, ftsQueries, cutoff) {\n  if (ftsQueries.length === 0)\n    return [];\n  const bindings = [];\n",
+              "after": "  }\n  return stmt;\n}\n// Native recall is branch-bound: ordinals alone are not identities after /tree.\nfunction nativeMessageScopeSql(scope) {\n  return scope === null ? \"\" : \" AND (message_id, CAST(message_ordinal AS INTEGER)) IN (SELECT json_extract(value, '$.id'), json_extract(value, '$.ordinal') FROM json_each(?))\";\n}\nvar nativeMessageSearchStatements = new WeakMap;\nfunction getNativeMessageSearchStatement(db, cutoff) {\n  let statements = nativeMessageSearchStatements.get(db);\n  if (!statements) {\n    statements = new Map;\n    nativeMessageSearchStatements.set(db, statements);\n  }\n  const key = cutoff !== null;\n  if (!statements.has(key)) {\n    const cutoffSql = cutoff === null ? \"\" : \" AND CAST(message_ordinal AS INTEGER) <= ?\";\n    statements.set(key, db.prepare(`SELECT message_ordinal AS messageOrdinal, message_id AS messageId, role, content FROM message_history_fts WHERE session_id = ? AND message_history_fts MATCH ?${cutoffSql}${nativeMessageScopeSql(\"scoped\")} ORDER BY bm25(message_history_fts), CAST(message_ordinal AS INTEGER) ASC LIMIT ?`));\n  }\n  return statements.get(key);\n}\nfunction getBatchedFtsCountStatement(db, queryCount, cutoff, scope = null) {\n  let statements = batchedFtsCountStatements.get(db);\n  if (!statements) {\n    statements = new Map;\n    batchedFtsCountStatements.set(db, statements);\n  }\n  const key = `${queryCount}:${cutoff === null ? \"all\" : \"cutoff\"}:${scope !== null}`;\n  let statement = statements.get(key);\n  if (!statement) {\n    const cutoffSql = cutoff === null ? \"\" : \" AND CAST(message_ordinal AS INTEGER) <= ?\";\n    statement = db.prepare(Array.from({ length: queryCount }, (_, index) => `SELECT ${index} AS queryIndex, COUNT(*) AS count\n                       FROM message_history_fts\n                      WHERE session_id = ? AND message_history_fts MATCH ?${cutoffSql}${nativeMessageScopeSql(scope)}`).join(`\nUNION ALL\n`));\n    statements.set(key, statement);\n  }\n  return statement;\n}\nfunction countSessionFtsMatchesBatch(db, sessionId, ftsQueries, cutoff, scope = null) {\n  if (ftsQueries.length === 0)\n    return [];\n  const bindings = [];\n"
+            },
+            {
+              "before": "    bindings.push(sessionId, query);\n    if (cutoff !== null)\n      bindings.push(cutoff);\n  }\n  try {\n    const rows = getBatchedFtsCountStatement(db, ftsQueries.length, cutoff).all(...bindings);\n    const counts = Array.from({ length: ftsQueries.length }, () => 0);\n    for (const row of rows) {\n      if (typeof row.queryIndex === \"number\" && row.queryIndex >= 0 && row.queryIndex < counts.length && typeof row.count === \"number\") {\n",
+              "after": "    bindings.push(sessionId, query);\n    if (cutoff !== null)\n      bindings.push(cutoff);\n    if (scope !== null) bindings.push(scope);\n  }\n  try {\n    const rows = getBatchedFtsCountStatement(db, ftsQueries.length, cutoff, scope).all(...bindings);\n    const counts = Array.from({ length: ftsQueries.length }, () => 0);\n    for (const row of rows) {\n      if (typeof row.queryIndex === \"number\" && row.queryIndex >= 0 && row.queryIndex < counts.length && typeof row.count === \"number\") {\n"
+            },
+            {
+              "before": "    content: row.content\n  };\n}\nfunction runMessageFtsQuery(db, sessionId, ftsQuery, fetchLimit, cutoff) {\n  if (ftsQuery.length === 0)\n    return [];\n  const rows = (cutoff !== null ? getMessageSearchStatementWithCutoff(db).all(sessionId, ftsQuery, cutoff, fetchLimit) : getMessageSearchStatement(db).all(sessionId, ftsQuery, fetchLimit)).map((row) => row);\n  const result = [];\n  for (const row of rows) {\n    const normalized = normalizeMessageSearchRow(row, cutoff);\n",
+              "after": "    content: row.content\n  };\n}\nfunction runMessageFtsQuery(db, sessionId, ftsQuery, fetchLimit, cutoff, scope = null) {\n  if (ftsQuery.length === 0)\n    return [];\n  const rows = scope !== null\n    ? getNativeMessageSearchStatement(db, cutoff).all(sessionId, ftsQuery, ...cutoff === null ? [] : [cutoff], scope, fetchLimit)\n    : cutoff !== null ? getMessageSearchStatementWithCutoff(db).all(sessionId, ftsQuery, cutoff, fetchLimit) : getMessageSearchStatement(db).all(sessionId, ftsQuery, fetchLimit);\n  const result = [];\n  for (const row of rows) {\n    const normalized = normalizeMessageSearchRow(row, cutoff);\n"
+            },
+            {
+              "before": "  }\n  return result;\n}\nfunction getBatchedMessageSearchStatement(db, queryCount, cutoff) {\n  let statements = batchedMessageSearchStatements.get(db);\n  if (!statements) {\n    statements = new Map;\n    batchedMessageSearchStatements.set(db, statements);\n  }\n  const key = `${queryCount}:${cutoff === null ? \"all\" : \"cutoff\"}`;\n  let statement = statements.get(key);\n  if (!statement) {\n    const cutoffSql = cutoff === null ? \"\" : \" AND CAST(message_ordinal AS INTEGER) <= ?\";\n",
+              "after": "  }\n  return result;\n}\nfunction getBatchedMessageSearchStatement(db, queryCount, cutoff, scope = null) {\n  let statements = batchedMessageSearchStatements.get(db);\n  if (!statements) {\n    statements = new Map;\n    batchedMessageSearchStatements.set(db, statements);\n  }\n  const key = `${queryCount}:${cutoff === null ? \"all\" : \"cutoff\"}:${scope !== null}`;\n  let statement = statements.get(key);\n  if (!statement) {\n    const cutoffSql = cutoff === null ? \"\" : \" AND CAST(message_ordinal AS INTEGER) <= ?\";\n"
+            },
+            {
+              "before": "                       content,\n                       bm25(message_history_fts) AS ftsRank\n                  FROM message_history_fts\n                 WHERE session_id = ? AND message_history_fts MATCH ?${cutoffSql}\n                 ORDER BY ftsRank\n                 LIMIT ?\n            )`);\n",
+              "after": "                       content,\n                       bm25(message_history_fts) AS ftsRank\n                  FROM message_history_fts\n                 WHERE session_id = ? AND message_history_fts MATCH ?${cutoffSql}${nativeMessageScopeSql(scope)}\n                 ORDER BY ftsRank\n                 LIMIT ?\n            )`);\n"
+            },
+            {
+              "before": "  }\n  return statement;\n}\nfunction runMessageFtsQueriesBatch(db, sessionId, ftsQueries, fetchLimit, cutoff) {\n  if (ftsQueries.length === 0)\n    return [];\n  const bindings = [];\n",
+              "after": "  }\n  return statement;\n}\nfunction runMessageFtsQueriesBatch(db, sessionId, ftsQueries, fetchLimit, cutoff, scope = null) {\n  if (ftsQueries.length === 0)\n    return [];\n  const bindings = [];\n"
+            },
+            {
+              "before": "    bindings.push(sessionId, query);\n    if (cutoff !== null)\n      bindings.push(cutoff);\n    bindings.push(fetchLimit);\n  }\n  const rows = getBatchedMessageSearchStatement(db, ftsQueries.length, cutoff).all(...bindings);\n  const result = Array.from({ length: ftsQueries.length }, () => []);\n  for (const row of rows) {\n    if (typeof row.queryIndex !== \"number\" || row.queryIndex < 0 || row.queryIndex >= result.length) {\n",
+              "after": "    bindings.push(sessionId, query);\n    if (cutoff !== null)\n      bindings.push(cutoff);\n    if (scope !== null) bindings.push(scope);\n    bindings.push(fetchLimit);\n  }\n  const rows = getBatchedMessageSearchStatement(db, ftsQueries.length, cutoff, scope).all(...bindings);\n  const result = Array.from({ length: ftsQueries.length }, () => []);\n  for (const row of rows) {\n    if (typeof row.queryIndex !== \"number\" || row.queryIndex < 0 || row.queryIndex >= result.length) {\n"
+            },
+            {
+              "before": "}\nfunction searchMessages(args) {\n  const cutoff = args.maxOrdinal != null && args.maxOrdinal >= 0 ? args.maxOrdinal : null;\n  const fetchLimit = args.maxOrdinal != null && args.maxOrdinal >= 0 ? args.limit * 3 : args.limit;\n  const baseQuery = sanitizeFtsQuery(args.query.trim());\n  const probes = args.probes ?? [];\n  if (probes.length === 0) {\n    const filtered = runMessageFtsQuery(args.db, args.sessionId, baseQuery, fetchLimit, cutoff).slice(0, args.limit);\n    return filtered.map((row, rank) => ({\n      source: \"message\",\n      content: previewText(row.content),\n",
+              "after": "}\nfunction searchMessages(args) {\n  const cutoff = args.maxOrdinal != null && args.maxOrdinal >= 0 ? args.maxOrdinal : null;\n  const scope = args.nativeMessageScope === undefined ? null : JSON.stringify(args.nativeMessageScope);\n  const fetchLimit = args.maxOrdinal != null && args.maxOrdinal >= 0 ? args.limit * 3 : args.limit;\n  const baseQuery = sanitizeFtsQuery(args.query.trim());\n  const probes = args.probes ?? [];\n  if (probes.length === 0) {\n    const filtered = runMessageFtsQuery(args.db, args.sessionId, baseQuery, fetchLimit, cutoff, scope).slice(0, args.limit);\n    return filtered.map((row, rank) => ({\n      source: \"message\",\n      content: previewText(row.content),\n"
+            },
+            {
+              "before": "    }));\n  }\n  const sanitizedProbes = probes.map((probe) => ({ probe, query: sanitizeFtsQuery(probe) })).filter((entry) => entry.query.length > 0);\n  const corpusSize = getIndexedMessageCorpusSize(args.db, args.sessionId, cutoff);\n  const probeCounts = countSessionFtsMatchesBatch(args.db, args.sessionId, sanitizedProbes.map((entry) => entry.query), cutoff);\n  const searchQueries = [\n    ...baseQuery.length > 0 ? [baseQuery] : [],\n    ...sanitizedProbes.map((entry) => entry.query)\n  ];\n  const rowsByQuery = runMessageFtsQueriesBatch(args.db, args.sessionId, searchQueries, fetchLimit, cutoff);\n  const queryLists = [];\n  let queryIndex = 0;\n  if (baseQuery.length > 0) {\n",
+              "after": "    }));\n  }\n  const sanitizedProbes = probes.map((probe) => ({ probe, query: sanitizeFtsQuery(probe) })).filter((entry) => entry.query.length > 0);\n  const corpusSize = args.nativeMessageScope?.length ?? getIndexedMessageCorpusSize(args.db, args.sessionId, cutoff);\n  const probeCounts = countSessionFtsMatchesBatch(args.db, args.sessionId, sanitizedProbes.map((entry) => entry.query), cutoff, scope);\n  const searchQueries = [\n    ...baseQuery.length > 0 ? [baseQuery] : [],\n    ...sanitizedProbes.map((entry) => entry.query)\n  ];\n  const rowsByQuery = runMessageFtsQueriesBatch(args.db, args.sessionId, searchQueries, fetchLimit, cutoff, scope);\n  const queryLists = [];\n  let queryIndex = 0;\n  if (baseQuery.length > 0) {\n"
+            },
+            {
+              "before": "  const runGitCommits = activeSources.has(\"git_commit\") && gitCommitsEnabled;\n  const runPrimers = activeSources.has(\"primer\") && memoryFeatureEnabled;\n  const runNotes = activeSources.has(\"note\");\n  const runCompartmentChunks = runMessages && memoryFeatureEnabled && embeddingEnabled;\n  const needsEmbedding = (runMemory || runGitCommits || runCompartmentChunks || runPrimers) && embeddingEnabled && isEmbeddingRuntimeEnabled();\n  const queryEmbeddingPromise = needsEmbedding ? embedQuery(trimmedQuery, options.signal).catch((error51) => {\n    log(`[search] query embedding failed: ${error51 instanceof Error ? error51.message : String(error51)}`);\n",
+              "after": "  const runGitCommits = activeSources.has(\"git_commit\") && gitCommitsEnabled;\n  const runPrimers = activeSources.has(\"primer\") && memoryFeatureEnabled;\n  const runNotes = activeSources.has(\"note\");\n  // Native history uses branch-bound raw IDs, never stale compartment ordinals.\n  const runCompartmentChunks = runMessages && memoryFeatureEnabled && embeddingEnabled && options.nativeMessageScope === undefined;\n  const needsEmbedding = (runMemory || runGitCommits || runCompartmentChunks || runPrimers) && embeddingEnabled && isEmbeddingRuntimeEnabled();\n  const queryEmbeddingPromise = needsEmbedding ? embedQuery(trimmedQuery, options.signal).catch((error51) => {\n    log(`[search] query embedding failed: ${error51 instanceof Error ? error51.message : String(error51)}`);\n"
+            },
+            {
+              "before": "    query: trimmedQuery,\n    limit: tierLimit,\n    maxOrdinal: options.maxMessageOrdinal,\n    probes: messageProbes\n  }) : [];\n  const capturedQuery = await queryEmbeddingPromise;\n",
+              "after": "    query: trimmedQuery,\n    limit: tierLimit,\n    maxOrdinal: options.maxMessageOrdinal,\n    nativeMessageScope: options.nativeMessageScope,\n    probes: messageProbes\n  }) : [];\n  const capturedQuery = await queryEmbeddingPromise;\n"
+            },
+            {
+              "before": "      const embeddingEnabled = snapshot ? snapshot.enabled || snapshot.gitCommitEnabled : deps.embeddingEnabled;\n      const gitCommitsEnabled = snapshot?.gitCommitEnabled ?? deps.gitCommitsEnabled ?? false;\n      const lastCompartmentEnd = getLastCompartmentEndMessage(deps.db, sessionId);\n      const messageOrdinalCutoff = lastCompartmentEnd >= 0 ? lastCompartmentEnd : 0;\n      const visibleMemoryIds = getVisibleMemoryIds(deps.db, sessionId);\n      const idShape = parseIdShapedQuery(query);\n      if (idShape && memoryEnabled) {\n",
+              "after": "      const embeddingEnabled = snapshot ? snapshot.enabled || snapshot.gitCommitEnabled : deps.embeddingEnabled;\n      const gitCommitsEnabled = snapshot?.gitCommitEnabled ?? deps.gitCommitsEnabled ?? false;\n      const lastCompartmentEnd = getLastCompartmentEndMessage(deps.db, sessionId);\n      let messageOrdinalCutoff = lastCompartmentEnd >= 0 ? lastCompartmentEnd : 0;\n      let nativeMessageScope;\n      if (deps.compactionOff && (!params.sources || params.sources.includes(\"message\"))) {\n        // Native compaction has no MC compartments. Bind the hidden prefix to\n        // immutable branch IDs, then lazily index raw messages (including clone gaps).\n        const entries = ctx.sessionManager.getBranch();\n        const marker = entries.findLast(entry => entry.type === \"compaction\");\n        const boundary = marker ? entries.findIndex(entry => entry.id === marker.firstKeptEntryId) : -1;\n        const positions = new Map(entries.map((entry, position) => [entry.id, position]));\n        const hidden = boundary < 0 ? [] : convertEntriesToRawMessages(entries).filter(message => {\n          const position = positions.get(message.id.replace(/^synth-user-/, \"\"));\n          return position !== undefined && position < boundary;\n        });\n        messageOrdinalCutoff = hidden.at(-1)?.ordinal ?? 0;\n        nativeMessageScope = hidden.map(({ id, ordinal }) => ({ id, ordinal }));\n        for (const message of hidden) indexSingleMessage(deps.db, sessionId, message);\n      }\n      const visibleMemoryIds = getVisibleMemoryIds(deps.db, sessionId);\n      const idShape = parseIdShapedQuery(query);\n      if (idShape && memoryEnabled) {\n"
+            },
+            {
+              "before": "        },\n        isEmbeddingRuntimeEnabled: () => embeddingEnabled === true,\n        maxMessageOrdinal: messageOrdinalCutoff,\n        gitCommitsEnabled,\n        sources: params.sources,\n        visibleMemoryIds,\n",
+              "after": "        },\n        isEmbeddingRuntimeEnabled: () => embeddingEnabled === true,\n        maxMessageOrdinal: messageOrdinalCutoff,\n        nativeMessageScope,\n        gitCommitsEnabled,\n        sources: params.sources,\n        visibleMemoryIds,\n"
+            },
+            {
+              "before": "  });\n  pi.registerTool(surfaceTool(createCtxSearchTool({\n    db: opts.db,\n    ensureProjectRegistered: opts.ensureProjectRegistered,\n    memoryEnabled: opts.memoryEnabled,\n    embeddingEnabled: opts.embeddingEnabled,\n",
+              "after": "  });\n  pi.registerTool(surfaceTool(createCtxSearchTool({\n    db: opts.db,\n    compactionOff: opts.compactionOff === true,\n    ensureProjectRegistered: opts.ensureProjectRegistered,\n    memoryEnabled: opts.memoryEnabled,\n    embeddingEnabled: opts.embeddingEnabled,\n"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "pi-subagents",
+      "version": "0.56.0",
+      "patches": [
+        {
+          "file": "src/runs/shared/launch-semaphore.ts",
+          "beforeHash": null,
+          "afterHash": "31e1a329ddc6c38612a4e4f250fb5794f43f520e700d115968ea9d4857c034ce",
+          "content": "// Local compatibility repair for pi-subagents 0.56.0. Shared by every modern\n// workflow in this parent process; held until authoritative completion, not receipt.\nexport class LaunchSemaphore {\n\tprivate active = 0;\n\tprivate readonly queue: Array<() => void> = [];\n\n\tconstructor(readonly limit = 8) {\n\t\tif (!Number.isSafeInteger(limit) || limit < 1) throw new Error(\"Invalid child concurrency limit\");\n\t}\n\n\tacquire(signal?: AbortSignal): Promise<() => void> {\n\t\treturn new Promise((resolve, reject) => {\n\t\t\tconst abort = () => {\n\t\t\t\tconst index = this.queue.indexOf(grant);\n\t\t\t\tif (index >= 0) this.queue.splice(index, 1);\n\t\t\t\treject(signal?.reason ?? new Error(\"Child launch cancelled\"));\n\t\t\t};\n\t\t\tconst grant = () => {\n\t\t\t\tsignal?.removeEventListener(\"abort\", abort);\n\t\t\t\tif (signal?.aborted) { abort(); return; }\n\t\t\t\tthis.active++;\n\t\t\t\tlet released = false;\n\t\t\t\tresolve(() => {\n\t\t\t\t\tif (released) return;\n\t\t\t\t\treleased = true;\n\t\t\t\t\tthis.active--;\n\t\t\t\t\twhile (this.active < this.limit && this.queue.length) this.queue.shift()!();\n\t\t\t\t});\n\t\t\t};\n\t\t\tif (signal?.aborted) { abort(); return; }\n\t\t\tsignal?.addEventListener(\"abort\", abort, { once: true });\n\t\t\tif (this.active < this.limit) grant();\n\t\t\telse this.queue.push(grant);\n\t\t});\n\t}\n}\n\n// All workflow roots in this process import the same module. Child processes\n// have no subagent authority (maxSubagentDepth=1) and cannot multiply this pool.\nexport const childLaunchSlots = new LaunchSemaphore(8);\n"
+        },
+        {
+          "file": "src/runs/shared/model-fallback.ts",
+          "beforeHash": "c62c0bd0402efbe37866a5636b5947862c2bfe64497ab9a52282ef9c1747c0da",
+          "afterHash": "3c6dd34c6cf73abe9e50bd69d89f048a1becd1a1a57d1fbdd1586e48fba5ca81",
+          "edits": [
+            {
+              "before": "export interface ParentModel {\n\tprovider: string;\n\tid: string;\n}\n\nexport function normalizeParentModel(model: unknown): ParentModel | undefined {\n",
+              "after": "export interface ParentModel {\n\tprovider: string;\n\tid: string;\n\t/** Live launch-time thinking; never resolved from shared disk defaults. */\n\tthinking?: \"off\" | \"minimal\" | \"low\" | \"medium\" | \"high\" | \"xhigh\" | \"max\";\n}\n\nexport function normalizeParentModel(model: unknown): ParentModel | undefined {\n"
+            },
+            {
+              "before": "\tif (!parentModel) throwForUnresolvedEnforcedInheritScope(options?.scope, explicit === undefined || options?.source === \"inherited\");\n\tlet resolved: string | undefined;\n\tif (explicit === undefined) {\n\t\tresolved = parentModel ? `${parentModel.provider}/${parentModel.id}` : undefined;\n\t} else {\n\t\tresolved = resolveRequiredSubagentModelCandidate(explicit, availableModels, preferredProvider);\n\t}\n",
+              "after": "\tif (!parentModel) throwForUnresolvedEnforcedInheritScope(options?.scope, explicit === undefined || options?.source === \"inherited\");\n\tlet resolved: string | undefined;\n\tif (explicit === undefined) {\n\t\tresolved = parentModel\n\t\t\t? `${parentModel.provider}/${parentModel.id}${parentModel.thinking !== undefined ? `:${parentModel.thinking}` : \"\"}`\n\t\t\t: undefined;\n\t} else {\n\t\tresolved = resolveRequiredSubagentModelCandidate(explicit, availableModels, preferredProvider);\n\t}\n"
+            }
+          ]
+        },
+        {
+          "file": "src/runs/foreground/subagent-executor.ts",
+          "beforeHash": "a5c9554bff5e0ea4de6ef846159b21234a6f6acc801afe02af8261c44d4bcb2e",
+          "afterHash": "84f3960fe05154c0214dc395ee8578e4e5795e529fa3688e75028de3e2004fc2",
+          "edits": [
+            {
+              "before": "\t\t\tif (action?.toLowerCase() !== \"doctor\" && action?.toLowerCase() !== \"guide\") throw error;\n\t\t\trequestParentModel = normalizeParentModel(ctx.model);\n\t\t}\n\t\tif (action) {\n\t\t\tif (action === \"worktree.discard\") {\n\t\t\t\tif (deps.allowMutatingManagementActions === false) {\n",
+              "after": "\t\t\tif (action?.toLowerCase() !== \"doctor\" && action?.toLowerCase() !== \"guide\") throw error;\n\t\t\trequestParentModel = normalizeParentModel(ctx.model);\n\t\t}\n\t\tif (requestParentModel) {\n\t\t\trequestParentModel = { ...requestParentModel, thinking: ctx.thinkingLevel ?? deps.pi.getThinkingLevel() };\n\t\t}\n\t\tif (action) {\n\t\t\tif (action === \"worktree.discard\") {\n\t\t\t\tif (deps.allowMutatingManagementActions === false) {\n"
+            }
+          ]
+        },
+        {
+          "file": "src/runs/foreground/execution.ts",
+          "beforeHash": "b1a776ded036b21ce27b373d8edfc67f82123ab58e81a001d40088738e6cbd0d",
+          "afterHash": "a4f3c4c84c1488fedcb16ac92e1cf52756a9592475a73810f948b6d3468b57b1",
+          "edits": [
+            {
+              "before": "import { spawn } from \"node:child_process\";\nimport { existsSync, unlinkSync } from \"node:fs\";\nimport * as path from \"node:path\";\nimport type { Message } from \"@earendil-works/pi-ai\";\nimport type { AgentConfig } from \"../../agents/agents.ts\";\nimport { appendAgentRefinementOverlay } from \"../../agents/agent-refinements.ts\";\n",
+              "after": "import { spawn } from \"node:child_process\";\nimport { existsSync, unlinkSync } from \"node:fs\";\nimport * as path from \"node:path\";\nimport { childLaunchSlots } from \"../shared/launch-semaphore.ts\";\nimport type { Message } from \"@earendil-works/pi-ai\";\nimport type { AgentConfig } from \"../../agents/agents.ts\";\nimport { appendAgentRefinementOverlay } from \"../../agents/agent-refinements.ts\";\n"
+            },
+            {
+              "before": "\toptions: RunSyncOptions,\n): Promise<SingleResult> {\n\tlet orcaProgressTab: OrcaProgressTab | undefined;\n\ttry {\n\t\tconst result = await runSyncCompletionInner(runtimeCwd, agents, agentName, task, {\n\t\t\t...options,\n",
+              "after": "\toptions: RunSyncOptions,\n): Promise<SingleResult> {\n\tlet orcaProgressTab: OrcaProgressTab | undefined;\n\tconst releaseLaunchSlot = await childLaunchSlots.acquire(options.signal);\n\ttry {\n\t\tconst result = await runSyncCompletionInner(runtimeCwd, agents, agentName, task, {\n\t\t\t...options,\n"
+            },
+            {
+              "before": "\t} catch (error) {\n\t\torcaProgressTab?.finish(\"failed\");\n\t\tthrow error;\n\t}\n}\n\n",
+              "after": "\t} catch (error) {\n\t\torcaProgressTab?.finish(\"failed\");\n\t\tthrow error;\n\t} finally {\n\t\treleaseLaunchSlot();\n\t}\n}\n\n"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -33,7 +33,7 @@ An inherited child is a bounded executor, not an orchestrator: it completes only
 
 For an enabled owner parent, a no-action launch with an `agent` or `workflowScript` receives outer `async: true` only when `async` is omitted and `foregroundOnly` is not explicitly `true`. Explicit `async` values, child calls, OFF mode, management/schedule/resume/steer actions, `extensionBindings`, and workflow source bytes are preserved. Signed child controls remain appended to eligible launch, steer, and resume task text.
 
-The configured boundary keeps `asyncByDefault=false`, `forceTopLevelAsync=false`, `artifactDir=session`, and depth 1. It allows two top-level async runs, 16 per-run spawn admissions, and a configured per-session budget of 64. A spawn-budget grant for named necessary lanes can raise the effective per-session maximum to 128; it does not raise the 16 per-run admission limit or the advisory 8-lane wave limit. `globalConcurrencyLimit`, legacy `parallel.concurrency`, and legacy `parallel.maxTasks` are 8; the 8-lane wave policy is advisory, and `globalConcurrencyLimit` does not itself throttle modern `runs.all`.
+The configured boundary keeps `asyncByDefault=false`, `forceTopLevelAsync=false`, `artifactDir=session`, and depth 1. It allows two top-level async runs and 16 per-run spawn admissions. The per-session spawn budget is **0 (unlimited)**, not a lifetime quota. `globalConcurrencyLimit`, legacy `parallel.concurrency`, and legacy `parallel.maxTasks` remain 8; the advisory 8-lane wave policy remains, and `globalConcurrencyLimit` does not itself throttle modern `runs.all`.
 
 Turning the mode off restores the question tool to its prior active-tool position and injects a one-turn instruction that normal interactive behavior has resumed.
 
@@ -41,19 +41,27 @@ Turning the mode off restores the question tool to its prior active-tool positio
 
 The signed control record authenticates parent-produced state and rejects ordinary corruption, forged markers, and revisions older than a child has already observed. The delegation policy and its limits are advisory coordination instructions, not a permission boundary or isolation from a malicious same-UID child: subagents that can run unrestricted shell commands can delete or withhold the shared file, alter inherited environment for processes they launch directly, or modify the extension itself. Use OS sandboxing or a Pi permission extension if hostile child code is in scope.
 
+## Workflow acceptance and writer ownership
+
+`/workflow status` and `workflow_contract` track explicit branch-local objectives, mandatory outcomes, real-interface journeys and finalized tool evidence. Completion is a validated ledger state, not assistant prose or coordinator settlement. Owner-parent Auto Mode can queue at most three marked remediation follow-ups; unchanged evidence, blockers, waiting, cancellation and `/auto off` stop automatic remediation.
+
+`writer_lease` provides cooperative one-writer ownership for parent and child-loaded controllers, independent of the Auto toggle. File/Hashline/AST mutations need a matching explicit-root claim; shell, LSP rename and unknown effects additionally need an exact one-use scope permit. Read-only tools require neither a claim nor a contract. SQLite state lives outside captured extensions, at `~/.pi/agent/state/auto-mode/`.
+
+See [WORKFLOW.md](WORKFLOW.md) for intake/revision/evidence examples, lease handoffs, bounds, lifecycle behavior and important non-sandbox/non-semantic-proof limits. These tools are registered but existing role allowlists are not expanded.
+
 ## Installation
 
 `~/.pi/agent/settings.json` loads `./extensions/auto-mode`. Built-in pi-subagents agent overrides also include `~/.pi/agent/extensions/auto-mode/index.ts`, because subagents launch with ambient extensions disabled.
 
 Custom/package/project agents that declare their own `extensions` bypass pi-subagents' `defaultExtensions`; add the Auto Mode path to that declaration or to an `agentOverrides.<name>.subagentOnlyExtensions` entry before relying on propagation.
 
-The fresh `researcher` role explicitly loads Pi Lens only to register inherited Lens CLI flags. Its configured primitive task tools are exactly `read` and `web_run`; fresh resolution adds no `contact_supervisor`. Pi may also expose the composition-only `multi_tool_use.parallel` wrapper, which can invoke only tools already allowed by the role. The researcher does not load `pi-agent-browser-native` or expose `agent_browser` or `view_image`.
+Every configured role loads `runtime-reliability` before affected package extensions, while its task-tool allowlist stays bounded. The fresh `researcher` loads accounts, Pi Lens and standalone Codex Web Run; its primitive task tools remain exactly `read` and `web_run`, with no fresh `contact_supervisor`. Pi may expose the composition-only `multi_tool_use.parallel` wrapper, which cannot widen that primitive allowlist. The researcher does not load the native browser or expose `agent_browser`/`view_image`. The writing role is explicitly configured with `workflow_contract`, `writer_lease` and `runtime_health`; read-only roles are not given writer controls.
 
 ## Researcher web lane
 
 `web_run` comes from the exact `@howaboua/pi-codex-web-run@0.0.2` package declaration in `settings.json`. Pi realizes the TypeScript extension in its writable npm tree; Nix pins Pi 0.84.4 and Node.js but carries no native web helper and sets no `PI_CODEX_WEB_RUN_BIN`. The extension uses local `openai-codex` authentication without replacing Pi's provider catalog.
 
-`researcher` is a stateless one-angle evidence lane. It batches 2–4 high-signal `search_query` entries in one `web_run` call, opens primary sources, cites final URLs, and returns compact evidence. It never falls back to browser, shell, curl, or search-engine form automation. After the first setup, authentication, or provider failure, it stops and reports that failure rather than retrying into another surface. Image generation and voice are not installed, and the lane has no image-viewing capability.
+`researcher` is a stateless one-angle evidence lane. It batches 2–4 high-signal `search_query` entries in one `web_run` call, opens primary sources, cites final URLs, and returns compact evidence. It never falls back to browser, shell, curl, or search-engine form automation. Setup/authentication/provider failures return precise diagnostics to the parent for runtime repair and a fresh retry, not repeated identical failures, silent downgrade or removal of the capability. Image generation and voice are not installed, and the lane has no image-viewing capability.
 
 ### Smoke gate after activation/restart
 

@@ -27,9 +27,9 @@
   "maxActiveAsyncRunsPerSession": 2,
   "maxSubagentDepth": 1,
   "maxSubagentSpawnsPerRun": 16,
-  "maxSubagentSpawnsPerSession": 64,
+  "maxSubagentSpawnsPerSession": 0,
   "missions": {
-    "enabled": false,
+    "enabled": true,
     "globalIndex": false,
     "retainTerminal": 50
   },

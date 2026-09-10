@@ -9,6 +9,7 @@ import {
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { registerWorkflow, type WorkflowApi } from "./workflow-controller.js";
 
 const ASK_USER_TOOL = "ask_user_question";
 const SUBAGENT_TOOL = "subagent";
@@ -192,7 +193,7 @@ type EventHandler<Event, Result = void> = (
   context: ExtensionContext,
 ) => MaybePromise<Result | void>;
 
-export interface ExtensionApi {
+export interface ExtensionApi extends Pick<WorkflowApi, "registerTool" | "appendEntry"> {
   getActiveTools(): string[];
   getAllTools(): Array<{ name: string }>;
   on(event: "session_start", handler: EventHandler<SessionStartEvent>): void;
@@ -511,6 +512,11 @@ export function registerAutoMode(pi: ExtensionApi): void {
     pi,
     pendingSpawnBudgetGrants: new Map<string, number>(),
   };
+  // The legacy Auto Mode interface narrows event payloads; the live Pi API also supplies the ledger lifecycle.
+  registerWorkflow(pi as unknown as WorkflowApi, () => {
+    syncInheritedRuntime(runtime);
+    return { enabled: state.enabled, owner: state.ownsControlFile };
+  });
   registerCommand(runtime);
   registerEventHandlers(runtime);
 }

@@ -59,12 +59,17 @@ function createHarness(registerAutoMode) {
     setStatus: (key, text) => statuses.set(key, text),
     theme: { fg: (_color, text) => `[${text}]` },
   };
-  const context = { isIdle: () => idle, ui };
+  const entries = [];
+  const tools = new Map();
+  const context = { isIdle: () => idle, hasPendingMessages: () => false, cwd: process.cwd(), ui,
+    sessionManager: { getBranch: () => entries, getLeafId: () => null, getSessionId: () => "auto-mode-test", getSessionFile: () => undefined } };
   const pi = {
     getActiveTools: () => [...activeTools],
     getAllTools: () =>
       ["read", "ask_user_question", "subagent"].map((name) => ({ name })),
-    on: (event, handler) => handlers.set(event, handler),
+    on: (event, handler) => handlers.set(event, [...(handlers.get(event) ?? []), handler]),
+    registerTool: (tool) => tools.set(tool.name, tool),
+    appendEntry: (customType, data) => entries.push({ type: "custom", customType, data: structuredClone(data) }),
     registerCommand: (name, command) => commands.set(name, command),
     sendMessage: (message, options) => sent.push({ message, options }),
     setActiveTools: (next) => {
@@ -75,7 +80,16 @@ function createHarness(registerAutoMode) {
   return {
     commands,
     context,
-    fire: (name, event = { type: name }) => handlers.get(name)?.(event, context),
+    fire: async (name, event = { type: name }) => {
+      let result;
+      for (const handler of handlers.get(name) ?? []) {
+        const next = await handler(event, context);
+        if (next !== undefined) result = next;
+        if (name === "context" && next?.messages) event = { ...event, messages: next.messages };
+        if (next?.block) break;
+      }
+      return result;
+    },
     get activeTools() {
       return activeTools;
     },
@@ -259,6 +273,7 @@ function assertSettingsCoverage() {
   assert.ok(settings.subagents.defaultExtensions.includes(extension));
   const overrides = settings.subagents.agentOverrides;
   const researcher = overrides.researcher;
+  const reliabilityExtension = "~/.pi/agent/extensions/runtime-reliability/index.ts";
   const accountsExtension = "~/.pi/agent/npm/node_modules/@narumitw/pi-accounts/dist/index.ts";
   const lensExtension = "~/.pi/agent/npm/node_modules/pi-lens/dist/index.js";
   const webRunExtension = "~/.pi/agent/npm/node_modules/@howaboua/pi-codex-web-run/index.ts";
@@ -266,8 +281,8 @@ function assertSettingsCoverage() {
     "~/.pi/agent/npm/node_modules/pi-agent-browser-native/dist/extensions/agent-browser/index.js";
   assert.deepEqual(
     researcher.extensions,
-    [accountsExtension, lensExtension, webRunExtension],
-    "researcher must load only accounts, Lens flags, and standalone Codex Web Run",
+    [reliabilityExtension, accountsExtension, lensExtension, webRunExtension],
+    "researcher must load reliability preflight first, then only accounts, Lens flags, and standalone Codex Web Run",
   );
   assert.equal(
     researcher.extensions.includes(browserExtension),
@@ -291,19 +306,29 @@ function assertSettingsCoverage() {
       `researcher must not expose ${forbiddenTool}`,
     );
   }
+  assert.equal(settings.defaultModel, "gpt-6-astra");
+  assert.equal(settings.defaultThinkingLevel, "max");
+  assert.equal(overrides.delegate.model, "inherit");
+  assert.equal(overrides.delegate.thinking, undefined, "inherit the caller's thinking suffix instead of overriding it");
+  assert.equal(settings.subagents.defaultExtensions[0], reliabilityExtension);
+  for (const tool of ["workflow_contract", "writer_lease", "runtime_health"]) assert.ok(overrides.worker.tools.includes(tool));
+  assert.match(overrides.worker.systemPrompt, /sole source-writing role/);
   for (const [name, override] of Object.entries(overrides)) {
+    assert.equal(override.extensions[0], reliabilityExtension, `${name} must preflight before affected imports`);
+    if (name !== "worker") assert.equal(override.tools.includes("writer_lease"), false);
     assert.ok(
       override.subagentOnlyExtensions.includes(extension),
       `${name} must load auto mode`,
     );
   }
-  const terra = "openai-codex/gpt-5.6-terra";
-  for (const name of ["researcher", "worker"]) {
-    assert.equal(overrides[name].model, terra, `${name} must pin Terra`);
+  const astra = "openai-codex/gpt-6-astra";
+  for (const name of ["researcher", "worker", "reviewer", "oracle", "scout"]) {
+    assert.equal(overrides[name].model, astra, `${name} must pin Astra`);
+    assert.equal(overrides[name].thinking, "max", `${name} must use max thinking`);
     assert.deepEqual(
       settings.subagents.modelScope.agents[name].allow,
-      [terra],
-      `${name} Terra pin must match its strict scope`,
+      [astra],
+      `${name} Astra pin must match its strict scope`,
     );
   }
   const researcherPrompt = overrides.researcher.systemPrompt;
@@ -319,7 +344,8 @@ function assertSettingsCoverage() {
   );
   assert.match(researcherPrompt, /Prioritize primary sources, open the most relevant primary sources/i);
   assert.match(researcherPrompt, /cite final source URLs/i);
-  assert.match(researcherPrompt, /After one setup, authentication, or provider failure, stop/i);
+  assert.match(researcherPrompt, /return precise diagnostics to the parent so it can repair the runtime and rerun this lane/i);
+  assert.match(researcherPrompt, /do not repeat identical failures, silently downgrade/i);
   assert.match(
     researcherPrompt,
     /Never use browser, shell, curl, or search-engine form automation/i,
@@ -362,10 +388,10 @@ function assertSubagentConfigCoverage() {
   assert.equal(config.maxActiveAsyncRunsPerSession, 2);
   assert.equal(config.maxSubagentDepth, 1);
   assert.equal(config.maxSubagentSpawnsPerRun, 16);
-  assert.equal(config.maxSubagentSpawnsPerSession, 64);
+  assert.equal(config.maxSubagentSpawnsPerSession, 0);
   assert.deepEqual(config.parallel, { concurrency: 8, maxTasks: 8 });
   assert.deepEqual(config.missions, {
-    enabled: false,
+    enabled: true,
     globalIndex: false,
     retainTerminal: 50,
   });

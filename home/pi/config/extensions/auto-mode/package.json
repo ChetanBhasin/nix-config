@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node ./auto-mode-controller.test.mjs"
+    "test": "node ./auto-mode-controller.test.mjs && node --test ./workflow-*.test.mjs"
   },
   "pi": {
     "extensions": [

@@ -9,7 +9,7 @@
     "default": "light"
   },
   "compaction": {
-    "enabled": true
+    "enabled": false
   },
   "cache_ttl": "5m",
   "execute_threshold_percentage": 65,

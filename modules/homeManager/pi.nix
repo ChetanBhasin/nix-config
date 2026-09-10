@@ -38,31 +38,9 @@ let
       export PI_SUBAGENT_TASK_DELIVERY=file
       export PI_SUBAGENT_PI_BINARY=@piPolicyPackage@/bin/pi
 
-      # Lens project configuration may re-enable mutation hooks. Its one-way
-      # CLI switches keep Hashline authoritative once Lens is installed. A
-      # freshly activated Pi has no mutable npm tree yet, so passing extension
-      # flags before Lens can register them makes the core parser reject them.
-      # Package-management subcommands always receive their original argv.
-      case "''${1-}" in
-        install|remove|uninstall|update|list|config|auth)
-          exec ${lib.getExe cfg.package} "$@"
-          ;;
-        *)
-          pi_agent_dir="''${PI_CODING_AGENT_DIR:-$HOME/.pi/agent}"
-          if [ -e "$pi_agent_dir/npm/node_modules/pi-lens/dist/index.js" ]; then
-            set -- \
-              --no-tests \
-              --no-opengrep \
-              --no-read-guard \
-              --no-autoformat \
-              --no-autofix \
-              --no-lens-context \
-              --lens-compact-tool-line \
-              "$@"
-          fi
-          exec ${lib.getExe cfg.package} "$@"
-          ;;
-      esac
+      exec ${pkgs.runtimeShell} ${./pi-launcher.sh} \
+        ${lib.getExe cfg.package} ${lib.getExe pkgs.nodejs} \
+        ${cfg.package}/lib/node_modules/pi-monorepo ${./pi-launcher-lens.mjs} "$@"
       EOF
       substituteInPlace "$out/bin/pi" --replace-fail @piPolicyPackage@ "$out"
       chmod +x "$out/bin/pi"
