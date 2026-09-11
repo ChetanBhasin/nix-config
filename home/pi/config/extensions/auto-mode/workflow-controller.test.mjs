@@ -19,9 +19,9 @@ function fixture(t) {
 }
 async function harness(t, f, controls = { enabled: true, owner: true }, sm = SessionManager.inMemory(f.root)) {
   const tools = new Map(), commands = new Map(), handlers = new Map(), sent = [], notices = [];
-  const flags = { pending: false, activeTools: ["read", "bash", "workflow_contract", "writer_lease"] };
-  const ctx = { cwd: f.root, sessionManager: sm, hasPendingMessages: () => flags.pending, isIdle: () => true,
-    ui: { setStatus() {}, notify: (...args) => notices.push(args) } };
+  const flags = { pending: false, activeTools: ["read", "bash", "workflow_contract", "writer_lease"], confirm: true, inputText: "REMOVE" };
+  const ctx = { cwd: f.root, mode: "tui", hasUI: true, sessionManager: sm, hasPendingMessages: () => flags.pending, isIdle: () => true,
+    ui: { setStatus() {}, notify: (...args) => notices.push(args), confirm: async () => flags.confirm, input: async () => flags.inputText } };
   const pi = { registerTool: (tool) => tools.set(tool.name, tool), registerCommand: (name, command) => commands.set(name, command),
     appendEntry: (name, data) => sm.appendCustomEntry(name, structuredClone(data)),
     on: (name, handler) => handlers.set(name, [...(handlers.get(name) ?? []), handler]),
@@ -38,8 +38,10 @@ async function harness(t, f, controls = { enabled: true, owner: true }, sm = Ses
     return JSON.parse(result.content[0].text);
   };
   const status = () => tool("workflow_contract", { action: "status" });
+  const command = (args) => commands.get("workflow").handler(args, ctx);
   const start = async (roots = [f.root]) => {
     await fire("input", { source: "interactive", text: "Implement CLI" });
+    await fire("message_start", { message: { role: "user", content: "Implement CLI" } });
     const { input } = await status();
     return tool("workflow_contract", { action: "start", inputId: input.id, definition: { objective: "CLI", kind: "implementation", roots, externalInputs: [],
       requirements: [{ id: "r", mandatory: true, expected: "worked" }],
@@ -47,7 +49,7 @@ async function harness(t, f, controls = { enabled: true, owner: true }, sm = Ses
   };
   await fire("session_start", { reason: "startup" });
   t.after(() => fire("session_shutdown", { reason: "quit" }));
-  return { sm, ctx, controls, flags, fire, tool, status, start, sent, notices, commands };
+  return { sm, ctx, controls, flags, fire, tool, command, status, start, sent, notices, commands };
 }
 
 test("deleting a file root drains and releases ownership without accepting missing inputs", async (t) => {
@@ -106,18 +108,19 @@ test("Hashline/AST reservations exclude release for the whole batch; aliases out
   await h.tool("writer_lease", { action: "release", nonce: writer.nonce });
 });
 
-test("a broader lease cannot widen a contract; explicit multi-root revision permits live config outside cwd", async (t) => {
+test("a broader lease course-corrects implementation roots without dropping obligations", async (t) => {
   const f = fixture(t), h = await harness(t, f); const initial = await h.start();
   const externalRoot = path.join(f.temp, "live-config"); fs.mkdirSync(externalRoot);
   const { writer } = await h.tool("writer_lease", { action: "claim", roots: [f.root, externalRoot] });
   const input = { path: path.join(externalRoot, "config.ts") };
-  await assert.rejects(() => h.fire("tool_call", { toolName: "write", toolCallId: "outside-contract", input }), /exceeds/);
-  const { id, revision, evidence, disposition, blockers, continuations, noProgress, ...definition } = initial.objective;
-  definition.roots.push(externalRoot);
-  await h.fire("input", { source: "interactive", text: `workflow-scope ${JSON.stringify({ action: "revise", revision: 1, definition })}` });
-  await h.tool("workflow_contract", { action: "revise", revision: 1, inputId: (await h.status()).input.id, definition });
-  await h.fire("tool_call", { toolName: "write", toolCallId: "inside-revised", input });
-  await h.fire("tool_execution_end", { toolName: "write", toolCallId: "inside-revised", result: { content: [] }, isError: false });
+  await h.fire("tool_call", { toolName: "write", toolCallId: "outside-contract", input });
+  const corrected = await h.status();
+  assert.equal(corrected.objective.revision, 2);
+  assert.ok(corrected.objective.roots.includes(externalRoot));
+  assert.deepEqual(corrected.objective.requirements, initial.objective.requirements);
+  assert.deepEqual(corrected.objective.journeys, initial.objective.journeys);
+  assert.equal(corrected.history.at(-1).action, "course-correct-roots");
+  await h.fire("tool_execution_end", { toolName: "write", toolCallId: "outside-contract", result: { content: [] }, isError: false });
   await h.fire("turn_end"); await h.tool("writer_lease", { action: "release", nonce: writer.nonce });
 });
 
@@ -209,4 +212,70 @@ test("pending input, Auto off, abort, error, UI and waiting suppress remediation
   await end(); await end();
   assert.equal((await h.status()).objective.disposition, "blocked");
   await assert.rejects(() => h.tool("workflow_contract", { action: "complete" }), /UNACCEPTED/);
+});
+
+test("human reset cannot bypass a malformed audit fail-closed state", async (t) => {
+  const f = fixture(t), sm = SessionManager.inMemory(f.root);
+  sm.appendCustomEntry("cb-workflow-audit-v1", null);
+  const h = await harness(t, f, { enabled: true, owner: true }, sm);
+  const branchLength = h.sm.getBranch().length;
+  await assert.rejects(() => h.command("reset cannot erase malformed history"), /failed closed/);
+  const state = await h.status();
+  assert.match(state.fault, /failed closed/);
+  assert.equal(state.retirement, undefined);
+  assert.equal(h.sm.getBranch().length, branchLength);
+});
+
+
+test("human workflow cancel requires confirmation and retains an independent writer lease", async (t) => {
+  const f = fixture(t), h = await harness(t, f); await h.start();
+  const { writer } = await h.tool("writer_lease", { action: "claim", roots: [f.root] });
+  h.flags.confirm = false; await h.command("cancel changed my mind");
+  let state = await h.status();
+  assert.ok(state.objective); assert.equal(state.history.at(-1).action, "cancel"); assert.equal(state.history.at(-1).confirmed, false);
+  h.flags.confirm = true; await h.command("cancel changed my mind");
+  state = await h.status();
+  assert.equal(state.objective, undefined); assert.equal(state.retirement.action, "cancel"); assert.equal(state.retirement.outcome, "cancelled");
+  assert.ok(state.writer); assert.equal(state.writer.nonce, writer.nonce);
+  assert.equal(state.history.at(-1).action, "cancel");
+  await h.tool("writer_lease", { action: "release", nonce: writer.nonce });
+});
+
+test("human workflow controls acceptance passed: reset, archive, and requirement removal retain auditable checkpoints across reload", async (t) => {
+  const f = fixture(t), h = await harness(t, f); await h.start();
+  await h.command("reset retry cleanly");
+  let state = await h.status();
+  assert.equal(state.objective, undefined); assert.equal(state.retirement.action, "reset");
+  assert.ok(state.history.at(-1).scopeHash);
+  await h.start(); await h.command("archive superseded");
+  state = await h.status();
+  assert.equal(state.retirement.action, "archive");
+  await h.start(); state = await h.status();
+  const { id, revision, evidence, disposition, blockers, continuations, noProgress, ...definition } = state.objective;
+  definition.requirements.push({ id: "keep", mandatory: true, expected: "still required", artifactRequired: false });
+  await h.tool("workflow_contract", { action: "revise", revision: 1, inputId: state.input.id, definition });
+  h.flags.confirm = false; await h.command("remove r -- privacy cleanup");
+  state = await h.status();
+  assert.equal(state.objective.requirements.length, 2); assert.equal(state.history.at(-1).confirmed, false);
+  h.flags.confirm = true; await h.command("remove r -- privacy cleanup");
+  state = await h.status();
+  assert.equal(state.objective.revision, 3); assert.deepEqual(state.objective.requirements.map((requirement) => requirement.id), ["keep"]);
+  assert.deepEqual(state.history.slice(-2).map((entry) => [entry.action, entry.confirmed]), [["remove", false], ["remove", true]]);
+  await h.fire("session_start", { reason: "reload" });
+  const restored = await h.status();
+  assert.equal(restored.objective.revision, 3); assert.equal(restored.retirement, undefined);
+  assert.ok(restored.history.some((entry) => entry.action === "reset"));
+  assert.ok(restored.history.some((entry) => entry.action === "archive"));
+});
+
+test("direct TUI steer input is genuine and revives bounded remediation without weakening scope", async (t) => {
+  const f = fixture(t), h = await harness(t, f); const started = await h.start();
+  await h.tool("workflow_contract", { action: "disposition", disposition: "blocked", reasons: ["Bounded remediation stopped: test ceiling"] });
+  await h.fire("message_start", { message: { role: "user", content: "Try the safer fallback" } });
+  const state = await h.status();
+  assert.notEqual(state.input.id, started.input.id);
+  assert.equal(state.input.authority, "user-input");
+  assert.equal(state.objective.disposition, "actionable");
+  assert.deepEqual(state.objective.blockers, []);
+  assert.deepEqual(state.objective.requirements, started.objective.requirements);
 });

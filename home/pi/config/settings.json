@@ -13,6 +13,7 @@
   ],
   "fullscreenExitOutput": "transcript",
   "fullscreenScrollbar": "auto",
+  "hideThinkingBlock": false,
   "markdown": {
     "mermaid": "streaming"
   },
@@ -273,6 +274,7 @@
     "defaultModel": "inherit",
     "defaultProvider": "openai-codex",
     "defaultThinking": "max",
+    "maxThinking": "max",
     "modelScope": {
       "agents": {
         "delegate": {
@@ -297,7 +299,7 @@
         },
         "scout": {
           "allow": [
-            "openai-codex/gpt-6-astra"
+            "openai-codex/gpt-5.6-terra"
           ]
         },
         "worker": {
@@ -308,7 +310,8 @@
       },
       "allow": [
         "inherit",
-        "openai-codex/gpt-6-astra"
+        "openai-codex/gpt-6-astra",
+        "openai-codex/gpt-5.6-terra"
       ],
       "enforce": true,
       "strict": true
@@ -319,5 +322,5 @@
   },
   "theme": "gruvbox-night",
   "treeFilterMode": "all",
-  "tuiMode": "fullscreen"
+  "tuiMode": "regular"
 }

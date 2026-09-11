@@ -1,0 +1,117 @@
+{
+  "description": "Routine work: Luna/low for lookup roles, Terra/medium for implementation, review and advice. Thinking ceiling: medium. No expensive parent inheritance or Astra models.",
+  "subagents": {
+    "defaultModel": "openai-codex/gpt-5.6-terra",
+    "defaultProvider": "openai-codex",
+    "defaultThinking": "medium",
+    "maxThinking": "medium",
+    "modelScope": {
+      "enforce": true,
+      "strict": true,
+      "allow": ["openai-codex/gpt-5.6-luna", "openai-codex/gpt-5.6-terra"],
+      "agents": {
+        "delegate": {"allow": ["openai-codex/gpt-5.6-luna"]},
+        "oracle": {"allow": ["openai-codex/gpt-5.6-terra"]},
+        "researcher": {"allow": ["openai-codex/gpt-5.6-luna"]},
+        "reviewer": {"allow": ["openai-codex/gpt-5.6-terra"]},
+        "scout": {"allow": ["openai-codex/gpt-5.6-luna"]},
+        "worker": {"allow": ["openai-codex/gpt-5.6-terra"]}
+      }
+    },
+    "agentOverrides": {
+      "delegate": {
+        "acceptanceRole": "read-only",
+        "defaultContext": "fresh",
+        "description": "Small fresh-context delegate; read-only unless explicitly rerouted to worker",
+        "extensions": ["~/.pi/agent/extensions/runtime-reliability/index.ts", "~/.pi/agent/npm/node_modules/@narumitw/pi-accounts/dist/index.ts", "~/.pi/agent/npm/node_modules/pi-lens/dist/index.js"],
+        "inheritProjectContext": true,
+        "inheritSkills": false,
+        "model": "openai-codex/gpt-5.6-luna",
+        "thinking": "low",
+        "output": "delegate.md",
+        "outputMode": "file-only",
+        "subagentOnlyExtensions": ["~/.pi/agent/extensions/auto-mode/index.ts"],
+        "systemPromptMode": "append",
+        "tools": ["read", "grep", "find", "ls", "lens_diagnostics", "lsp_diagnostics", "project_report", "module_report", "read_symbol", "read_enclosing", "symbol_search", "pi_lens_activate_tools", "ast_grep_search", "ast_grep_outline", "ast_grep_dump", "lsp_navigation"]
+      },
+      "oracle": {
+        "acceptanceRole": "read-only",
+        "defaultContext": "fresh",
+        "description": "Deep decision challenger; use context=fork only when conversation history is evidence",
+        "extensions": ["~/.pi/agent/extensions/runtime-reliability/index.ts", "~/.pi/agent/npm/node_modules/@narumitw/pi-accounts/dist/index.ts", "~/.pi/agent/npm/node_modules/pi-lens/dist/index.js"],
+        "inheritProjectContext": true,
+        "inheritSkills": false,
+        "model": "openai-codex/gpt-5.6-terra",
+        "thinking": "medium",
+        "output": "oracle.md",
+        "outputMode": "file-only",
+        "subagentOnlyExtensions": ["~/.pi/agent/extensions/auto-mode/index.ts"],
+        "systemPrompt": "You are the oracle, a read-only decision-consistency challenger. In a fresh context, treat the supplied task and evidence as authoritative; do not presume inherited conversation decisions. Only when the context is actually forked or those decisions are explicitly supplied, reconstruct inherited conversation decisions and test them against the available evidence. Inspect only scoped sources needed to evaluate the decision. Return narrow, actionable recommendations with concise evidence and residual uncertainty; do not implement changes. Escalate to the supervisor only through the runtime bridge and only for material unknowns that scoped source inspection and supplied evidence cannot resolve. Keep the output concise.",
+        "systemPromptMode": "append",
+        "tools": ["read", "grep", "find", "ls", "lens_diagnostics", "lsp_diagnostics", "project_report", "module_report", "read_symbol", "read_enclosing", "symbol_search", "pi_lens_activate_tools", "ast_grep_search", "ast_grep_outline", "ast_grep_dump", "lsp_navigation"]
+      },
+      "researcher": {
+        "acceptanceRole": "read-only",
+        "defaultContext": "fresh",
+        "description": "Stateless one-angle web researcher using standalone Codex Web Run",
+        "extensions": ["~/.pi/agent/extensions/runtime-reliability/index.ts", "~/.pi/agent/npm/node_modules/@narumitw/pi-accounts/dist/index.ts", "~/.pi/agent/npm/node_modules/pi-lens/dist/index.js", "~/.pi/agent/npm/node_modules/@howaboua/pi-codex-web-run/index.ts"],
+        "inheritProjectContext": true,
+        "inheritSkills": false,
+        "model": "openai-codex/gpt-5.6-luna",
+        "output": "research.md",
+        "outputMode": "file-only",
+        "subagentOnlyExtensions": ["~/.pi/agent/extensions/auto-mode/index.ts"],
+        "systemPrompt": "You are the researcher, a stateless one-angle web evidence specialist. Work only the assigned research angle. Use only `read` for provided local evidence and `web_run`; when search is needed, batch 2–4 high-signal `search_query` entries in one `web_run` call. Prioritize primary sources, open the most relevant primary sources with `web_run`, and cite final source URLs for every material claim. On a setup, authentication, or provider failure, return precise diagnostics to the parent so it can repair the runtime and rerun this lane; do not repeat identical failures, silently downgrade, or claim the capability is unnecessary. Never use browser, shell, curl, or search-engine form automation. Return compact evidence: conclusion, final URLs, key support, and unresolved gap. Do not modify files, settings, code, or runtime state.",
+        "systemPromptMode": "append",
+        "thinking": "low",
+        "tools": ["read", "web_run"]
+      },
+      "reviewer": {
+        "acceptanceRole": "read-only",
+        "defaultContext": "fresh",
+        "description": "Independent fresh-context reviewer with no mutation surface",
+        "extensions": ["~/.pi/agent/extensions/runtime-reliability/index.ts", "~/.pi/agent/npm/node_modules/@narumitw/pi-accounts/dist/index.ts", "~/.pi/agent/npm/node_modules/pi-lens/dist/index.js"],
+        "inheritProjectContext": true,
+        "inheritSkills": false,
+        "model": "openai-codex/gpt-5.6-terra",
+        "output": "review.md",
+        "outputMode": "file-only",
+        "subagentOnlyExtensions": ["~/.pi/agent/extensions/auto-mode/index.ts"],
+        "systemPromptMode": "append",
+        "thinking": "medium",
+        "tools": ["read", "grep", "find", "ls", "lens_diagnostics", "lsp_diagnostics", "project_report", "module_report", "read_symbol", "read_enclosing", "symbol_search", "pi_lens_activate_tools", "ast_grep_search", "ast_grep_outline", "ast_grep_dump", "lsp_navigation"]
+      },
+      "scout": {
+        "acceptanceRole": "read-only",
+        "defaultContext": "fresh",
+        "description": "Fast fresh-context codebase reconnaissance through the Lens discovery funnel",
+        "extensions": ["~/.pi/agent/extensions/runtime-reliability/index.ts", "~/.pi/agent/npm/node_modules/@narumitw/pi-accounts/dist/index.ts", "~/.pi/agent/npm/node_modules/pi-lens/dist/index.js"],
+        "inheritProjectContext": true,
+        "inheritSkills": false,
+        "model": "openai-codex/gpt-5.6-luna",
+        "output": "context.md",
+        "outputMode": "file-only",
+        "subagentOnlyExtensions": ["~/.pi/agent/extensions/auto-mode/index.ts"],
+        "systemPromptMode": "append",
+        "thinking": "low",
+        "tools": ["read", "grep", "find", "ls", "lens_diagnostics", "lsp_diagnostics", "project_report", "module_report", "read_symbol", "read_enclosing", "symbol_search", "pi_lens_activate_tools", "ast_grep_search", "ast_grep_outline", "ast_grep_dump", "lsp_navigation"]
+      },
+      "worker": {
+        "acceptanceRole": "writer",
+        "defaultContext": "fresh",
+        "description": "The only writing role; Hashline mutations followed by explicit Lens diagnostics",
+        "extensions": ["~/.pi/agent/extensions/runtime-reliability/index.ts", "~/.pi/agent/npm/node_modules/@narumitw/pi-accounts/dist/index.ts", "~/.pi/agent/npm/node_modules/pi-lens/dist/index.js", "~/.pi/agent/npm/node_modules/pi-hashline-edit-pro/index.ts"],
+        "inheritProjectContext": true,
+        "inheritSkills": false,
+        "model": "openai-codex/gpt-5.6-terra",
+        "output": "implementation.md",
+        "outputMode": "file-only",
+        "subagentOnlyExtensions": ["~/.pi/agent/extensions/auto-mode/index.ts"],
+        "systemPrompt": "You are the sole source-writing role. Before implementation, use workflow_contract status/start to record the assigned requirements and a planned real-interface acceptance journey. Claim writer_lease for explicit roots before mutation; permit exact shell/LSP-rename/unknown-tool effects. Keep Hashline edits scoped, run diagnostics and relevant checks, then record finalized tool evidence and complete only when it validates. Release your lease after the whole mutation batch drains before handing back to the parent. Do not weaken mandatory criteria, bypass a conflicting lease, run detached writers, or treat a lease as protected-action permission. On a real blocker, preserve the work and return exact evidence and remaining steps.",
+        "systemPromptMode": "append",
+        "thinking": "medium",
+        "tools": ["workflow_contract", "writer_lease", "runtime_health", "read", "grep", "find", "ls", "bash", "write", "replace", "insert", "undo_last_change", "lens_diagnostics", "lsp_diagnostics", "project_report", "module_report", "read_symbol", "read_enclosing", "symbol_search", "pi_lens_activate_tools", "ast_grep_search", "ast_grep_outline", "ast_grep_dump", "lsp_navigation"]
+      }
+    }
+  }
+}

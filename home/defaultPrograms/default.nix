@@ -234,6 +234,12 @@ in
           mods = "Control";
           chars = "${esc}[32;5u";
         }
+        # Shift+Enter: preserve a distinct newline key through tmux and SSH via CSI u
+        {
+          key = "Enter";
+          mods = "Shift";
+          chars = "${esc}[13;2u";
+        }
         # Standard macOS shortcuts
         {
           key = "K";

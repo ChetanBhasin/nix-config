@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { applyRepairs, patchedText, digest } from './patcher.mjs';
+import { applyRepairs, patchedChain, patchedText, digest } from './patcher.mjs';
 const { createJiti } = await import(new URL('../../npm/node_modules/jiti/lib/jiti.mjs', import.meta.url));
 const jiti = createJiti(import.meta.url);
 const npm = fileURLToPath(new URL('../../npm/node_modules/', import.meta.url));
@@ -62,6 +62,11 @@ test('repairs are exact, idempotent, and reject changed upstream/local sources',
   assert.equal(patchedText('before\n', patch), 'after\n');
   assert.equal(patchedText('after\n', patch), 'after\n');
   assert.throws(() => patchedText('user edit\n', patch), /refusing to overwrite/);
+  const nextPatch = { file: patch.file, beforeHash: patch.afterHash, afterHash: digest('final\n'), edits: [{ before: 'after\n', after: 'final\n' }] };
+  assert.equal(patchedChain('before\n', [patch, nextPatch]), 'final\n');
+  assert.equal(patchedChain('after\n', [patch, nextPatch]), 'final\n');
+  assert.equal(patchedChain('final\n', [patch, nextPatch]), 'final\n');
+  assert.throws(() => patchedChain('user edit\n', [patch, nextPatch]), /refusing to overwrite/);
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'pi-repair-test-'));
   try {
     const root = path.join(tmp, 'npm/node_modules/fixture');
@@ -76,6 +81,31 @@ test('repairs are exact, idempotent, and reject changed upstream/local sources',
     assert.throws(() => applyRepairs({ agentDir: tmp, manifest }), /review compatibility/);
   } finally { fs.rmSync(tmp, { recursive: true, force: true }); }
 });
+
+test('reviewed terminal repairs reconstruct and apply from their preceding hashes', () => {
+  const manifest = JSON.parse(fs.readFileSync(new URL('./patches.json', import.meta.url), 'utf8'));
+  const packageManifest = manifest.packages.find(entry => entry.name === 'pi-subagents');
+  assert.ok(packageManifest);
+  for (const file of [
+    'src/extension/index.ts',
+    'src/runs/foreground/subagent-executor.ts',
+    'src/agents/agent-management.ts',
+  ]) {
+    const current = fs.readFileSync(path.join(npm, 'pi-subagents', file), 'utf8');
+    const patch = packageManifest.patches.filter(entry => entry.file === file).at(-1);
+    assert.ok(patch, `missing terminal repair for ${file}`);
+    assert.equal(digest(current), patch.afterHash, `${file} terminal hash`);
+    let previous = current;
+    for (const edit of [...patch.edits].reverse()) {
+      assert.ok(edit.after, `${file} has a reversible reviewed edit`);
+      assert.equal(previous.split(edit.after).length - 1, 1, `${file} reverse edit is exact`);
+      previous = previous.replace(edit.after, () => edit.before);
+    }
+    assert.equal(digest(previous), patch.beforeHash, `${file} preceding hash`);
+    assert.equal(patchedText(previous, patch), current, `${file} forward repair`);
+  }
+});
+
 
 test('installed repairs match the captured version manifest', () => {
   assert.ok(applyRepairs({ check: true }).checked >= 5);

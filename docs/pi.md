@@ -36,10 +36,32 @@ Runtime responsibilities are non-overlapping:
 - **Hashline** replaces `read` and `grep`, disables built-in `edit`, and supplies anchored `replace`, `insert`, and undo. The built-in `write` remains available for whole-file creation/overwrite and Hashline returns fresh anchors afterward. Codex `apply_patch`/command adapters and Lens mutation tools remain inactive.
 - **Codex Web Run** supplies only `web_run` through the portable `@howaboua/pi-codex-web-run@0.0.2` package pin. It uses Pi's local Codex authentication without overriding the active provider catalog. Codex conversion, image generation, and voice packages are intentionally absent.
 - **Magic Context** runs only in the parent. Its database, embeddings, model cache, and indexes stay local. Child processes receive `MAGIC_CONTEXT_PI_SUBAGENT=1` and explicit extension allowlists.
-- **Subagents** start fresh by default, hand back files rather than transcripts, and allow one writer. The `fork-only` intercom bridge leaves fresh launches without a bridge prompt or `contact_supervisor`; their bounded contracts and file artifacts carry escalation blockers. Only the policy-permitted, actually forked `oracle` has supervisor dialogue when inherited conversation is necessary evidence. The modern workflow operational wave maximum is 8 lanes by advisory policy, with two top-level async slots, 16 per-run admissions, a configured per-session budget of 64, and depth 1. Spawn-budget grants require named necessary lanes and can raise the effective per-session maximum to 128; they do not raise the per-run or wave limits. Legacy concurrency is 8; `globalConcurrencyLimit=8` does not throttle modern `runs.all`. Role mapping is scout=Luna, researcher/worker=Terra, and reviewer/oracle=Sol.
+- **Subagents** start fresh by default, hand back files rather than transcripts, and allow one writer. Their models and thinking follow the selected `simple`, `complex`, or `max` [profile](#subagent-profiles), rather than a hard-coded high-cost mapping. Admission and concurrency settings remain in `extensions/subagent/config.json`: depth 1, two active async roots, 16 admissions per run, and no lifetime spawn quota (`maxSubagentSpawnsPerSession = 0`).
 - **Session coordinator** lets one idle long-lived (`tui`/`rpc`) Pi session queue `/after A B -- <prompt>` until exact, explicitly named independent sessions settle. It binds each name to one live instance and activity revision through a private local registry, requires a post-barrier heartbeat before trusting pre-existing settlement evidence, records `/tree` navigation as a new settled revision, and fails on duplicate live PID claims or lost bound processes. Release waits for the dependent session to become idle and for matching `before_agent_start` confirmation; synchronous or unconfirmed submissions remain available for `/after retry` or `/after cancel`. Bounded dependency text is labeled untrusted, incomplete model output is not marked completed, and barriers remain in memory until release/cancellation or waiting-session reload, switch, fork, or exit.
 - **Browser automation** uses `pi-agent-browser-native` over exact `agent-browser` 0.34.0 and a Nix-owned Chrome/Chromium executable. It uses neither MCP nor a downloaded browser.
 - **Footer** uses `pi-footer` with the checked-in `extensions/pi-footer.json` layout. It owns only Pi's footer, keeps the native header and editor, follows the active theme through Pi semantic colors, and leaves all extension statuses visible on a secondary row.
+
+## Subagent profiles
+
+Profiles are session-branch scoped. Persistent settings retain the `max` baseline; select a cheaper profile for the current branch with Pi's built-in command:
+
+```text
+/subagents-profiles
+/subagents-load-profile complex
+/subagents-models
+```
+
+Choose `simple`, `complex`, `max`, or another saved profile name. The choice applies immediately, survives reload/resume through branch metadata, appears in the footer, and never writes `settings.json`. Other sessions and already-running children are unchanged. Decline the optional main-session model switch to retain your current parent model.
+
+| Profile | Scout / researcher / delegate | Worker / reviewer / oracle | Thinking ceiling |
+| --- | --- | --- | --- |
+| simple | Luna / low | Terra / medium | medium |
+| complex | Terra / high | Sol / high | high |
+| max | Preserved personal role settings | Preserved personal role settings | max |
+
+`max` retains the previous Astra-based configuration, Terra/xhigh scout, Astra/xhigh worker, cleared oracle thinking override and parent-inheriting delegate. Both cheaper tiers pin every role and strictly reject stronger models, inherited Astra, fallbacks outside the allowlist, and thinking above the ceiling. Trusted project overrides can replace global settings; this is not a security sandbox.
+
+See the [profile README](../home/pi/config/profiles/pi-subagents/README.md) for the full matrix and editing caveats. Every saved profile contains complete role overrides, but selection overlays them only in the current session. Later `/subagents` edits change persistent defaults, not saved profiles or an already-selected branch; reselect or reload after editing a profile. Capture wanted live profile files and persistent defaults before activating Nix. No billable profile-generation probes are required.
 
 ## Auto Mode
 
@@ -72,6 +94,7 @@ home/pi/config/
 ├── extensions/
 ├── skills/
 ├── prompts/
+├── profiles/
 └── themes/
 ```
 
@@ -258,14 +281,14 @@ Expected invariants:
 - Lens reports no pipeline crash and does not download tools or servers.
 - Active mutation tools exclude built-in `edit`, Codex `apply_patch`/`exec_command`, Notebook Mode, and Lens `ast_grep_replace`; Hashline supplies anchored reads and edits.
 - The package graph includes standalone `@howaboua/pi-codex-web-run@0.0.2`, excludes `pi-codex-conversion` and `pi-codex-imagegen`, and exposes no Codex voice controls.
-- `/subagents-doctor` reports depth 1 policy, two top-level active async slots, 16 per-run admissions, a configured per-session budget of 64, legacy concurrency 8, and an advisory modern-workflow wave maximum of 8. Spawn-budget grants require named necessary lanes and can raise the effective per-session maximum to 128 without raising the per-run or wave limits. Role allowlists are scout=Luna, researcher/worker=Terra, and reviewer/oracle=Sol. `globalConcurrencyLimit=8` does not throttle modern `runs.all`.
+- `/subagents-doctor` reports the configured depth, async and admission limits; a fresh `/subagents-models` mapping matches the selected profile. `simple` rejects effort above medium, `complex` above high, and both reject Astra overrides before child startup. Cumulative spawn admission is unlimited (`maxSubagentSpawnsPerSession = 0`), not unlimited simultaneous work.
 - `/ctx-status` opens the production database at migration v81 after every old Pi harness has reloaded.
 - `/footer` previews a one-line Nerd Font statusline with project and Git state on the left; model, thinking, context, and token usage on the right; and active extension statuses on a secondary row. Exit without saving unless intentionally changing the checked-in layout.
 - browser doctor reports agent-browser 0.34.0 and the smoke test uses Nix Chrome/Chromium.
 - PI WEB reports both services current and `/api/config` reports `spawnSessions=false`, `subsessions=false`, `askUser=true`, and `environmentFacts=true`.
 - both `pi-config status` panels are `equal`, `pi-config diff` is empty, and neither portable source nor live portable settings contains `/nix/store`.
 
-The parent model cycle includes Luna, Terra, Sol, and Astra, while subagent role scope remains scout=Luna, researcher/worker=Terra, and reviewer/oracle=Sol. These entries are matched against authenticated available models. Until `pi auth check --provider openai-codex` is ready, Pi can list discovered Codex models but warns that scoped patterns have no available matches. Authenticate before treating model acceptance as complete.
+The parent model cycle includes Luna, Terra, Sol, and Astra; subagent models and thinking are independently selected by the active profile. Authenticated model availability is separate from offline profile/policy validation. Run `pi auth check --provider openai-codex` before treating provider access or a research rollout as qualified.
 
 The current mutable npm tree reports five high-severity transitive advisories through Magic Context (`adm-zip`, `onnxruntime-node`, `sharp`, and `@huggingface/transformers`), with no npm fix available for the pinned graph. Keep the pins and reassess on package updates; do not run `npm audit fix --force` across Pi's managed tree.
 

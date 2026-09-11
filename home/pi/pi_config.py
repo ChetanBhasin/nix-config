@@ -34,7 +34,7 @@ FILE_NAMES = (
 )
 # One-way cleanup tombstones: apply sees these paths, while capture excludes them.
 RETIRED_FILE_NAMES = ("pi-codex-conversion.json",)
-DIRECTORY_NAMES = ("extensions", "skills", "prompts", "themes")
+DIRECTORY_NAMES = ("extensions", "skills", "prompts", "themes", "profiles")
 MANAGED_NAMES = FILE_NAMES + RETIRED_FILE_NAMES + DIRECTORY_NAMES
 RUNTIME_SETTING_KEYS = ("lastChangelogVersion", "trackingId")
 BASE_MARKER = ".initialized"

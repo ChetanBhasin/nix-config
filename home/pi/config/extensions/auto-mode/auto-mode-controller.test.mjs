@@ -322,13 +322,29 @@ function assertSettingsCoverage() {
     );
   }
   const astra = "openai-codex/gpt-6-astra";
-  for (const name of ["researcher", "worker", "reviewer", "oracle", "scout"]) {
-    assert.equal(overrides[name].model, astra, `${name} must pin Astra`);
-    assert.equal(overrides[name].thinking, "max", `${name} must use max thinking`);
+  const terra = "openai-codex/gpt-5.6-terra";
+  assert.equal(settings.subagents.defaultModel, "inherit");
+  assert.equal(settings.subagents.defaultThinking, "max");
+  assert.equal(settings.subagents.maxThinking, "max");
+  assert.deepEqual(settings.subagents.modelScope.allow, ["inherit", astra, terra]);
+  const persistedRoleSettings = {
+    oracle: { model: astra, thinking: undefined },
+    researcher: { model: astra, thinking: "max" },
+    reviewer: { model: astra, thinking: "max" },
+    scout: { model: terra, thinking: "xhigh" },
+    worker: { model: astra, thinking: "xhigh" },
+  };
+  for (const [name, expected] of Object.entries(persistedRoleSettings)) {
+    assert.equal(overrides[name].model, expected.model, `${name} persistent model must match the preserved max baseline`);
+    assert.equal(
+      overrides[name].thinking,
+      expected.thinking,
+      `${name} persistent thinking must match the preserved max baseline`,
+    );
     assert.deepEqual(
       settings.subagents.modelScope.agents[name].allow,
-      [astra],
-      `${name} Astra pin must match its strict scope`,
+      [expected.model],
+      `${name} persistent model must match its strict scope`,
     );
   }
   const researcherPrompt = overrides.researcher.systemPrompt;

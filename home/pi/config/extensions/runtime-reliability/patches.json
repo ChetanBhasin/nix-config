@@ -185,6 +185,269 @@
               "after": "\t} catch (error) {\n\t\torcaProgressTab?.finish(\"failed\");\n\t\tthrow error;\n\t} finally {\n\t\treleaseLaunchSlot();\n\t}\n}\n\n"
             }
           ]
+        },
+        {
+          "file": "src/profiles/session-profile.ts",
+          "beforeHash": null,
+          "afterHash": "c8fd29d81165ab3cc2172404ca0e56e5c4d5bc05afcfa041f988d6776b25e8a5",
+          "content": "import * as path from \"node:path\";\nimport { getAgentDir } from \"../shared/utils.ts\";\n\nexport const SUBAGENT_PROFILE_ENTRY_TYPE = \"pi-subagents-profile\";\nexport const SUBAGENT_PROFILE_STATUS_KEY = \"subagents-profile\";\nconst SAFE_SUBAGENT_PROFILE_NAME = /^[A-Za-z0-9][A-Za-z0-9._-]*$/;\nexport type SubagentProfileName = string;\n\ninterface ActiveProfileOverlay {\n\tname: string;\n\tsubagents: Record<string, unknown>;\n}\n\nlet activeProfile: ActiveProfileOverlay | undefined;\n\nfunction clone<T>(value: T): T {\n\treturn structuredClone(value);\n}\n\nexport function isSupportedSubagentProfileName(value: unknown): value is SubagentProfileName {\n\treturn typeof value === \"string\"\n\t\t&& value !== \".\"\n\t\t&& value !== \"..\"\n\t\t&& SAFE_SUBAGENT_PROFILE_NAME.test(value);\n}\n\nexport function setSubagentProfileOverlay(name: string, subagents: Record<string, unknown>): void {\n\tactiveProfile = { name, subagents: clone(subagents) };\n}\n\nexport function clearSubagentProfileOverlay(): void {\n\tactiveProfile = undefined;\n}\n\nexport function getActiveSubagentProfileName(): string | undefined {\n\treturn activeProfile?.name;\n}\n\nexport function getSubagentSettingsOverlay(filePath: string): Record<string, unknown> | undefined {\n\tconst userSettingsPath = path.join(getAgentDir(), \"settings.json\");\n\treturn path.resolve(filePath) === path.resolve(userSettingsPath) && activeProfile\n\t\t? clone(activeProfile.subagents)\n\t\t: undefined;\n}\n\nexport function findBranchSubagentProfileMarker(branch: readonly unknown[]): { name?: SubagentProfileName; invalid?: string } | undefined {\n\tlet invalid: string | undefined;\n\tfor (let index = branch.length - 1; index >= 0; index -= 1) {\n\t\tconst entry = branch[index];\n\t\tif (!entry || typeof entry !== \"object\" || Array.isArray(entry)) continue;\n\t\tconst record = entry as Record<string, unknown>;\n\t\tif (record.type !== \"custom\" || record.customType !== SUBAGENT_PROFILE_ENTRY_TYPE) continue;\n\t\tconst data = record.data;\n\t\tif (!data || typeof data !== \"object\" || Array.isArray(data)) {\n\t\t\tinvalid ??= \"malformed profile marker\";\n\t\t\tcontinue;\n\t\t}\n\t\tconst marker = data as Record<string, unknown>;\n\t\tif (marker.version !== 1 || !isSupportedSubagentProfileName(marker.name)) {\n\t\t\tinvalid ??= \"unknown or malformed profile marker\";\n\t\t\tcontinue;\n\t\t}\n\t\treturn { name: marker.name, ...(invalid ? { invalid } : {}) };\n\t}\n\treturn invalid ? { invalid } : undefined;\n}\n"
+        },
+        {
+          "file": "src/agents/agents.ts",
+          "beforeHash": "8012c653ce6691b9e1f8ffb10e6c64716e6901190a3393caab288614660020c6",
+          "afterHash": "d9aae159b52413b4b44b7446f1317174d140e747962a62ef9cee8afba44b982f",
+          "edits": [
+            {
+              "before": "import { parseThinkingLevel, type ThinkingLevel } from \"../shared/thinking-ceiling.ts\";\n",
+              "after": "import { parseThinkingLevel, type ThinkingLevel } from \"../shared/thinking-ceiling.ts\";\nimport { getSubagentSettingsOverlay } from \"../profiles/session-profile.ts\";\n"
+            },
+            {
+              "before": "function readSubagentSettings(filePath: string | null): SubagentSettings {\n\tif (!filePath) return EMPTY_SUBAGENT_SETTINGS;\n\tconst settings = readSettingsFileStrict(filePath);\n\tconst subagents = settings.subagents;\n",
+              "after": "function readSubagentSettings(filePath: string | null): SubagentSettings {\n\tif (!filePath) return EMPTY_SUBAGENT_SETTINGS;\n\tconst settings = readSettingsFileStrict(filePath);\n\tconst subagents = getSubagentSettingsOverlay(filePath) ?? settings.subagents;\n"
+            }
+          ]
+        },
+        {
+          "file": "src/profiles/profiles.ts",
+          "beforeHash": "ffb56588e7074718ca295308e8be1334743b5b0834d13cfe74e17fc90421923b",
+          "afterHash": "eb42d4d37be358d45ece061ae1a8306a55d85bdc0e1e7612d2c5cf71b8871430",
+          "edits": [
+            {
+              "before": "import * as path from \"node:path\";\n",
+              "after": "import * as path from \"node:path\";\nimport { isDeepStrictEqual } from \"node:util\";\nimport {\n\tclearSubagentProfileOverlay,\n\tfindBranchSubagentProfileMarker,\n\tgetActiveSubagentProfileName,\n\tsetSubagentProfileOverlay,\n\tSUBAGENT_PROFILE_ENTRY_TYPE,\n\tSUBAGENT_PROFILE_STATUS_KEY,\n\ttype SubagentProfileName,\n} from \"./session-profile.ts\";\n"
+            },
+            {
+              "before": "export function applySubagentProfile(name: string): { filePath: string; settingsPath: string } {\n\tconst { filePath, profile } = readSubagentProfile(name);\n\tconst settingsPath = getUserSettingsPath();\n\tconst settings = readSettingsFile(settingsPath);\n\tconst existing = settings.subagents && typeof settings.subagents === \"object\" && !Array.isArray(settings.subagents)\n\t\t? settings.subagents as Record<string, unknown>\n\t\t: {};\n\t// A profile owns the complete agent mapping, but unrelated subagent settings\n\t// (notably disableBuiltins, modelScope, watchdog, etc.) survive profile switches.\n\tsettings.subagents = {\n\t\t...existing,\n\t\t...profile.subagents,\n\t\tagentOverrides: profile.subagents.agentOverrides,\n\t};\n\twriteJsonFile(settingsPath, settings);\n\treturn { filePath, settingsPath };\n}\n",
+              "after": "function persistedSubagents(): Record<string, unknown> {\n\tconst settings = readSettingsFile(getUserSettingsPath());\n\tconst subagents = settings.subagents;\n\treturn subagents && typeof subagents === \"object\" && !Array.isArray(subagents)\n\t\t? subagents as Record<string, unknown>\n\t\t: {};\n}\n\nfunction profileMatchesPersisted(profile: SubagentProfileFile, persisted: Record<string, unknown>): boolean {\n\treturn Object.entries(profile.subagents).every(([key, value]) =>\n\t\tisDeepStrictEqual(persisted[key], value),\n\t);\n}\n\nexport function inferPersistedSubagentProfile(): SubagentProfileName | undefined {\n\tconst persisted = persistedSubagents();\n\tconst preferred = [\"simple\", \"complex\", \"max\"];\n\tconst candidates = [...preferred, ...listSubagentProfiles().filter((name) => !preferred.includes(name))];\n\tfor (const name of candidates) {\n\t\ttry {\n\t\t\tif (profileMatchesPersisted(readSubagentProfile(name).profile, persisted)) return name;\n\t\t} catch {\n\t\t\t// Missing or invalid optional profiles cannot prevent startup.\n\t\t}\n\t}\n\treturn undefined;\n}\n\nexport function applySubagentProfile(name: string): { filePath: string; profileName: string } {\n\tconst profileName = normalizeProfileName(name);\n\tconst { filePath, profile } = readSubagentProfile(profileName);\n\tconst existing = persistedSubagents();\n\tsetSubagentProfileOverlay(profileName, {\n\t\t...existing,\n\t\t...profile.subagents,\n\t\tagentOverrides: profile.subagents.agentOverrides,\n\t});\n\treturn { filePath, profileName };\n}\n\nexport type SubagentProfileRestoreSource = \"marker\" | \"persisted\" | \"default\";\n\nexport interface SubagentProfileRestore {\n\tname: string;\n\tsource: SubagentProfileRestoreSource;\n\tshouldAppendMarker: boolean;\n\twarning?: string;\n}\n\nfunction restorePersistedSubagentProfile(warning?: string): SubagentProfileRestore {\n\tconst detected = inferPersistedSubagentProfile();\n\tif (detected) {\n\t\tconst { profileName } = applySubagentProfile(detected);\n\t\treturn {\n\t\t\tname: profileName,\n\t\t\tsource: \"persisted\",\n\t\t\tshouldAppendMarker: true,\n\t\t\t...(warning ? { warning } : {}),\n\t\t};\n\t}\n\tclearSubagentProfileOverlay();\n\treturn {\n\t\tname: \"default\",\n\t\tsource: \"default\",\n\t\tshouldAppendMarker: false,\n\t\t...(warning ? { warning } : {}),\n\t};\n}\n\nexport function restoreSubagentProfileSession(branch: readonly unknown[]): SubagentProfileRestore {\n\tconst marker = findBranchSubagentProfileMarker(branch);\n\tif (marker?.name) {\n\t\ttry {\n\t\t\tconst { profileName } = applySubagentProfile(marker.name);\n\t\t\treturn {\n\t\t\t\tname: profileName,\n\t\t\t\tsource: \"marker\",\n\t\t\t\tshouldAppendMarker: Boolean(marker.invalid),\n\t\t\t\t...(marker.invalid ? { warning: marker.invalid } : {}),\n\t\t\t};\n\t\t} catch {\n\t\t\tconst warning = [marker.invalid, `profile marker '${marker.name}' could not be restored`]\n\t\t\t\t.filter(Boolean)\n\t\t\t\t.join(\"; \");\n\t\t\treturn restorePersistedSubagentProfile(warning);\n\t\t}\n\t}\n\treturn restorePersistedSubagentProfile(marker?.invalid);\n}\n\nexport function setSubagentProfileStatus(ctx: Pick<ExtensionContext, \"ui\" | \"hasUI\">, name = getActiveSubagentProfileName() ?? \"default\"): void {\n\tif (ctx.hasUI) ctx.ui.setStatus(SUBAGENT_PROFILE_STATUS_KEY, `profile: ${name}`);\n}\n\nexport function clearSubagentProfileSession(ctx?: Pick<ExtensionContext, \"ui\" | \"hasUI\">): void {\n\tclearSubagentProfileOverlay();\n\tif (ctx?.hasUI) ctx.ui.setStatus(SUBAGENT_PROFILE_STATUS_KEY, undefined);\n}\n\nexport { SUBAGENT_PROFILE_ENTRY_TYPE, SUBAGENT_PROFILE_STATUS_KEY };\n"
+            },
+            {
+              "before": "export function setSubagentProfileStatus(ctx: Pick<ExtensionContext, \"ui\" | \"hasUI\">, name = getActiveSubagentProfileName() ?? \"default\"): void {\n\tif (ctx.hasUI) ctx.ui.setStatus(SUBAGENT_PROFILE_STATUS_KEY, `profile: ${name}`);\n}\n\nexport function clearSubagentProfileSession",
+              "after": "export function setSubagentProfileStatus(ctx: Pick<ExtensionContext, \"ui\" | \"hasUI\">, name = getActiveSubagentProfileName() ?? \"default\"): void {\n\tif (ctx.hasUI) ctx.ui.setStatus(SUBAGENT_PROFILE_STATUS_KEY, `profile: ${name}`);\n}\n\nexport function activateSubagentProfileSession(\n\tpi: Pick<ExtensionAPI, \"appendEntry\">,\n\tctx: Pick<ExtensionContext, \"sessionManager\" | \"ui\" | \"hasUI\">,\n): SubagentProfileRestore {\n\tconst profile = restoreSubagentProfileSession(ctx.sessionManager.getBranch());\n\tif (profile.shouldAppendMarker) {\n\t\tpi.appendEntry(SUBAGENT_PROFILE_ENTRY_TYPE, { version: 1, name: profile.name });\n\t}\n\tsetSubagentProfileStatus(ctx, profile.name);\n\tif (profile.warning && ctx.hasUI) {\n\t\tctx.ui.notify(`Subagent profile: ${profile.warning}; using '${profile.name}'.`, \"warning\");\n\t}\n\treturn profile;\n}\n\nexport function clearSubagentProfileSession"
+            }
+          ]
+        },
+        {
+          "file": "src/slash/slash-commands.ts",
+          "beforeHash": "560f1875214820f589966e8f55200b4a892aaa153c580d781b0a80318a60d85e",
+          "afterHash": "768b9b6baf7d51aa6528aa51690c005ffdf4e28708cb154bb25667bb2a8a9ab3",
+          "edits": [
+            {
+              "before": "\tapplySubagentProfile,\n",
+              "after": "\tapplySubagentProfile,\n\tSUBAGENT_PROFILE_ENTRY_TYPE,\n\tsetSubagentProfileStatus,\n"
+            },
+            {
+              "before": "\t\tdescription: \"Load a subagent profile into ~/.pi/agent/settings.json\",",
+              "after": "\t\tdescription: \"Switch the current session's in-memory subagent profile\","
+            },
+            {
+              "before": "\t\t\t\tawait withSlashStatus(ctx, `Loading profile ${parsed.value}…`, async () => {\n\t\t\t\t\tconst { profile }",
+              "after": "\t\t\t\tawait withSlashStatus(ctx, `Loading profile ${parsed.value}…`, async () => {\n\t\t\t\t\tconst { profile }"
+            },
+            {
+              "before": "\t\t\t\t\tconst result = applySubagentProfile(parsed.value);\n\t\t\t\t\tconst lines = [\n\t\t\t\t\t\t`Loaded subagent profile: ${parsed.value}`,\n\t\t\t\t\t\t`Profile: ${result.filePath}`,\n\t\t\t\t\t\t`Updated: ${result.settingsPath}`,\n\t\t\t\t\t];",
+              "after": "\t\t\t\t\tconst result = applySubagentProfile(parsed.value);\n\t\t\t\t\tpi.appendEntry(SUBAGENT_PROFILE_ENTRY_TYPE, { version: 1, name: result.profileName });\n\t\t\t\t\tsetSubagentProfileStatus(ctx, result.profileName);\n\t\t\t\t\tconst lines = [\n\t\t\t\t\t\t`Loaded subagent profile for this session only: ${parsed.value}`,\n\t\t\t\t\t\t`Profile: ${result.filePath}`,\n\t\t\t\t\t];"
+            }
+          ]
+        },
+        {
+          "file": "src/extension/index.ts",
+          "beforeHash": "2fd36f7fdf2bd059e02db9db567b3b484933eea96bcf6c0e77ece880d7e1b3c2",
+          "afterHash": "a36d9e97b736c4a3acfc104e82d2e462c9a2cc22138ac7d48a40b75f02ae8db3",
+          "edits": [
+            {
+              "before": "import { discoverAgents, discoverAgentsAll, type AgentConfig, type AgentScope } from \"../agents/agents.ts\";\n",
+              "after": "import { discoverAgents, discoverAgentsAll, type AgentConfig, type AgentScope } from \"../agents/agents.ts\";\nimport { activateSubagentProfileSession, clearSubagentProfileSession } from \"../profiles/profiles.ts\";\n"
+            },
+            {
+              "before": "\tpi.on(\"session_start\", (event, ctx) => {\n\t\tinstallRuntime(ctx);",
+              "after": "\tpi.on(\"session_start\", (event, ctx) => {\n\t\tactivateSubagentProfileSession(pi, ctx);\n\t\tinstallRuntime(ctx);"
+            },
+            {
+              "before": "\tpi.on(\"session_shutdown\", async () => {\n\t\truntimeEntry.cleanup();\n\t\tawait herdrStatusBridge.flush();\n\t});",
+              "after": "\tpi.on(\"session_tree\", (_event, ctx) => {\n\t\tactivateSubagentProfileSession(pi, ctx);\n\t});\n\n\tpi.on(\"session_shutdown\", async (_event, ctx) => {\n\t\tclearSubagentProfileSession(ctx);\n\t\truntimeEntry.cleanup();\n\t\tawait herdrStatusBridge.flush();\n\t});"
+            }
+          ]
+        },
+        {
+          "file": "src/profiles/session-profile.ts",
+          "beforeHash": "c8fd29d81165ab3cc2172404ca0e56e5c4d5bc05afcfa041f988d6776b25e8a5",
+          "afterHash": "e6828994cc49ad4477f1775bbbb5790299bbea03b59647a23e87a5b4226b3efd",
+          "edits": [
+            {
+              "before": "let activeProfile: ActiveProfileOverlay | undefined;\n\nfunction clone<T>(value: T): T {\n\treturn structuredClone(value);\n}\n",
+              "after": "export interface SubagentProfileSessionState {\n\treadonly kind: \"pi-subagents-profile-session\";\n}\n\nconst activeProfiles = new WeakMap<SubagentProfileSessionState, ActiveProfileOverlay>();\n\nfunction clone<T>(value: T): T {\n\treturn structuredClone(value);\n}\n"
+            },
+            {
+              "before": "export function isSupportedSubagentProfileName(value: unknown): value is SubagentProfileName {",
+              "after": "export function createSubagentProfileSessionState(): SubagentProfileSessionState {\n\treturn { kind: \"pi-subagents-profile-session\" };\n}\n\nexport function isSupportedSubagentProfileName(value: unknown): value is SubagentProfileName {"
+            },
+            {
+              "before": "export function setSubagentProfileOverlay(name: string, subagents: Record<string, unknown>): void {\n\tactiveProfile = { name, subagents: clone(subagents) };\n}\n\nexport function clearSubagentProfileOverlay(): void {\n\tactiveProfile = undefined;\n}\n\nexport function getActiveSubagentProfileName(): string | undefined {\n\treturn activeProfile?.name;\n}\n\nexport function getSubagentSettingsOverlay(filePath: string): Record<string, unknown> | undefined {\n\tconst userSettingsPath = path.join(getAgentDir(), \"settings.json\");\n\treturn path.resolve(filePath) === path.resolve(userSettingsPath) && activeProfile\n\t\t? clone(activeProfile.subagents)\n\t\t: undefined;\n}",
+              "after": "export function setSubagentProfileOverlay(session: SubagentProfileSessionState, name: string, subagents: Record<string, unknown>): void {\n\tactiveProfiles.set(session, { name, subagents: clone(subagents) });\n}\n\nexport function clearSubagentProfileOverlay(session: SubagentProfileSessionState): void {\n\tactiveProfiles.delete(session);\n}\n\nexport function getActiveSubagentProfileName(session: SubagentProfileSessionState): string | undefined {\n\treturn activeProfiles.get(session)?.name;\n}\n\nexport function getSubagentSettingsOverlay(filePath: string, session?: SubagentProfileSessionState): Record<string, unknown> | undefined {\n\tconst userSettingsPath = path.join(getAgentDir(), \"settings.json\");\n\tif (!session || path.resolve(filePath) !== path.resolve(userSettingsPath)) return undefined;\n\tconst activeProfile = activeProfiles.get(session);\n\treturn activeProfile ? clone(activeProfile.subagents) : undefined;\n}"
+            }
+          ]
+        },
+        {
+          "file": "src/agents/agents.ts",
+          "beforeHash": "d9aae159b52413b4b44b7446f1317174d140e747962a62ef9cee8afba44b982f",
+          "afterHash": "112f6477c996538c0e20d8ceb7257cc710c33e0f2d0569cb0c86d9fb0da2c0cc",
+          "edits": [
+            { "before": "import { getSubagentSettingsOverlay } from \"../profiles/session-profile.ts\";", "after": "import { getSubagentSettingsOverlay, type SubagentProfileSessionState } from \"../profiles/session-profile.ts\";" },
+            { "before": "function readSubagentSettings(filePath: string | null): SubagentSettings {", "after": "function readSubagentSettings(filePath: string | null, profileSession?: SubagentProfileSessionState): SubagentSettings {" },
+            { "before": "const subagents = getSubagentSettingsOverlay(filePath) ?? settings.subagents;", "after": "const subagents = getSubagentSettingsOverlay(filePath, profileSession) ?? settings.subagents;" },
+            { "before": "export function discoverAgents(cwd: string, scope: AgentScope): AgentDiscoveryResult {", "after": "export function discoverAgents(cwd: string, scope: AgentScope, profileSession?: SubagentProfileSessionState): AgentDiscoveryResult {" },
+            { "before": "const userSettings = scope === \"project\" ? EMPTY_SUBAGENT_SETTINGS : readSubagentSettings(userSettingsPath);\n\tconst projectSettings = scope === \"user\" ? EMPTY_SUBAGENT_SETTINGS : readSubagentSettings(projectSettingsPath);", "after": "const userSettings = scope === \"project\" ? EMPTY_SUBAGENT_SETTINGS : readSubagentSettings(userSettingsPath, profileSession);\n\tconst projectSettings = scope === \"user\" ? EMPTY_SUBAGENT_SETTINGS : readSubagentSettings(projectSettingsPath, profileSession);" },
+            { "before": "export function discoverAgentsAll(cwd: string): {", "after": "export function discoverAgentsAll(cwd: string, profileSession?: SubagentProfileSessionState): {" },
+            { "before": "const userSettings = readSubagentSettings(userSettingsPath);\n\tconst projectSettings = readSubagentSettings(projectSettingsPath);", "after": "const userSettings = readSubagentSettings(userSettingsPath, profileSession);\n\tconst projectSettings = readSubagentSettings(projectSettingsPath, profileSession);" }
+          ]
+        },
+        {
+          "file": "src/profiles/profiles.ts",
+          "beforeHash": "eb42d4d37be358d45ece061ae1a8306a55d85bdc0e1e7612d2c5cf71b8871430",
+          "afterHash": "5f95977824ee05ecbf23bd2870464b1686b2612dd29e2412ad12d856ef8b77f8",
+          "edits": [
+            { "before": "\tgetActiveSubagentProfileName,\n", "after": "" },
+            { "before": "\ttype SubagentProfileName,\n} from \"./session-profile.ts\";", "after": "\ttype SubagentProfileName,\n\ttype SubagentProfileSessionState,\n} from \"./session-profile.ts\";" },
+            { "before": "export function applySubagentProfile(name: string): { filePath: string; profileName: string } {", "after": "export function applySubagentProfile(session: SubagentProfileSessionState, name: string): { filePath: string; profileName: string } {" },
+            { "before": "setSubagentProfileOverlay(profileName, {", "after": "setSubagentProfileOverlay(session, profileName, {" },
+            { "before": "function restorePersistedSubagentProfile(warning?: string): SubagentProfileRestore {", "after": "function restorePersistedSubagentProfile(session: SubagentProfileSessionState, warning?: string): SubagentProfileRestore {" },
+            { "before": "const { profileName } = applySubagentProfile(detected);", "after": "const { profileName } = applySubagentProfile(session, detected);" },
+            { "before": "\tclearSubagentProfileOverlay();", "after": "\tclearSubagentProfileOverlay(session);" },
+            { "before": "export function restoreSubagentProfileSession(branch: readonly unknown[]): SubagentProfileRestore {", "after": "export function restoreSubagentProfileSession(session: SubagentProfileSessionState, branch: readonly unknown[]): SubagentProfileRestore {" },
+            { "before": "const { profileName } = applySubagentProfile(marker.name);", "after": "const { profileName } = applySubagentProfile(session, marker.name);" },
+            { "before": "return restorePersistedSubagentProfile(warning);", "after": "return restorePersistedSubagentProfile(session, warning);" },
+            { "before": "return restorePersistedSubagentProfile(marker?.invalid);", "after": "return restorePersistedSubagentProfile(session, marker?.invalid);" },
+            { "before": "name = getActiveSubagentProfileName() ?? \"default\"", "after": "name = \"default\"" },
+            { "before": "export function activateSubagentProfileSession(\n\tpi:", "after": "export function activateSubagentProfileSession(\n\tsession: SubagentProfileSessionState,\n\tpi:" },
+            { "before": "const profile = restoreSubagentProfileSession(ctx.sessionManager.getBranch());", "after": "const profile = restoreSubagentProfileSession(session, ctx.sessionManager.getBranch());" },
+            { "before": "export function clearSubagentProfileSession(ctx?: Pick<ExtensionContext, \"ui\" | \"hasUI\">): void {\n\tclearSubagentProfileOverlay();", "after": "export function clearSubagentProfileSession(session: SubagentProfileSessionState, ctx?: Pick<ExtensionContext, \"ui\" | \"hasUI\">): void {\n\tclearSubagentProfileOverlay(session);" }
+          ]
+        },
+        {
+          "file": "src/slash/slash-commands.ts",
+          "beforeHash": "768b9b6baf7d51aa6528aa51690c005ffdf4e28708cb154bb25667bb2a8a9ab3",
+          "afterHash": "6f2e1ae187c8d80f0aa19dff851e30c19d1a62fcdbc7be1395fbce7512428926",
+          "edits": [
+            { "before": "} from \"../profiles/profiles.ts\";\nimport type { SubagentParamsLike }", "after": "} from \"../profiles/profiles.ts\";\nimport type { SubagentProfileSessionState } from \"../profiles/session-profile.ts\";\nimport type { SubagentParamsLike }" },
+            { "before": "function discoverSlashAgents(pi: ExtensionAPI, cwd: string, scope: AgentScope):", "after": "function discoverSlashAgents(\n\tpi: ExtensionAPI,\n\tcwd: string,\n\tscope: AgentScope,\n\tprofileSession: SubagentProfileSessionState,\n):" },
+            { "before": "discoverAgents(cwd, scope);", "after": "discoverAgents(cwd, scope, profileSession);" },
+            { "before": "discoverAgentsAll(cwd);", "after": "discoverAgentsAll(cwd, profileSession);" },
+            { "before": "const makeAgentCompletions = (pi: ExtensionAPI, state: SubagentState) =>", "after": "const makeAgentCompletions = (pi: ExtensionAPI, state: SubagentState, profileSession: SubagentProfileSessionState) =>" },
+            { "before": "discoverSlashAgents(pi, state.baseCwd, \"both\").agents", "after": "discoverSlashAgents(pi, state.baseCwd, \"both\", profileSession).agents" },
+            { "before": "options: { fleetKeybindings?: FleetKeybindingsConfig; foregroundDetachShortcut?: string } = {},", "after": "options: { profileSession: SubagentProfileSessionState; fleetKeybindings?: FleetKeybindingsConfig; foregroundDetachShortcut?: string }," },
+            { "before": "openSubagentsAdmin(pi, ctx, args);", "after": "openSubagentsAdmin(pi, ctx, args, options.profileSession);" },
+            { "before": "description: \"Run one subagent through workflowScript: /run agent[output=file] [task] [--bg] [--fork]\",\n\t\tgetArgumentCompletions: makeAgentCompletions(pi, state),", "after": "description: \"Run one subagent through workflowScript: /run agent[output=file] [task] [--bg] [--fork]\",\n\t\tgetArgumentCompletions: makeAgentCompletions(pi, state, options.profileSession)," },
+            { "before": "discoverSlashAgents(pi, state.baseCwd, \"both\");", "after": "discoverSlashAgents(pi, state.baseCwd, \"both\", options.profileSession);" },
+            { "before": "description: \"Generate a bounded project-local refinement overlay for one subagent\",\n\t\tgetArgumentCompletions: makeAgentCompletions(pi, state),", "after": "description: \"Generate a bounded project-local refinement overlay for one subagent\",\n\t\tgetArgumentCompletions: makeAgentCompletions(pi, state, options.profileSession)," },
+            { "before": "applySubagentProfile(parsed.value);", "after": "applySubagentProfile(options.profileSession, parsed.value);" }
+          ]
+        },
+        {
+          "file": "src/extension/index.ts",
+          "beforeHash": "a36d9e97b736c4a3acfc104e82d2e462c9a2cc22138ac7d48a40b75f02ae8db3",
+          "afterHash": "a764822afb39f2b17c8d0f155400cebeef6882736f910256df4d003cd805efef",
+          "edits": [
+            { "before": "import { activateSubagentProfileSession, clearSubagentProfileSession } from \"../profiles/profiles.ts\";", "after": "import { activateSubagentProfileSession, clearSubagentProfileSession } from \"../profiles/profiles.ts\";\nimport { createSubagentProfileSessionState } from \"../profiles/session-profile.ts\";" },
+            { "before": "const runtimeRegistry = getRuntimeRegistry();", "after": "const runtimeRegistry = getRuntimeRegistry();\n\tconst profileSession = createSubagentProfileSessionState();" },
+            { "before": "discoverAgents(cwd, scope);", "after": "discoverAgents(cwd, scope, profileSession);" },
+            { "before": "discoverAgentsAll(cwd);", "after": "discoverAgentsAll(cwd, profileSession);" },
+            { "before": "discoverAgents: discoverAgentsForRuntime,", "after": "discoverAgents: discoverAgentsForRuntime,\n\t\tdiscoverAgentsAll: (cwd) => discoverAgentsAll(cwd, profileSession)," },
+            { "before": "registerSlashCommands(pi, state, {\n\t\tfleetKeybindings:", "after": "registerSlashCommands(pi, state, {\n\t\tprofileSession,\n\t\tfleetKeybindings:" },
+            { "before": "pi.on(\"session_start\", (event, ctx) => {\n\t\tactivateSubagentProfileSession(pi, ctx);", "after": "pi.on(\"session_start\", (event, ctx) => {\n\t\tactivateSubagentProfileSession(profileSession, pi, ctx);" },
+            { "before": "pi.on(\"session_tree\", (_event, ctx) => {\n\t\tactivateSubagentProfileSession(pi, ctx);", "after": "pi.on(\"session_tree\", (_event, ctx) => {\n\t\tactivateSubagentProfileSession(profileSession, pi, ctx);" },
+            { "before": "clearSubagentProfileSession(ctx);", "after": "clearSubagentProfileSession(profileSession, ctx);" }
+          ]
+        },
+        {
+          "file": "src/runs/foreground/subagent-executor.ts",
+          "beforeHash": "84f3960fe05154c0214dc395ee8578e4e5795e529fa3688e75028de3e2004fc2",
+          "afterHash": "6b892c525b2d7b86f7319a401d2230449d1826a6b30ae7843eb51e42b4243266",
+          "edits": [
+            { "before": "import { findBlockingAgentDiagnostic,", "after": "import { discoverAgentsAll, findBlockingAgentDiagnostic," },
+            { "before": "\tdiscoverAgents: (cwd: string, scope: AgentScope) => { agents: AgentConfig[]; agentDiagnostics?: AgentDiscoveryDiagnostic[]; modelScope?: ModelScopeConfig; maxThinking?: AgentConfig[\"maxThinking\"] };", "after": "\tdiscoverAgents: (cwd: string, scope: AgentScope) => { agents: AgentConfig[]; agentDiagnostics?: AgentDiscoveryDiagnostic[]; modelScope?: ModelScopeConfig; maxThinking?: AgentConfig[\"maxThinking\"] };\n\tdiscoverAgentsAll?: (cwd: string) => ReturnType<typeof discoverAgentsAll>;" },
+            { "before": "runtimeAgentOwner: deps.pi,", "after": "runtimeAgentOwner: deps.pi,\n\t\t\t\tdiscoverAgentsAll: deps.discoverAgentsAll," }
+          ]
+        },
+        {
+          "file": "src/slash/subagents-admin.ts",
+          "beforeHash": "0f0d647a4408b3d4fcc8584b480f787067d3979cfefc1f9c2f700ae55fb4b5a5",
+          "afterHash": "becaacd8114cf5a04a0d7ea0f73abbb8f9664b4c747a74c46b442dc736779869",
+          "edits": [
+            { "before": "} from \"../agents/agents.ts\";\nimport { serializeAgent }", "after": "} from \"../agents/agents.ts\";\nimport type { SubagentProfileSessionState } from \"../profiles/session-profile.ts\";\nimport { serializeAgent }" },
+            { "before": "function allVisibleAgents(cwd: string): AgentConfig[] {\n\tconst d = discoverAgentsAll(cwd);", "after": "function allVisibleAgents(cwd: string, profileSession: SubagentProfileSessionState): AgentConfig[] {\n\tconst d = discoverAgentsAll(cwd, profileSession);" },
+            { "before": "async function selectAgent(ctx: ExtensionContext, args: string): Promise<AgentSelection> {\n\tconst agents = allVisibleAgents(ctx.cwd);", "after": "async function selectAgent(ctx: ExtensionContext, args: string, profileSession: SubagentProfileSessionState): Promise<AgentSelection> {\n\tconst agents = allVisibleAgents(ctx.cwd, profileSession);" },
+            { "before": "export async function openSubagentsAdmin(pi: ExtensionAPI, ctx: ExtensionContext, args = \"\"): Promise<void> {\n\tconst selection = await selectAgent(ctx, args);", "after": "export async function openSubagentsAdmin(\n\tpi: ExtensionAPI,\n\tctx: ExtensionContext,\n\targs: string,\n\tprofileSession: SubagentProfileSessionState,\n): Promise<void> {\n\tconst selection = await selectAgent(ctx, args, profileSession);" }
+          ]
+        },
+        {
+          "file": "src/agents/agent-management.ts",
+          "beforeHash": "0f2d9f5ea09d3a5a3e8905c7d88e4fc3fedafbd6d69a83b00de3d92e9d9ffca2",
+          "afterHash": "6ac2dec18ec9a329eecd28c66c1d30ddea448d3fa0f418bffc06de31d7e0a5e3",
+          "edits": [
+            { "before": "type ManagementContext = Pick<ExtensionContext, \"cwd\" | \"modelRegistry\"> & { model?: ExtensionContext[\"model\"]; config?: ExtensionConfig; currentSessionId?: string; runtimeAgentOwner?: RuntimeAgentOwner };", "after": "type ManagementContext = Pick<ExtensionContext, \"cwd\" | \"modelRegistry\"> & {\n\tmodel?: ExtensionContext[\"model\"];\n\tconfig?: ExtensionConfig;\n\tcurrentSessionId?: string;\n\truntimeAgentOwner?: RuntimeAgentOwner;\n\tdiscoverAgentsAll?: (cwd: string) => ReturnType<typeof discoverAgentsAll>;\n};\n\nfunction discoverAll(ctx: ManagementContext): ReturnType<typeof discoverAgentsAll> {\n\treturn ctx.discoverAgentsAll?.(ctx.cwd) ?? discoverAgentsAll(ctx.cwd);\n}" },
+            { "before": "export function handleList(params: ManagementParams, ctx: ManagementContext): AgentToolResult<Details> {\n\tconst scope = normalizeListScope(params.agentScope) ?? \"both\";\n\tconst d = discoverAgentsAll(ctx.cwd);", "after": "export function handleList(params: ManagementParams, ctx: ManagementContext): AgentToolResult<Details> {\n\tconst scope = normalizeListScope(params.agentScope) ?? \"both\";\n\tconst d = discoverAll(ctx);" },
+            { "before": "const discovered = discoverAgentsAll(ctx.cwd);\n\tconst builtinByName", "after": "const discovered = discoverAll(ctx);\n\tconst builtinByName" },
+            { "before": "const discovered = discoverAgentsAll(ctx.cwd);\n\tconst matches = findAgentsInDiscovery", "after": "const discovered = discoverAll(ctx);\n\tconst matches = findAgentsInDiscovery" }
+          ]
+        },
+        {
+          "file": "src/extension/index.ts",
+          "beforeHash": "a764822afb39f2b17c8d0f155400cebeef6882736f910256df4d003cd805efef",
+          "afterHash": "886bf0bbf33ec2bec12e4b328ee8628d69676585f4bde57878bd6a5678e21b5b",
+          "edits": [
+            { "before": "import { createSubagentProfileSessionState } from \"../profiles/session-profile.ts\";", "after": "import { createSubagentProfileSessionState, getActiveSubagentProfileName } from \"../profiles/session-profile.ts\";" },
+            { "before": "\t\tdiscoverAgentsAll: (cwd) => discoverAgentsAll(cwd, profileSession),\n\t\tactivateSupervisorTransport:", "after": "\t\tdiscoverAgentsAll: (cwd) => discoverAgentsAll(cwd, profileSession),\n\t\tactiveProfileName: () => getActiveSubagentProfileName(profileSession),\n\t\tactivateSupervisorTransport:" }
+          ]
+        },
+        {
+          "file": "src/runs/foreground/subagent-executor.ts",
+          "beforeHash": "6b892c525b2d7b86f7319a401d2230449d1826a6b30ae7843eb51e42b4243266",
+          "afterHash": "ed5d4ea577cb44699458efdbfea34e84acf6dd68434f7a9f5d5675ea8542682d",
+          "edits": [
+            { "before": "\tdiscoverAgentsAll?: (cwd: string) => ReturnType<typeof discoverAgentsAll>;\n\tallowMutatingManagementActions?: boolean;", "after": "\tdiscoverAgentsAll?: (cwd: string) => ReturnType<typeof discoverAgentsAll>;\n\tactiveProfileName?: () => string | undefined;\n\tallowMutatingManagementActions?: boolean;" },
+            { "before": "\t\t\t\tdiscoverAgentsAll: deps.discoverAgentsAll,\n\t\t\t});", "after": "\t\t\t\tdiscoverAgentsAll: deps.discoverAgentsAll,\n\t\t\t\tactiveProfileName: deps.activeProfileName?.(),\n\t\t\t});" }
+          ]
+        },
+        {
+          "file": "src/agents/agent-management.ts",
+          "beforeHash": "6ac2dec18ec9a329eecd28c66c1d30ddea448d3fa0f418bffc06de31d7e0a5e3",
+          "afterHash": "a5fe8035e501b6561c398605b869a4e5802dd386f35bf176ed0d677a4c389064",
+          "edits": [
+            { "before": "\tdiscoverAgentsAll?: (cwd: string) => ReturnType<typeof discoverAgentsAll>;\n};", "after": "\tdiscoverAgentsAll?: (cwd: string) => ReturnType<typeof discoverAgentsAll>;\n\tactiveProfileName?: string;\n};" },
+            { "before": "function availableAgentNames(cwd: string): string[] {\n\treturn availableAgentNamesFromDiscovery(discoverAgentsAll(cwd));\n}", "after": "function availableAgentNames(ctx: ManagementContext): string[] {\n\treturn availableAgentNamesFromDiscovery(discoverAll(ctx));\n}" },
+            { "before": "function findAgents(name: string, cwd: string, scope: AgentScope = \"both\"): AgentConfig[] {\n\treturn findAgentsInDiscovery(name, discoverAgentsAll(cwd), scope);\n}", "after": "function findAgents(name: string, ctx: ManagementContext, scope: AgentScope = \"both\"): AgentConfig[] {\n\treturn findAgentsInDiscovery(name, discoverAll(ctx), scope);\n}" },
+            { "before": "function nameExistsInScope(cwd: string, scope: ManagementScope, name: string, excludePath?: string): boolean {\n\tconst d = discoverAgentsAll(cwd);\n\tfor (const a of scope === \"user\" ? d.user : d.project) {\n\t\tif (a.name === name && a.filePath !== excludePath) return true;\n\t}\n\treturn false;\n}", "after": "function nameExistsInScope(ctx: ManagementContext, scope: ManagementScope, name: string, excludePath?: string): boolean {\n\tconst d = discoverAll(ctx);\n\tfor (const a of scope === \"user\" ? d.user : d.project) {\n\t\tif (a.name === name && a.filePath !== excludePath) return true;\n\t}\n\treturn false;\n}" },
+            { "before": "function renamePath(currentPath: string, newName: string, scope: ManagementScope, cwd: string): { filePath?: string; error?: string } {\n\tif (nameExistsInScope(cwd, scope, newName, currentPath))", "after": "function renamePath(currentPath: string, newName: string, scope: ManagementScope, ctx: ManagementContext): { filePath?: string; error?: string } {\n\tif (nameExistsInScope(ctx, scope, newName, currentPath))" },
+            { "before": "\tif (hasKey(cfg, \"steps\")) return result(\"Durable chain definitions were removed; use workflowScript or /prompt-workflow for repeatable workflows.\", true);\n\tconst d = discoverAgentsAll(ctx.cwd);", "after": "\tif (hasKey(cfg, \"steps\")) return result(\"Durable chain definitions were removed; use workflowScript or /prompt-workflow for repeatable workflows.\", true);\n\tconst d = discoverAll(ctx);" },
+            { "before": "\tif (nameExistsInScope(ctx.cwd, scope, runtimeName)) return result(`Name '${runtimeName}' already exists in ${scope} scope. Use update instead.`, true);", "after": "\tif (nameExistsInScope(ctx, scope, runtimeName)) return result(`Name '${runtimeName}' already exists in ${scope} scope. Use update instead.`, true);" },
+            { "before": "\tconst warnings: string[] = [];\n\tconst scopeHint = asDisambiguationScope(params.agentScope);\n\tconst targetOrError = resolveTarget(params.agent, findAgents(params.agent, ctx.cwd, scopeHint ?? \"both\"), ctx.cwd, scopeHint);", "after": "\tconst warnings: string[] = [];\n\tconst scopeHint = asDisambiguationScope(params.agentScope);\n\tconst targetOrError = resolveTarget(params.agent, findAgents(params.agent, ctx, scopeHint ?? \"both\"), ctx.cwd, scopeHint);" },
+            { "before": "\t\tconst renamed = renamePath(target.filePath, updated.name, target.source, ctx.cwd);", "after": "\t\tconst renamed = renamePath(target.filePath, updated.name, target.source, ctx);" },
+            { "before": "function handleDelete(params: ManagementParams, ctx: ManagementContext): AgentToolResult<Details> {\n\tif (!params.agent) return result(\"Specify 'agent' for delete.\", true);\n\tconst scopeHint = asDisambiguationScope(params.agentScope);\n\tconst targetOrError = resolveTarget(params.agent, findAgents(params.agent, ctx.cwd, scopeHint ?? \"both\"), ctx.cwd, scopeHint);", "after": "function handleDelete(params: ManagementParams, ctx: ManagementContext): AgentToolResult<Details> {\n\tif (!params.agent) return result(\"Specify 'agent' for delete.\", true);\n\tconst scopeHint = asDisambiguationScope(params.agentScope);\n\tconst targetOrError = resolveTarget(params.agent, findAgents(params.agent, ctx, scopeHint ?? \"both\"), ctx.cwd, scopeHint);" },
+            { "before": "\tconst scope = parsedScope.scope!;\n\tconst d = discoverAgentsAll(ctx.cwd);\n\tconst source = [...d.package, ...d.builtin]", "after": "\tconst scope = parsedScope.scope!;\n\tconst d = discoverAll(ctx);\n\tconst source = [...d.package, ...d.builtin]" },
+            { "before": "\t\treturn result(`Agent '${raw}' not found or is not a bundled/package agent. eject copies a builtin or package agent to ${scope} scope so it can be customized. Available: ${availableAgentNames(ctx.cwd).join(\", \") || \"none\"}.`, true);", "after": "\t\treturn result(`Agent '${raw}' not found or is not a bundled/package agent. eject copies a builtin or package agent to ${scope} scope so it can be customized. Available: ${availableAgentNames(ctx).join(\", \") || \"none\"}.`, true);" },
+            { "before": "\tif (nameExistsInScope(ctx.cwd, scope, runtimeName)) {", "after": "\tif (nameExistsInScope(ctx, scope, runtimeName)) {" },
+            { "before": "function handleDisable(params: ManagementParams, ctx: ManagementContext): AgentToolResult<Details> {\n\tif (!params.agent) return result(\"Specify 'agent' for disable.\", true);\n\tconst raw = params.agent.trim();\n\tconst parsedScope = actionScope(params.agentScope, \"disable\");\n\tif (parsedScope.error) return parsedScope.error;\n\tconst scope = parsedScope.scope!;\n\tconst d = discoverAgentsAll(ctx.cwd);", "after": "function handleDisable(params: ManagementParams, ctx: ManagementContext): AgentToolResult<Details> {\n\tif (!params.agent) return result(\"Specify 'agent' for disable.\", true);\n\tconst raw = params.agent.trim();\n\tconst parsedScope = actionScope(params.agentScope, \"disable\");\n\tif (parsedScope.error) return parsedScope.error;\n\tconst scope = parsedScope.scope!;\n\tconst d = discoverAll(ctx);" },
+            { "before": "\tif (!effective.agent) {\n\t\treturn result(`Agent '${raw}' not found. Available: ${availableAgentNames(ctx.cwd).join(\", \") || \"none\"}.`, true);\n\t}\n\tconst runtimeName = effective.agent.name;\n\tconst settingsPath = mergeBuiltinAgentOverride", "after": "\tif (!effective.agent) {\n\t\treturn result(`Agent '${raw}' not found. Available: ${availableAgentNames(ctx).join(\", \") || \"none\"}.`, true);\n\t}\n\tconst runtimeName = effective.agent.name;\n\tconst settingsPath = mergeBuiltinAgentOverride" },
+            { "before": "\tif (!effective.agent) {\n\t\treturn result(`Agent '${raw}' not found. Available: ${availableAgentNames(ctx.cwd).join(\", \") || \"none\"}.`, true);\n\t}\n\tconst runtimeName = effective.agent.name;\n\tconst { path: settingsPath, removed } = removeBuiltinAgentOverrideFields", "after": "\tif (!effective.agent) {\n\t\treturn result(`Agent '${raw}' not found. Available: ${availableAgentNames(ctx).join(\", \") || \"none\"}.`, true);\n\t}\n\tconst runtimeName = effective.agent.name;\n\tconst { path: settingsPath, removed } = removeBuiltinAgentOverrideFields" },
+            { "before": "\t\treturn result(`Agent '${raw}' not found. Available: ${availableAgentNames(ctx.cwd).join(\", \") || \"none\"}.`, true);\n\t}\n\tconst runtimeName = bundled.name;", "after": "\t\treturn result(`Agent '${raw}' not found. Available: ${availableAgentNames(ctx).join(\", \") || \"none\"}.`, true);\n\t}\n\tconst runtimeName = bundled.name;" },
+            { "before": "\tconst settingsPath = mergeBuiltinAgentOverride(ctx.cwd, runtimeName, scope, { disabled: true });\n\tconst after = resolveEffectiveAgent(discoverAgentsAll(ctx.cwd), raw).agent;", "after": "\tconst settingsPath = mergeBuiltinAgentOverride(ctx.cwd, runtimeName, scope, { disabled: true });\n\tconst after = resolveEffectiveAgent(discoverAll(ctx), raw).agent;" },
+            { "before": "\treturn result(`Wrote a disabled override for '${runtimeName}' at ${settingsPath}, but the agent is still enabled. A higher-precedence ${after?.override?.scope ?? \"project\"} override is likely winning. Try agentScope: '${after?.override?.scope ?? \"project\"}'.`, true);", "after": "\tif (ctx.activeProfileName) return result(`Wrote a disabled override for '${runtimeName}' at ${settingsPath}, but active session profile '${ctx.activeProfileName}' still exposes the agent. The persistent change is saved but does not affect this active profile; switch to a profile that disables it.`, true);\n\treturn result(`Wrote a disabled override for '${runtimeName}' at ${settingsPath}, but the agent is still enabled. A higher-precedence ${after?.override?.scope ?? \"project\"} override is likely winning. Try agentScope: '${after?.override?.scope ?? \"project\"}'.`, true);" },
+            { "before": "function handleEnable(params: ManagementParams, ctx: ManagementContext): AgentToolResult<Details> {\n\tif (!params.agent) return result(\"Specify 'agent' for enable.\", true);\n\tconst raw = params.agent.trim();\n\tconst parsedScope = actionScope(params.agentScope, \"enable\");\n\tif (parsedScope.error) return parsedScope.error;\n\tconst scope = parsedScope.scope!;\n\tconst d = discoverAgentsAll(ctx.cwd);", "after": "function handleEnable(params: ManagementParams, ctx: ManagementContext): AgentToolResult<Details> {\n\tif (!params.agent) return result(\"Specify 'agent' for enable.\", true);\n\tconst raw = params.agent.trim();\n\tconst parsedScope = actionScope(params.agentScope, \"enable\");\n\tif (parsedScope.error) return parsedScope.error;\n\tconst scope = parsedScope.scope!;\n\tconst d = discoverAll(ctx);" },
+            { "before": "\tconst { path: settingsPath, removed } = removeBuiltinAgentOverrideFields(ctx.cwd, runtimeName, scope, [\"disabled\"]);\n\tconst after = resolveEffectiveAgent(discoverAgentsAll(ctx.cwd), raw).agent;\n\tif (after && after.disabled !== true) {", "after": "\tconst { path: settingsPath, removed } = removeBuiltinAgentOverrideFields(ctx.cwd, runtimeName, scope, [\"disabled\"]);\n\tconst after = resolveEffectiveAgent(discoverAll(ctx), raw).agent;\n\tif (after?.disabled === true && ctx.activeProfileName) {\n\t\tconst persisted = removed ? `Removed the ${scope} disabled override at ${settingsPath}` : `No ${scope} disabled override existed at ${settingsPath}`;\n\t\treturn result(`${persisted}, but active session profile '${ctx.activeProfileName}' still disables '${runtimeName}'. The persistent change does not affect this active profile; switch to a profile that enables it.`, true);\n\t}\n\tif (after && after.disabled !== true) {" },
+            { "before": "function handleReset(params: ManagementParams, ctx: ManagementContext): AgentToolResult<Details> {\n\tif (!params.agent) return result(\"Specify 'agent' for reset.\", true);\n\tconst raw = params.agent.trim();\n\tconst sanitized = sanitizeName(raw);\n\tconst parsedScope = actionScope(params.agentScope, \"reset\");\n\tif (parsedScope.error) return parsedScope.error;\n\tconst scope = parsedScope.scope!;\n\tconst d = discoverAgentsAll(ctx.cwd);", "after": "function handleReset(params: ManagementParams, ctx: ManagementContext): AgentToolResult<Details> {\n\tif (!params.agent) return result(\"Specify 'agent' for reset.\", true);\n\tconst raw = params.agent.trim();\n\tconst sanitized = sanitizeName(raw);\n\tconst parsedScope = actionScope(params.agentScope, \"reset\");\n\tif (parsedScope.error) return parsedScope.error;\n\tconst scope = parsedScope.scope!;\n\tconst d = discoverAll(ctx);" },
+            { "before": "\tlines.push(`Reset agent '${runtimeName}' to its bundled ${bundled.source} default.`);\n\treturn result(lines.join(\"\\n\"));", "after": "\tlines.push(`Reset agent '${runtimeName}' to its bundled ${bundled.source} default.`);\n\tif (ctx.activeProfileName) lines.push(`Active session profile '${ctx.activeProfileName}' remains authoritative; this persistent reset does not change that profile.`);\n\treturn result(lines.join(\"\\n\"));" }
+          ]
+        },
+        {
+          "file": "src/agents/agent-management.ts",
+          "beforeHash": "a5fe8035e501b6561c398605b869a4e5802dd386f35bf176ed0d677a4c389064",
+          "afterHash": "db84d1eaf84b4b96263ad66c0676020b4347dc33797491cf010928a0e3af7a8e",
+          "edits": [
+            { "before": "\tname: string,\n\tmatches: T[],\n\tcwd: string,\n\tscopeHint?: string,", "after": "\tname: string,\n\tmatches: T[],\n\tctx: ManagementContext,\n\tscopeHint?: string," },
+            { "before": "\t\treturn result(`Agent '${name}' not found. Available: ${availableAgentNames(cwd).join(\", \") || \"none\"}.`, true);", "after": "\t\treturn result(`Agent '${name}' not found. Available: ${availableAgentNames(ctx).join(\", \") || \"none\"}.`, true);" },
+            { "before": "\tconst warnings: string[] = [];\n\tconst scopeHint = asDisambiguationScope(params.agentScope);\n\tconst targetOrError = resolveTarget(params.agent, findAgents(params.agent, ctx, scopeHint ?? \"both\"), ctx.cwd, scopeHint);", "after": "\tconst warnings: string[] = [];\n\tconst scopeHint = asDisambiguationScope(params.agentScope);\n\tconst targetOrError = resolveTarget(params.agent, findAgents(params.agent, ctx, scopeHint ?? \"both\"), ctx, scopeHint);" },
+            { "before": "function handleDelete(params: ManagementParams, ctx: ManagementContext): AgentToolResult<Details> {\n\tif (!params.agent) return result(\"Specify 'agent' for delete.\", true);\n\tconst scopeHint = asDisambiguationScope(params.agentScope);\n\tconst targetOrError = resolveTarget(params.agent, findAgents(params.agent, ctx, scopeHint ?? \"both\"), ctx.cwd, scopeHint);", "after": "function handleDelete(params: ManagementParams, ctx: ManagementContext): AgentToolResult<Details> {\n\tif (!params.agent) return result(\"Specify 'agent' for delete.\", true);\n\tconst scopeHint = asDisambiguationScope(params.agentScope);\n\tconst targetOrError = resolveTarget(params.agent, findAgents(params.agent, ctx, scopeHint ?? \"both\"), ctx, scopeHint);" }
+          ]
         }
       ]
     }

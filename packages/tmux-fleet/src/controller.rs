@@ -89,18 +89,17 @@ pub fn run(config: Config) -> Result<()> {
     }
 
     let mut model = Model::load(&config)?;
-    let mut resume_query = None;
 
     loop {
         model.refresh(&config)?;
-        let Some(target) = run_picker(&config, &model, resume_query.take())? else {
+        let Some(target) = run_picker(&config, &model)? else {
             break;
         };
 
         match target {
             Target::LocalSession {
                 id,
-                name,
+                name: _,
                 server_pid,
                 server_started_at,
                 created_at,
@@ -116,12 +115,10 @@ pub fn run(config: Config) -> Result<()> {
                 SWITCH_EXIT_CODE => {}
                 STALE_TARGET_EXIT_CODE => {
                     eprintln!("That local session changed since it was listed; refreshing.");
-                    resume_query = Some(name);
                 }
                 0 => break,
                 code => {
                     eprintln!("Local tmux exited with status {code}; returning to the picker.");
-                    resume_query = Some(name);
                 }
             },
             Target::NewLocal => {
@@ -146,7 +143,6 @@ pub fn run(config: Config) -> Result<()> {
                 server_started_at,
                 created_at,
             } => {
-                let query = ssh_target.clone();
                 if let Err(error) = run_remote_target(
                     &config,
                     &ssh_target,
@@ -162,7 +158,6 @@ pub fn run(config: Config) -> Result<()> {
                 ) {
                     eprintln!("Could not attach remote session: {error:#}");
                 }
-                resume_query = Some(query);
             }
             Target::NewRemote {
                 ssh_target,
@@ -179,17 +174,14 @@ pub fn run(config: Config) -> Result<()> {
                 ) {
                     eprintln!("Could not create remote session: {error:#}");
                 }
-                resume_query = Some(ssh_target);
             }
             Target::ReconnectSsh { target } => {
                 if let Err(error) = connect_remote(&config, &target) {
                     eprintln!("Could not connect to {target}: {error:#}");
                 }
-                resume_query = Some(target);
             }
-            Target::RemoteStatus { target, message } => {
+            Target::RemoteStatus { message, .. } => {
                 eprintln!("{message}");
-                resume_query = (!target.is_empty()).then_some(target);
             }
             Target::ConnectSsh => {
                 let Some(target) = prompt_ssh_target()? else {
@@ -198,7 +190,6 @@ pub fn run(config: Config) -> Result<()> {
                 if let Err(error) = connect_remote(&config, &target) {
                     eprintln!("Could not connect to {target}: {error:#}");
                 }
-                resume_query = Some(target);
             }
         }
     }
@@ -520,7 +511,7 @@ fn classify_remote_exit(code: i32) -> RemoteExit {
     }
 }
 
-fn run_picker(config: &Config, model: &Model, query: Option<String>) -> Result<Option<Target>> {
+fn run_picker(config: &Config, model: &Model) -> Result<Option<Target>> {
     let rows = model.rows()?;
 
     let mut command = Command::new(&config.fzf_command);
@@ -532,9 +523,6 @@ fn run_picker(config: &Config, model: &Model, query: Option<String>) -> Result<O
         .env_remove("FZF_DEFAULT_COMMAND")
         .env_remove("FZF_DEFAULT_OPTS")
         .env_remove("FZF_DEFAULT_OPTS_FILE");
-    if let Some(query) = query {
-        command.arg("--query").arg(query);
-    }
     let mut child = command
         .spawn()
         .with_context(|| format!("failed to run {}", config.fzf_command.display()))?;
@@ -666,7 +654,7 @@ mod tests {
     }
 
     #[test]
-    fn picker_is_centered_and_matches_visible_columns() {
+    fn picker_is_centered_unfiltered_and_matches_visible_columns() {
         assert!(PICKER_ARGUMENTS.contains(&"--no-height"));
         assert!(PICKER_ARGUMENTS.contains(&"--margin=12%,8%"));
         assert!(PICKER_ARGUMENTS.contains(&"--with-nth=2.."));
@@ -674,10 +662,13 @@ mod tests {
         assert!(!PICKER_ARGUMENTS
             .iter()
             .any(|argument| argument.starts_with("--nth=")));
+        assert!(!PICKER_ARGUMENTS
+            .iter()
+            .any(|argument| argument.starts_with("--query")));
     }
 
     #[test]
-    fn picker_rows_include_local_remote_and_one_disconnected_reconnect() {
+    fn picker_rows_include_local_all_connected_remotes_and_one_disconnected_reconnect() {
         let model = Model {
             local_name: "local".into(),
             local: snapshot("local", 7, 11, vec![session("$1", "local-work", 12)]),
@@ -691,6 +682,17 @@ mod tests {
                     server_pid: 17,
                     server_started_at: 19,
                     sessions: vec![session("$2", "remote-work", 20)],
+                    message: None,
+                },
+                RemoteHost {
+                    target: "markus".into(),
+                    state: RemoteState::Ready,
+                    connection_id: Some("fedcba9876543210fedcba9876543210".into()),
+                    epoch: 5,
+                    hostname: Some("markus-mini".into()),
+                    server_pid: 23,
+                    server_started_at: 29,
+                    sessions: vec![session("$3", "second-remote-work", 30)],
                     message: None,
                 },
                 RemoteHost {
@@ -711,8 +713,10 @@ mod tests {
         assert!(rows.contains("local-work"));
         assert!(rows.contains("remote-work"));
         assert!(rows.contains("hugh-mini"));
+        assert!(rows.contains("second-remote-work"));
+        assert!(rows.contains("markus-mini"));
         assert_eq!(rows.matches("\"action\":\"reconnect_ssh\"").count(), 1);
-        assert_eq!(rows.matches("\"action\":\"remote_session\"").count(), 1);
+        assert_eq!(rows.matches("\"action\":\"remote_session\"").count(), 2);
     }
 
     #[test]

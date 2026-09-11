@@ -2,12 +2,15 @@ import type { ExtensionAPI, ExtensionContext, ToolCallEvent } from "../../npm/no
 import { WorkflowLedger, object, text, type Contract, type Receipt } from "./workflow-ledger.js";
 import { canonicalRoots, contains, digest } from "./workflow-workspace.js";
 import { WriterLeaseStore, mutationTargets, type Lease } from "./writer-lease.js";
+import { registerHumanWorkflow } from "./workflow-human.js";
+import { canonicalToolName, hasActiveTool } from "./workflow-tool-name.js";
 
 export type WorkflowApi = ExtensionAPI;
 export interface AutoControls { enabled: boolean; owner: boolean }
 const STATUS = "cb-workflow";
 const INSTRUCTIONS = "cb-workflow-context-v1";
 const REMEDIATION = "cb-workflow-remediation-v1";
+const INTAKE = "cb-workflow-intake-v1";
 const string = { type: "string", minLength: 1, maxLength: 4000 };
 const strings = { type: "array", items: string, maxItems: 32 };
 const definitionSchema = {
@@ -30,6 +33,7 @@ export function registerWorkflow(pi: WorkflowApi, controls: () => AutoControls, 
   let sessionId: string | undefined;
   let runtimeFault: string | undefined;
   let waitingUi = false;
+  let pendingInputs: string[] = [];
   const mutations = new Set<string>();
   const finalized = new Set<string>();
   const starts = new Map<string, Omit<Receipt, "after" | "resultHash" | "isError">>();
@@ -47,10 +51,10 @@ export function registerWorkflow(pi: WorkflowApi, controls: () => AutoControls, 
   const missingCapabilities = (): string[] => {
     const c = ledger.contract;
     if (!c) return [];
-    const active = new Set(pi.getActiveTools());
+    const active = pi.getActiveTools();
     const required = new Set(["workflow_contract", ...c.journeys.map((journey) => journey.tool)]);
     if (c.kind === "implementation") required.add("writer_lease");
-    return [...required].filter((tool) => !active.has(tool));
+    return [...required].filter((tool) => !hasActiveTool(active, tool));
   };
   const report = (ctx: ExtensionContext, refresh = true): string => {
     const c = ledger.contract;
@@ -61,6 +65,7 @@ export function registerWorkflow(pi: WorkflowApi, controls: () => AutoControls, 
     const serialized = JSON.stringify({
       acceptance: ledger.fault || runtimeFault ? "unaccepted" : c?.status ?? "no active contract",
       fault: ledger.fault ?? runtimeFault, durability: ctx.sessionManager.getSessionFile() ? "Pi custom entries" : "ephemeral; not durable across process exit",
+      retirement: ledger.retirement, history: ledger.audit,
       input: ledger.input && { ...ledger.input, authorization: ledger.input.authorization && { action: ledger.input.authorization.action, revision: ledger.input.authorization.revision, scopeHash: digest(ledger.input.authorization.definition) } },
       objective: c && { id: c.id, objective: c.objective, revision: c.revision, kind: c.kind, roots: c.roots, externalInputs: c.externalInputs,
         requirements: c.requirements, journeys: c.journeys, evidence: c.evidence.map((e) => ({ target: e.target, toolCallId: e.receipt.toolCallId, artifact: e.artifact, workspaceRevision: e.receipt.after })),
@@ -73,6 +78,8 @@ export function registerWorkflow(pi: WorkflowApi, controls: () => AutoControls, 
   const restore = (ctx: ExtensionContext): void => {
     sessionId = ctx.sessionManager.getSessionId();
     ledger.restore(branch(ctx));
+    const intake = [...branch(ctx)].reverse().find((entry) => entry.type === "custom" && entry.customType === INTAKE) as { data?: unknown } | undefined;
+    pendingInputs = (intake?.data as string[] | undefined) ?? [];
     report(ctx);
   };
   // Shutdown may run after Pi has changed the in-memory SessionManager ID.
@@ -85,13 +92,7 @@ export function registerWorkflow(pi: WorkflowApi, controls: () => AutoControls, 
     permits.clear();
   };
 
-  pi.registerCommand("workflow", {
-    description: "Show active-branch workflow acceptance and writer status (not transport settlement)",
-    handler: async (args, ctx) => {
-      if (args.trim() && args.trim() !== "status") { ctx.ui.notify("Usage: /workflow [status]. Scope changes use genuine workflow-scope input; see auto-mode/README.md.", "warning"); return; }
-      ctx.ui.notify(report(ctx), "info");
-    },
-  });
+  registerHumanWorkflow(pi, ledger, { owner: () => controls().owner, drained, report });
   pi.registerTool({
     name: "workflow_contract", label: "Workflow contract",
     description: "Branch-local acceptance ledger. Start implementation explicitly with objective, mandatory criteria and a planned real-interface journey. status exposes latest genuine inputId. confirm cheaply acknowledges unchanged scope. revise may add/strengthen obligations within unchanged roots/objective without more input; removals, weakening, changed scope or replacement of unfinished work require genuine workflow-scope {action:start|revise,revision,definition}. New genuine input after checked completion permits a new objective. evidence cites finalized non-error tool-call IDs and literal expected/observed output; source inspection and child reports alone never satisfy a journey. complete validates current sources, external inputs and required evidence, and THROWS on failure. disposition waiting/blocked suppresses Auto remediation; actionable resumes. Structural checking, not semantic proof.",
@@ -145,7 +146,7 @@ export function registerWorkflow(pi: WorkflowApi, controls: () => AutoControls, 
           const roots = canonicalRoots(args.roots as string[]);
           if (roots.some((target) => !held.roots.some((root) => contains(root, target)))) throw new Error("Permit outside claimed roots");
           if (permits.size >= 8) throw new Error("At most eight pending exact mutation permits");
-          permits.set(digest([text(args.tool, "tool"), object(args.input)]), roots);
+          permits.set(digest([canonicalToolName(text(args.tool, "tool")), object(args.input)]), roots);
           break;
         }
         case "release":
@@ -174,7 +175,25 @@ export function registerWorkflow(pi: WorkflowApi, controls: () => AutoControls, 
     ctx.ui.setStatus(STATUS, undefined);
   });
   pi.on("input", (event, ctx) => {
+    // Remember extension-origin input too: delivery as role=user must not upgrade its authority.
+    pendingInputs.push(digest(event.text));
+    pendingInputs = pendingInputs.slice(-256);
+    pi.appendEntry(INTAKE, pendingInputs);
     ledger.receiveInput(event.source, event.text, ctx.sessionManager.getLeafId(), controls().owner);
+  });
+  pi.on("message_start", (event, ctx) => {
+    if (event.message.role !== "user") return;
+    const raw = typeof event.message.content === "string" ? event.message.content : event.message.content.filter((p) => p.type === "text").map((p) => p.text).join("\n");
+    const matched = pendingInputs.indexOf(digest(raw));
+    if (matched >= 0 || pendingInputs.length) {
+      // Input transforms can change the delivered text. Consume, but never promote, an observed ticket.
+      pendingInputs.splice(matched >= 0 ? matched : 0, 1);
+      pi.appendEntry(INTAKE, pendingInputs);
+      return;
+    }
+    // Pi's direct TUI steer/followUp paths skip `input`; extension messages have tickets above.
+    // Non-TUI delivery remains unattributed and cannot authorize dropping mandatory scope.
+    ledger.receiveInput(ctx.mode === "tui" ? "interactive" : "session", raw, ctx.sessionManager.getLeafId(), controls().owner);
   });
   pi.on("ui_prompt_start", () => { waitingUi = true; });
   pi.on("ui_prompt_end", () => { waitingUi = false; });
@@ -187,38 +206,42 @@ export function registerWorkflow(pi: WorkflowApi, controls: () => AutoControls, 
     return { messages };
   });
   pi.on("tool_call", (event, ctx) => {
-    captureStart(event);
     const targets = mutationTargets(event.toolName, event.input, ctx.cwd);
     if (targets !== undefined) {
       if (ledger.fault) throw new Error(ledger.fault);
       const held = own(ctx);
       let affected: string[];
       if (targets === "permit") {
-        const key = digest([event.toolName, event.input]);
+        const key = digest([canonicalToolName(event.toolName), event.input]);
         const permitted = permits.get(key);
         if (!permitted) throw new Error("Mutation-capable tool needs an exact writer_lease permit with declared affected roots (including shell commands)");
         affected = permitted;
         permits.delete(key);
       } else affected = targets;
       const contract = ledger.contract;
-      if (contract && (contract.kind !== "implementation" || affected.some((target) => !contract.roots.some((root) => contains(root, target))))) {
-        throw new Error("Mutation exceeds the active implementation contract; revise its explicit roots/scope first");
+      if (contract && affected.some((target) => !contract.roots.some((root) => contains(root, target)))) {
+        if (contract.kind !== "implementation") throw new Error("Mutation contradicts the active inspection objective; start or revise an implementation objective");
+        const additions = held.roots.filter((root) => affected.some((target) => contains(root, target)));
+        ledger.extendRoots(additions, `Course-corrected before ${canonicalToolName(event.toolName)} ${event.toolCallId}; writer lease still bounds ownership`);
       }
       storage().reserve(held.owner, event.toolCallId, affected);
       mutations.add(event.toolCallId);
     }
-    if (event.toolName === "subagent" && ledger.contract && !event.input.action &&
-      (typeof event.input.agent === "string" || typeof event.input.workflowScript === "string")) {
+    captureStart(event);
+    const genericInput = event.input as Record<string, unknown>;
+    if (canonicalToolName(event.toolName) === "subagent" && ledger.contract?.status === "open" && !genericInput.action &&
+      (typeof genericInput.agent === "string" || typeof genericInput.workflowScript === "string")) {
       ledger.disposition("waiting", ["Delegated work launched; explicitly resume actionable after it returns and verify its evidence"]);
     }
   });
   function captureStart(event: ToolCallEvent): void {
     const c = ledger.contract;
-    if (!c || event.toolName === "workflow_contract" || event.toolName === "writer_lease" || ledger.fault) return;
-    ledger.begin(event.toolName, digest(event.input));
+    const tool = canonicalToolName(event.toolName);
+    if (!c || c.status !== "open" || tool === "workflow_contract" || tool === "writer_lease" || ledger.fault) return;
+    ledger.begin(tool, digest(event.input));
     try {
       starts.set(event.toolCallId, { version: 1, objectiveId: c.id, revision: c.revision, toolCallId: event.toolCallId,
-        tool: event.toolName, inputHash: digest(event.input), before: ledger.stamp().revision });
+        tool, inputHash: digest(event.input), before: ledger.stamp().revision });
     } catch { /* Missing/bounded inputs cannot produce an acceptance receipt. Status explains the input failure. */ }
   }
   pi.on("tool_execution_end", (event) => {

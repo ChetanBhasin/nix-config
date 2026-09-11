@@ -4,10 +4,11 @@ import tempfile
 import unittest
 from collections.abc import Generator
 from contextlib import contextmanager
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 
 from pi_config import (  # pyright: ignore[reportImplicitRelativeImport]
+    PiConfigError,
     RuntimePaths,
     SyncEngine,
 )
@@ -154,6 +155,58 @@ class MutableRealizationPolicyTests(unittest.TestCase):
                 f"store-linked path: {indirect}",
                 test.engine.doctor(),
             )
+
+
+class SubagentProfileSyncTests(unittest.TestCase):
+    def test_profile_capture_apply_and_deletion_preserve_local_state(self) -> None:
+        with fixture() as test:
+            profiles = test.runtime / "profiles" / "pi-subagents"
+            profiles.mkdir(parents=True)
+            for name in ("simple", "complex", "max"):
+                _ = (profiles / f"{name}.json").write_text(
+                    '{"subagents":{"agentOverrides":{}}}\n'
+                )
+            settings = test.runtime / "settings.json"
+            _ = settings.write_text('{"theme":"dark"}\n')
+            private = test.runtime / "models-store.json"
+            _ = private.write_text('{"machine-local":"untouched"}\n')
+            config = test.project / "home" / "pi" / "config"
+            captured = test.engine.capture(config)
+            self.assertIn("profiles", captured.changed)
+            self.assertFalse((config / "models-store.json").exists())
+            snapshot_profiles = config / "profiles" / "pi-subagents"
+            self.assertEqual(
+                sorted(path.name for path in snapshot_profiles.iterdir()),
+                ["complex.json", "max.json", "simple.json"],
+            )
+            engine = SyncEngine(
+                replace(test.engine.paths, snapshot=config), env={}
+            )
+            _ = engine.apply()
+            _ = (snapshot_profiles / "complex.json").write_text(
+                '{"subagents":{"defaultThinking":"high","agentOverrides":{}}}\n'
+            )
+            (snapshot_profiles / "simple.json").unlink()
+            applied = engine.apply()
+            self.assertIn("profiles", applied.changed)
+            self.assertEqual(
+                (profiles / "complex.json").read_text(),
+                (snapshot_profiles / "complex.json").read_text(),
+            )
+            self.assertFalse((profiles / "simple.json").exists())
+            self.assertEqual(private.read_text(), '{"machine-local":"untouched"}\n')
+            self.assertIn('"dark"', settings.read_text())
+
+    def test_profile_capture_rejects_symlinks_without_changing_target(self) -> None:
+        with fixture() as test:
+            profiles = test.runtime / "profiles"
+            profiles.mkdir()
+            (profiles / "alias").symlink_to(test.project, target_is_directory=True)
+            config = test.project / "config"
+            with self.assertRaises(PiConfigError):
+                _ = test.engine.capture(config)
+            self.assertFalse(config.exists())
+
 
 
 if __name__ == "__main__":

@@ -22,10 +22,25 @@ export function patchedText(current, patch) {
   return result;
 }
 
+export function patchedChain(current, patches) {
+  if (!Array.isArray(patches) || patches.length === 0) throw new Error('Repair chain is empty');
+  const currentHash = current === null ? null : digest(current);
+  const finalPatch = patches[patches.length - 1];
+  if (current !== null && currentHash === finalPatch.afterHash) return current;
+  const start = patches.findIndex(patch => patch.beforeHash === currentHash);
+  if (start < 0) {
+    throw new Error(`Unrecognized source for ${finalPatch.file}; refusing to overwrite an upgrade or local change`);
+  }
+  let result = current;
+  for (let index = start; index < patches.length; index++) result = patchedText(result, patches[index]);
+  return result;
+}
+
 export function applyRepairs({ agentDir = agentDirectory(), check = false, deferMissing = false, manifest } = {}) {
   manifest ??= JSON.parse(fs.readFileSync(new URL('./patches.json', import.meta.url), 'utf8'));
   const npmRoot = path.join(agentDir, 'npm/node_modules');
   const plans = [];
+  let checked = 0;
   if (check && deferMissing) throw new Error('A health check cannot defer missing packages');
   const deferred = [];
   for (const pkg of manifest.packages) {
@@ -39,16 +54,23 @@ export function applyRepairs({ agentDir = agentDirectory(), check = false, defer
     }
     const installed = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
     if (installed.version !== pkg.version) throw new Error(`${pkg.name}: tested ${pkg.version}, found ${installed.version}; review compatibility before upgrading`);
+    checked += pkg.patches.length;
+    const chains = new Map();
     for (const patch of pkg.patches) {
-      const target = path.resolve(root, patch.file);
+      const chain = chains.get(patch.file) ?? [];
+      chain.push(patch);
+      chains.set(patch.file, chain);
+    }
+    for (const [file, patches] of chains) {
+      const target = path.resolve(root, file);
       if (!target.startsWith(root + path.sep)) throw new Error('Invalid repair path');
       const parent = fs.realpathSync(path.dirname(target));
       const realRoot = fs.realpathSync(root);
       if (parent !== realRoot && !parent.startsWith(realRoot + path.sep)) throw new Error('Repair target escapes package');
       if (fs.existsSync(target) && fs.lstatSync(target).isSymbolicLink()) throw new Error('Refusing symlink repair target');
       const current = fs.existsSync(target) ? fs.readFileSync(target, 'utf8') : null;
-      const next = patchedText(current, patch);
-      plans.push({ target, current, next, name: `${pkg.name}/${patch.file}` });
+      const next = patchedChain(current, patches);
+      plans.push({ target, current, next, name: `${pkg.name}/${file}` });
     }
   }
   // Preflight the entire manifest before any mutation. Atomic per-file rename;
@@ -66,7 +88,7 @@ export function applyRepairs({ agentDir = agentDirectory(), check = false, defer
       fs.rmSync(temporary, { force: true });
     }
   }
-  return { checked: plans.length, repaired: changed.length, deferred,
+  return { checked, repaired: changed.length, deferred,
     packages: manifest.packages.map(p => `${p.name}@${p.version}`).filter(p => !deferred.includes(p)) };
 }
 

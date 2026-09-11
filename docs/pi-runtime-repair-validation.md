@@ -2,6 +2,16 @@
 
 Validated on x86_64 Linux against Pi 0.84.4, 2026-09-10. Changes were made live under `~/.pi/agent`, then captured with `pi-config capture`. The existing Codex configuration and unrelated desktop changes were preserved. No CI/CD or sibling-repository implementation changes were made.
 
+## Subsequent profile update — 2026-09-11
+
+The Astra/max role baseline below is historical. The current live configuration selects **complex** from the new [simple/complex/max profiles](pi.md#subagent-profiles); the main model is unchanged. `max` preserves the user's later role tweaks rather than restoring the older universal Astra/max policy. The cleared oracle override resolves to builtin `high` in Pi Subagents 0.56.0.
+
+Profile qualification uses `node home/pi/subagent-profiles-check.mjs`: actual native RPC/slash switching, fresh-process reloads, unchanged parent settings, missing-profile rejection, role model/fallback/inheritance policy and thinking ceilings. `PI_PROFILES_TEST_PARENT_MODEL=gpt-5.6-terra` covers a cheaper parent; `PI_PROFILES_CHECK_DEPLOYED=1` also checks active complex settings and the captured projection. These are offline checks using public cached model metadata and fixture-only auth, not billable task-quality or provider-access probes.
+
+Independent review `a78d5091-ddba-40c8-8602-65fa48ed27f7` verified the genuine interface receipt and identified a test-only assumption that inheritance always meant an expensive parent. The assertion now uses an explicit Astra parent for forbidden inheritance and accepts allowed cheaper inheritance. Startup thinking is compared with the actual pre-switch state, including model presets.
+
+Synchronization now includes `profiles/`. The focused Python run passed 14 tests, including profile capture/apply/deletion and symlink rejection; 30 unrelated launcher tests were skipped, not requalified. The new `pi-config` builds at `/nix/store/v6pb4akqs6w0hpkvkc9rxjbxjcsw2b2z-pi-config`. No host generation was activated or existing Pi session restarted for this profile update.
+
 ## Delivered
 
 - **Startup and tools:** version/source-checked repairs for browser process discovery, standalone Web Run, Magic Context and subagents. The Nix launcher applies Lens policy to Pi's resolved extensions rather than guessing trust, and supports cold npm installation followed by strict repair before extension import. Private preload state does not leak into ordinary children.

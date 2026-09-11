@@ -5,6 +5,7 @@ import os from "node:os";
 import path from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { canonicalPath, canonicalRoots, contains, digest, worktree } from "./workflow-workspace.js";
+import { canonicalToolName } from "./workflow-tool-name.js";
 
 export interface Owner {
   session: string;
@@ -54,7 +55,12 @@ export function demonstratedDead(owner: Owner, probe: Probe = processProbe): boo
 }
 
 function decodeLease(raw: string): Lease {
-  const lease = JSON.parse(raw) as Lease;
+  let lease: Lease;
+  try {
+    lease = JSON.parse(raw) as Lease;
+  } catch {
+    throw new Error("Malformed writer lease; no age-based recovery. Inspect private lease DB while all owners are stopped.");
+  }
   const owner = lease?.owner;
   if (lease?.version !== 1 || !owner || !Number.isSafeInteger(owner.pid) || owner.pid < 1 ||
       ![owner.session, owner.birth, owner.host, owner.nonce].every((v) => typeof v === "string" && v.length > 0) ||
@@ -195,6 +201,7 @@ const LSP_READ_ONLY = new Set(["definition", "references", "implementation", "ho
  * This deliberately does not attempt to parse shell write effects with regexes.
  */
 export function mutationTargets(tool: string, input: Record<string, unknown>, cwd: string): string[] | "permit" | undefined {
+  tool = canonicalToolName(tool);
   if (NON_SOURCE_TOOLS.has(tool)) return undefined;
   if (tool === "runtime_health" && (input.action === undefined || input.action === "check")) return undefined;
   if (tool === "lsp_navigation" && typeof input.action === "string" && LSP_READ_ONLY.has(input.action)) return undefined;

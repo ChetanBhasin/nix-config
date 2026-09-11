@@ -141,7 +141,8 @@
       "accounts",
       "magic-context",
       "pi-lens-lsp",
-      "usage"
+      "usage",
+      "subagents-profile"
     ]
   }
 }

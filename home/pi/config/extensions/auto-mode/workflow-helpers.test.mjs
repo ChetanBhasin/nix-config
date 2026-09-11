@@ -8,9 +8,10 @@ import { fileURLToPath } from "node:url";
 import { DatabaseSync } from "node:sqlite";
 import { createJiti } from "../../npm/node_modules/jiti/lib/jiti.mjs";
 const jiti = createJiti(import.meta.url);
-const { WorkflowLedger, LEDGER_ENTRY, definition } = await jiti.import("./workflow-ledger.ts");
+const { WorkflowLedger, LEDGER_ENTRY, AUDIT_ENTRY, definition } = await jiti.import("./workflow-ledger.ts");
 const { WriterLeaseStore, processProbe, demonstratedDead, mutationTargets } = await jiti.import("./writer-lease.ts");
 const { digest, fingerprint } = await jiti.import("./workflow-workspace.ts");
+const { canonicalToolName, sameToolName, hasActiveTool } = await jiti.import("./workflow-tool-name.ts");
 
 if (process.argv[2] === "contender") {
   const store = new WriterLeaseStore(process.argv[3]);
@@ -66,14 +67,13 @@ if (process.argv[2] === "contender") {
   });
   test("a newer failed or unfinalized journey invalidates a prior pass, including after reload", (t) => {
     const f = fixture(t);
-    f.executed(); f.evidence(); f.evidence("r1"); f.ledger.complete(f.branch);
+    f.executed(); f.evidence(); f.evidence("r1");
     f.executed("new-failure", true);
     assert.throws(() => f.ledger.complete(f.branch), /UNACCEPTED/);
     assert.throws(() => f.evidence("j1", "run-1"), /not present/);
     const restored = new WorkflowLedger(() => {}); restored.restore(f.branch);
     assert.throws(() => restored.complete(f.branch), /UNACCEPTED/);
     f.executed("recovered"); f.evidence("j1", "recovered"); f.evidence("r1", "recovered");
-    f.ledger.complete(f.branch);
     f.branch.push({ type: "message", message: { role: "assistant", content: [{ type: "toolCall", id: "unfinalized", name: "bash", arguments: f.def.journeys[0].input }] } });
     assert.throws(() => f.ledger.complete(f.branch), /UNACCEPTED/);
   });
@@ -90,23 +90,25 @@ if (process.argv[2] === "contender") {
     assert.ok(f.ledger.input.invalidAuthorization);
     assert.throws(() => f.ledger.confirm(1, f.ledger.input.id));
   });
-  test("evidence binds output, branch finalized results, arguments, and workspace revision", (t) => {
+  test("active evidence binds output and finalized branch results; checked history stays immutable", (t) => {
     const f = fixture(t);
     f.executed();
     assert.throws(() => f.evidence("j1", "run-1", { observed: "invented Hello, Ada!" }), /not present/);
-    f.evidence(); f.evidence("r1"); f.ledger.complete(f.branch);
+    f.evidence(); f.evidence("r1");
     const result = f.branch.find((e) => e.message?.role === "toolResult");
     result.message.isError = true;
     assert.throws(() => f.ledger.complete(f.branch), /UNACCEPTED/);
     result.message.isError = false;
+    f.ledger.complete(f.branch);
     f.branch.splice(f.branch.indexOf(result), 1);
-    assert.throws(() => f.ledger.complete(f.branch), /UNACCEPTED/);
+    assert.doesNotThrow(() => f.ledger.complete(f.branch));
+    assert.equal(f.ledger.contract.status, "complete");
   });
   for (const change of ["existing", "untracked", "external", "ignored"]) test(`${change} input changes invalidate acceptance`, (t) => {
     const f = fixture(t);
     execFileSync("git", ["init", "-q", f.root]);
     fs.writeFileSync(path.join(f.root, ".gitignore"), ".ignored\n");
-    f.executed(); f.evidence(); f.evidence("r1"); f.ledger.complete(f.branch);
+    f.executed(); f.evidence(); f.evidence("r1");
     const file = change === "external" ? f.external : path.join(f.root, change === "existing" ? "main.txt" : change === "ignored" ? ".ignored" : "new.txt");
     fs.writeFileSync(file, "changed");
     if (change === "ignored") assert.equal(execFileSync("git", ["-C", f.root, "check-ignore", ".ignored"], { encoding: "utf8" }).trim(), ".ignored");
@@ -115,6 +117,16 @@ if (process.argv[2] === "contender") {
     assert.equal(f.ledger.contract.status, "open");
     assert.throws(() => f.evidence(), /Stale/);
   });
+  test("checked completion remains historical across later workspace and settings changes", (t) => {
+    const f = fixture(t);
+    f.executed(); f.evidence(); f.evidence("r1"); f.ledger.complete(f.branch);
+    fs.writeFileSync(path.join(f.root, "main.txt"), "later change");
+    fs.writeFileSync(f.external, "later setting");
+    f.ledger.receiveInput("interactive", "Show the active profile in the footer", null, true);
+    assert.doesNotThrow(() => f.ledger.complete(f.branch));
+    assert.deepEqual(f.ledger.issues(f.branch), []);
+    assert.equal(f.ledger.contract.status, "complete");
+  });
   test("explicit symlink external inputs and artifacts are checked", (t) => {
     const f = fixture(t);
     fs.symlinkSync(f.external, path.join(f.root, "linked"));
@@ -122,7 +134,7 @@ if (process.argv[2] === "contender") {
     assert.ok(fingerprint([f.root], [f.external]).revision);
     const artifact = path.join(f.temp, "run.log"); fs.writeFileSync(artifact, "log");
     f.executed("artifact", false, "bash", f.def.journeys[0].input, `Hello, Ada!\n${artifact}`);
-    f.evidence("j1", "artifact", { artifact }); f.evidence("r1", "artifact"); f.ledger.complete(f.branch);
+    f.evidence("j1", "artifact", { artifact }); f.evidence("r1", "artifact");
     fs.writeFileSync(artifact, "replaced");
     assert.throws(() => f.ledger.complete(f.branch), /stale/);
   });
@@ -137,6 +149,27 @@ if (process.argv[2] === "contender") {
     loaded.restore(structuredClone(f.branch)); assert.deepEqual(loaded.issues(f.branch), []); // fork path, not all entries
     loaded.restore([{ type: "custom", customType: LEDGER_ENTRY, data: { version: 99 } }]); assert.match(loaded.fault, /failed closed/);
     assert.throws(() => loaded.start(f.def, "x"), /failed closed/);
+    const malformedAuditEntries = [];
+    const malformedAudit = new WorkflowLedger((type, data) => malformedAuditEntries.push({ type, data }));
+    assert.doesNotThrow(() => malformedAudit.restore([{ type: "custom", customType: AUDIT_ENTRY, data: null }]));
+    assert.match(malformedAudit.fault, /failed closed/);
+    const restorationFault = malformedAudit.fault;
+    for (const [operation, mutate] of [
+      ["start", () => malformedAudit.start(f.def, "x")],
+      ["reset", () => malformedAudit.retire("reset", "cannot bypass malformed audit")],
+      ["logHuman", () => malformedAudit.logHuman("reset", "cannot append around fault", false)],
+      ["receiveInput", () => malformedAudit.receiveInput("interactive", "new request", null, true)],
+      ["begin", () => malformedAudit.begin("bash", "input")],
+      ["record", () => malformedAudit.record({ version: 1, toolCallId: "call", tool: "bash", inputHash: "input", isError: false })],
+      ["continuation", () => malformedAudit.continuation([], { enabled: true, owner: true, aborted: false, pending: false, failed: false })],
+    ]) {
+      assert.throws(mutate, /failed closed/, operation);
+      assert.equal(malformedAudit.fault, restorationFault, `${operation} must preserve the restoration fault`);
+    }
+    assert.deepEqual(malformedAuditEntries, []);
+    assert.equal(malformedAudit.contract, undefined);
+    assert.equal(malformedAudit.input, undefined);
+    assert.equal(malformedAudit.receipts.size, 0);
   });
   test("restore validates the latest snapshot, not removed roots from superseded scope history", (t) => {
     const f = fixture(t);
@@ -156,8 +189,24 @@ if (process.argv[2] === "contender") {
       assert.throws(() => definition(next), /real interface/, tool);
     }
   });
+  test("provider-qualified function aliases canonicalize narrowly", (t) => {
+    const f = fixture(t);
+    assert.equal(canonicalToolName("functions.bash"), "bash");
+    assert.equal(canonicalToolName("bash"), "bash");
+    assert.equal(canonicalToolName("other.bash"), "other.bash");
+    assert.equal(sameToolName("functions.bash", "bash"), true);
+    assert.equal(sameToolName("other.bash", "bash"), false);
+    assert.equal(hasActiveTool(["bash"], "functions.bash"), true);
+    const aliased = structuredClone(f.def); aliased.journeys[0].tool = "functions.bash";
+    assert.equal(definition(aliased).journeys[0].tool, "bash");
+    const prohibited = structuredClone(f.def); prohibited.journeys[0].tool = "functions.read";
+    assert.throws(() => definition(prohibited), /real interface/);
+    f.executed("aliased-run", false, "functions.bash");
+    f.evidence("j1", "aliased-run"); f.evidence("r1", "aliased-run");
+    assert.doesNotThrow(() => f.ledger.complete(f.branch));
+  });
   test("autonomous strengthening preserves all obligations, scope and continuation budgets", (t) => {
-    const f = fixture(t); f.executed(); f.evidence(); f.evidence("r1"); f.ledger.complete(f.branch);
+    const f = fixture(t); f.executed(); f.evidence(); f.evidence("r1");
     f.ledger.contract.continuations = 1; f.ledger.contract.noProgress = 1;
     const next = structuredClone(f.def);
     next.requirements.push({ id: "failure", mandatory: true, expected: "invalid argument" });
@@ -197,7 +246,7 @@ if (process.argv[2] === "contender") {
     assert.throws(() => f.ledger.start(next, f.ledger.input.id), /explicit/);
     f.ledger.confirm(1, f.ledger.input.id); f.executed(); f.evidence(); f.evidence("r1"); f.ledger.complete(f.branch);
     f.ledger.receiveInput("extension", "New task", null, true);
-    assert.throws(() => f.ledger.start(next, f.ledger.input.id), /explicit/);
+    assert.throws(() => f.ledger.start(next, f.ledger.input.id), /NEW genuine input/);
     f.ledger.receiveInput("interactive", "Now implement the next CLI", null, true);
     const restored = new WorkflowLedger(() => {}); restored.restore(f.branch);
     const started = restored.start(next, restored.input.id);

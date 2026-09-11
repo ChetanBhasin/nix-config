@@ -20,7 +20,7 @@ export default function runtimeReliability(pi: ExtensionAPI) {
     parameters: Type.Object({ action: Type.Optional(Type.Union([Type.Literal('check'), Type.Literal('repair')])) }),
     execute: async (_callId, params) => {
       const report = applyRepairs({ check: params.action !== 'repair' });
-      return { content: [{ type: 'text', text: JSON.stringify({ ...report, contextOwner: config.contextOwner, toolSafety: config.toolSafety }) }], details: report };
+      return { content: [{ type: 'text', text: JSON.stringify({ ...report, ...(params.action !== 'repair' && report.repaired === 0 ? { status: 'runtime health reports checked repairs with zero repairs and no unrecognized-source failure' } : {}), contextOwner: config.contextOwner, toolSafety: config.toolSafety }) }], details: report };
     },
   });
   pi.registerCommand('runtime-doctor', {
