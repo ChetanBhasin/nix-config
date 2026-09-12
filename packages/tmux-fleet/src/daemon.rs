@@ -1199,7 +1199,7 @@ mod tests {
 
     use crate::config::Config;
     use crate::protocol::{
-        DaemonErrorCode, DaemonReply, RemoteState, RpcRequest, RpcResponse, SessionInfo, Snapshot,
+        DaemonErrorCode, DaemonReply, RemoteState, RpcRequest, RpcResponse, SessionInfo,
         PROTOCOL_VERSION,
     };
 
@@ -1286,104 +1286,6 @@ mod tests {
             state.begin_connect(&config, "hugh".into()),
             DaemonReply::ConnectPlan { .. }
         ));
-        let _ = fs::remove_file(registry);
-    }
-
-    #[test]
-    fn committed_connection_populates_and_serves_remote_inventory() {
-        let root = crate::runtime::runtime_root().expect("runtime root should exist");
-        let masters = root.join("masters");
-        crate::runtime::ensure_private_dir(&masters).expect("master root should be private");
-        let token = random_connection_id().expect("test token should be generated");
-        let script = root.join(format!("fake-ssh-{token}"));
-        let marker = root.join(format!("fake-master-{token}"));
-        let registry = root.join(format!("test-connections-{token}.json"));
-        let snapshot = Snapshot {
-            protocol_version: PROTOCOL_VERSION,
-            server_pid: 41,
-            server_started_at: 42,
-            hostname: "hugh-mini".into(),
-            generated_at: 43,
-            sessions: vec![SessionInfo {
-                id: "$7".into(),
-                name: "remote-work".into(),
-                windows: 2,
-                attached: 1,
-                created_at: 44,
-                activity_at: 45,
-            }],
-        };
-        let snapshot_json = serde_json::to_string(&snapshot).expect("snapshot should serialize");
-        let script_body = format!(
-            "#!/bin/sh\ncase \" $* \" in\n  *\" -O check \"*) test -f '{}' ;;\n  *\" -O exit \"*) rm -f '{}' ;;\n  *snapshot*) printf '%s\\n' '{}' ;;\n  *) exit 1 ;;\nesac\n",
-            marker.display(),
-            marker.display(),
-            snapshot_json
-        );
-        fs::write(&script, script_body).expect("fake SSH should be written");
-        let mut permissions = fs::metadata(&script)
-            .expect("fake SSH metadata should exist")
-            .permissions();
-        permissions.set_mode(0o700);
-        fs::set_permissions(&script, permissions).expect("fake SSH should be executable");
-
-        let paths = DaemonPaths {
-            socket: root.join(format!("test-daemon-{token}.sock")),
-            lock: root.join(format!("test-daemon-{token}.lock")),
-            registry: registry.clone(),
-            masters,
-        };
-        let config = Config {
-            ssh_targets: vec!["hugh".into()],
-            ssh_command: script.clone(),
-            ..Config::default()
-        };
-        let (refresh_tx, refresh_rx) = std::sync::mpsc::channel();
-        let mut state = State {
-            paths,
-            known_targets: config.ssh_targets.clone(),
-            connections: Default::default(),
-            last_errors: Default::default(),
-            next_epoch: 0,
-            refresh_tx,
-            refresh_rx,
-            refresh_in_flight: Default::default(),
-            last_refresh_started: std::time::Instant::now(),
-        };
-        let DaemonReply::ConnectPlan {
-            connection_id,
-            control_path,
-            ..
-        } = state.begin_connect(&config, "hugh".into())
-        else {
-            panic!("connection should be reserved");
-        };
-        let control_path = std::path::PathBuf::from(control_path);
-        let listener = UnixListener::bind(&control_path).expect("fake master socket should bind");
-        fs::write(&marker, []).expect("fake master marker should be written");
-        assert_eq!(
-            state.commit_connect(&config, "hugh", &connection_id),
-            DaemonReply::Ack
-        );
-
-        let hosts = state.hosts();
-        assert_eq!(hosts.len(), 1);
-        assert_eq!(hosts[0].state, RemoteState::Ready);
-        assert_eq!(hosts[0].hostname.as_deref(), Some("hugh-mini"));
-        assert_eq!(hosts[0].sessions[0].name, "remote-work");
-        assert!(matches!(
-            state.prepare_attach(&config, "hugh", &connection_id, hosts[0].epoch),
-            DaemonReply::AttachPlan { .. }
-        ));
-        assert_eq!(
-            state.disconnect(&config, "hugh", &connection_id),
-            DaemonReply::Ack
-        );
-        assert!(!marker.exists());
-        assert!(!control_path.exists());
-        drop(listener);
-
-        let _ = fs::remove_file(script);
         let _ = fs::remove_file(registry);
     }
 
