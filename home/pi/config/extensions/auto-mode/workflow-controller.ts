@@ -1,5 +1,6 @@
 import type { ExtensionAPI, ExtensionContext, ToolCallEvent } from "../../npm/node_modules/@earendil-works/pi-coding-agent/dist/index.js";
-import { WorkflowLedger, object, text, type Contract, type Receipt } from "./workflow-ledger.js";
+import { validateToolArguments } from "../../npm/node_modules/@earendil-works/pi-ai/dist/utils/validation.js";
+import { WorkflowLedger, definition, object, text, type Contract, type Receipt } from "./workflow-ledger.js";
 import { canonicalRoots, contains, digest } from "./workflow-workspace.js";
 import { WriterLeaseStore, mutationTargets, type Lease } from "./writer-lease.js";
 import { registerHumanWorkflow } from "./workflow-human.js";
@@ -70,6 +71,9 @@ export function registerWorkflow(pi: WorkflowApi, controls: () => AutoControls, 
       objective: c && { id: c.id, objective: c.objective, revision: c.revision, kind: c.kind, roots: c.roots, externalInputs: c.externalInputs,
         requirements: c.requirements, journeys: c.journeys, evidence: c.evidence.map((e) => ({ target: e.target, toolCallId: e.receipt.toolCallId, artifact: e.artifact, workspaceRevision: e.receipt.after })),
         disposition: c.disposition, blockers: c.blockers, continuations: c.continuations, noProgress: c.noProgress },
+      recovery: c && { action: "recover", revision: c.revision, confirmationRequired: false,
+        diagnostic: c.recoveryCoverage?.diagnostic, retained: c.recoveryCoverage?.retained,
+        instruction: "Correct only technical bindings with full unchanged obligations and reason; new actual evidence required afterward. Legacy or uncertain changed-source coverage must remain included." },
       issues, writer: lease && { nonce: lease.owner.nonce, session: lease.owner.session, roots: lease.roots, inFlight: [...mutations] },
     });
     return Buffer.byteLength(serialized) <= 48000 ? serialized : Buffer.from(serialized).subarray(0, 48000).toString("utf8") + "\n[Status truncated; full ledger is in this session's Pi custom entries.]";
@@ -95,11 +99,11 @@ export function registerWorkflow(pi: WorkflowApi, controls: () => AutoControls, 
   registerHumanWorkflow(pi, ledger, { owner: () => controls().owner, drained, report });
   pi.registerTool({
     name: "workflow_contract", label: "Workflow contract",
-    description: "Branch-local acceptance ledger. Start implementation explicitly with objective, mandatory criteria and a planned real-interface journey. status exposes latest genuine inputId. confirm cheaply acknowledges unchanged scope. revise may add/strengthen obligations within unchanged roots/objective without more input; removals, weakening, changed scope or replacement of unfinished work require genuine workflow-scope {action:start|revise,revision,definition}. New genuine input after checked completion permits a new objective. evidence cites finalized non-error tool-call IDs and literal expected/observed output; source inspection and child reports alone never satisfy a journey. complete validates current sources, external inputs and required evidence, and THROWS on failure. disposition waiting/blocked suppresses Auto remediation; actionable resumes. Structural checking, not semantic proof.",
+    description: "Branch-local acceptance ledger. Start implementation with objective, mandatory criteria and a planned real-interface journey. status exposes inputId and recovery diagnostics. recover with current revision, full definition and reason automatically repairs agent-authored roots/externalInputs or journey tool/input bindings in normal AND Auto modes, without confirmation. It preserves every obligation and changed-source coverage, validates replacements before adoption, audits hashes and clears evidence; never completion or scope retirement. revise adds/strengthens obligations; scope loss or goal replacement requires genuine workflow-scope input. evidence cites finalized non-error tool-call IDs and literal output. complete validates current inputs and actual interface evidence, THROWS on failure. disposition waiting/blocked suppresses Auto remediation; actionable resumes. Recovery does not reset budgets or grant leases/protected authority. Structural checking, not semantic proof.",
     promptSnippet: "Track explicit workflow criteria, executed journeys and checked completion",
     parameters: { type: "object", additionalProperties: false, required: ["action"], properties: {
-      action: { type: "string", enum: ["status", "start", "revise", "confirm", "evidence", "complete", "disposition"] },
-      inputId: string, revision: { type: "integer", minimum: 1 }, definition: definitionSchema,
+      action: { type: "string", enum: ["status", "start", "revise", "recover", "confirm", "evidence", "complete", "disposition"] },
+      inputId: string, revision: { type: "integer", minimum: 1 }, definition: definitionSchema, reason: string,
       evidence: { type: "object", additionalProperties: false, required: ["target", "kind", "expected", "observed", "toolCallId"], properties: {
         target: string, kind: { type: "string", enum: ["requirement", "journey"] }, expected: string, observed: string, toolCallId: string, artifact: string,
       } },
@@ -114,6 +118,23 @@ export function registerWorkflow(pi: WorkflowApi, controls: () => AutoControls, 
         case "status": return output(ctx);
         case "start": ledger.start(args.definition, text(args.inputId, "input ID")); break;
         case "revise": ledger.revise(args.definition, Number(args.revision), text(args.inputId, "input ID")); break;
+        case "recover": {
+          const next = definition(args.definition);
+          for (const journey of next.journeys) {
+            const tool = pi.getAllTools().find((candidate) => canonicalToolName(candidate.name) === journey.tool);
+            if (!tool || !hasActiveTool(pi.getActiveTools(), journey.tool)) throw new Error(`Recovery journey tool unavailable: ${journey.tool}; restore intended capabilities without expanding role allowlists`);
+            const validated = validateToolArguments(tool, { type: "toolCall", id: `recovery-${journey.id}`, name: tool.name, arguments: structuredClone(journey.input) });
+            if (digest(validated) !== digest(journey.input)) throw new Error(`Recovery journey ${journey.id} needs explicit schema-correct arguments; use ${JSON.stringify(validated)}`);
+          }
+          const beforeRevision = ledger.contract?.revision;
+          try { ledger.recover(next, Number(args.revision), text(args.reason, "technical binding correction reason")); }
+          finally {
+            if (ledger.fault || ledger.contract?.revision !== beforeRevision) {
+              starts.clear(); permits.clear(); // No preflight/permit survives uncertain persistence.
+            }
+          }
+          break;
+        }
         case "confirm": ledger.confirm(Number(args.revision), text(args.inputId, "input ID")); return output(ctx, false);
         case "evidence": ledger.addEvidence(args.evidence, branch(ctx)); break;
         case "complete": ledger.complete(branch(ctx)); break;
@@ -202,7 +223,7 @@ export function registerWorkflow(pi: WorkflowApi, controls: () => AutoControls, 
     const messages = event.messages.filter((message) => !(message.role === "custom" &&
       (message.customType === INSTRUCTIONS || (message.customType === REMEDIATION && !controls().enabled))));
     messages.push({ role: "custom", customType: INSTRUCTIONS, display: false, timestamp: Date.now(),
-      content: `Workflow policy: implementation objectives start explicitly with workflow_contract; pure discussion/read-only inspection needs none. Preserve every mandatory requirement. Complete only via the tool after actual finalized real-interface evidence. Writer ownership is independent of Auto Mode; claim/release before any mutation, exact permits for ALL shell/LSP rename/unknown effects. Never use a lease as protected-action permission. Use disposition waiting before delegated work; child reports are attestations, then verify artifacts and explicitly resume actionable. Transport settlement and already-streamed answers are not acceptance.\n${report(ctx)}` });
+      content: `Workflow policy: start implementation explicitly with workflow_contract; discussion/read-only inspection needs none. Preserve every obligation. For agent-authored setup mistakes (oversized roots, missing symlink inputs, malformed/placeholder journey arguments), automatically call recover with current revision, full unchanged obligations, corrected technical bindings and a specific reason; no confirmation or owner-TUI reset is needed in normal OR Auto mode. Read failed-repair diagnostics and correct the bindings; never repeat an identical reset. Retain changed sources and dependencies; source-obscuring repairs or intentional scope loss need real human authorization. Recovery clears evidence, never accepts work or resets continuation budgets. Complete only after NEW finalized actual-interface evidence. Claim/release writer_lease for mutations, exact permits for ALL shell/LSP rename/unknown effects; recovery grants no ownership or protected-action permission. Use disposition waiting for delegated work, then verify evidence and resume actionable. Transport settlement and prose are not acceptance.\n${report(ctx)}` });
     return { messages };
   });
   pi.on("tool_call", (event, ctx) => {
@@ -226,6 +247,7 @@ export function registerWorkflow(pi: WorkflowApi, controls: () => AutoControls, 
       }
       storage().reserve(held.owner, event.toolCallId, affected);
       mutations.add(event.toolCallId);
+      ledger.retainMutation(affected);
     }
     captureStart(event);
     const genericInput = event.input as Record<string, unknown>;
@@ -275,7 +297,7 @@ export function registerWorkflow(pi: WorkflowApi, controls: () => AutoControls, 
     if (issues) {
       const c = ledger.require();
       pi.sendMessage({ customType: REMEDIATION, display: true,
-        content: `[workflow-remediation objective=${c.id} revision=${c.revision} attempt=${c.continuations}/3] Acceptance remains OPEN: ${issues.join("; ")}. Resolve only the existing contract, supply executed evidence and call complete, or record blocked/waiting. Do not restate or remove the original answer.` }, { deliverAs: "followUp", triggerTurn: true });
+        content: `[workflow-remediation objective=${c.id} revision=${c.revision} attempt=${c.continuations}/3] Acceptance remains OPEN: ${issues.join("; ")}. Automatically recover agent-authored setup errors with workflow_contract recover (full unchanged obligations, corrected bindings, reason); no user reset needed. Then obtain new executed evidence and call complete, or record blocked/waiting. Never retire scope or reset budgets. Do not restate or remove the original answer.` }, { deliverAs: "followUp", triggerTurn: true });
     }
     if (ledger.contract || ledger.fault || runtimeFault) {
       report(ctx);

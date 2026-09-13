@@ -308,12 +308,17 @@ function assertSettingsCoverage() {
   }
   assert.equal(settings.defaultModel, "gpt-6-astra");
   assert.equal(settings.defaultThinkingLevel, "max");
-  assert.equal(overrides.delegate.model, "inherit");
-  assert.equal(overrides.delegate.thinking, undefined, "inherit the caller's thinking suffix instead of overriding it");
+  assert.equal(overrides.delegate.model, "openai-codex/gpt-6-astra");
+  assert.equal(overrides.delegate.thinking, "max", "explicit child defaults do not inherit parent selection");
   assert.equal(settings.subagents.defaultExtensions[0], reliabilityExtension);
   for (const tool of ["workflow_contract", "writer_lease", "runtime_health"]) assert.ok(overrides.worker.tools.includes(tool));
   assert.match(overrides.worker.systemPrompt, /sole source-writing role/);
   for (const [name, override] of Object.entries(overrides)) {
+    if (name === "lookup") {
+      assert.deepEqual(override, { model: "openai-codex/gpt-5.6-terra", thinking: "medium" });
+      assert.ok(settings.packages.includes("./extensions/lookup-role"));
+      continue; // Package frontmatter owns this role's tools; native discovery checks them.
+    }
     assert.equal(override.extensions[0], reliabilityExtension, `${name} must preflight before affected imports`);
     if (name !== "worker") assert.equal(override.tools.includes("writer_lease"), false);
     assert.ok(
@@ -323,12 +328,13 @@ function assertSettingsCoverage() {
   }
   const astra = "openai-codex/gpt-6-astra";
   const terra = "openai-codex/gpt-5.6-terra";
-  assert.equal(settings.subagents.defaultModel, "inherit");
+  assert.equal(settings.subagents.defaultModel, astra);
   assert.equal(settings.subagents.defaultThinking, "max");
-  assert.equal(settings.subagents.maxThinking, "max");
-  assert.deepEqual(settings.subagents.modelScope.allow, ["inherit", astra, terra]);
+  assert.equal(settings.subagents.maxThinking, undefined);
+  assert.equal(settings.subagents.modelScope, undefined);
+  assert.deepEqual(settings.subagents.executionStrategy, { version: 1, delegation: "comprehensive", reviewers: ["reviewer"] });
   const persistedRoleSettings = {
-    oracle: { model: astra, thinking: undefined },
+    oracle: { model: astra, thinking: "max" },
     researcher: { model: astra, thinking: "max" },
     reviewer: { model: astra, thinking: "max" },
     scout: { model: terra, thinking: "xhigh" },
@@ -340,11 +346,6 @@ function assertSettingsCoverage() {
       overrides[name].thinking,
       expected.thinking,
       `${name} persistent thinking must match the preserved max baseline`,
-    );
-    assert.deepEqual(
-      settings.subagents.modelScope.agents[name].allow,
-      [expected.model],
-      `${name} persistent model must match its strict scope`,
     );
   }
   const researcherPrompt = overrides.researcher.systemPrompt;
@@ -448,7 +449,7 @@ async function runParentContract() {
     toolName: "subagent",
     input: launchInput,
   });
-  assert.equal(launchInput.async, true, "owner launches default to async");
+  assert.equal(Object.hasOwn(launchInput, "async"), false, "Auto availability must not choose execution strategy");
   assert.equal("extensionBindings" in launchInput, false);
   const launchRecord = controlRecordFromText(launchInput.task);
   assert.equal(launchRecord.enabled, true);
@@ -503,7 +504,7 @@ async function runParentContract() {
     toolName: "subagent",
     input: workflowInput,
   });
-  assert.equal(workflowInput.async, true, "owner workflows default to async");
+  assert.equal(Object.hasOwn(workflowInput, "async"), false, "Auto preserves workflow scheduling for the strategy owner");
   assert.equal(workflowInput.workflowScript, workflowSource, "workflow source is unchanged");
   assert.equal("extensionBindings" in workflowInput, false);
 
@@ -645,8 +646,9 @@ async function runParentContract() {
     false,
   );
   assert.match(activeContext.messages.at(-1).content, /Auto Mode is ON/);
-  assert.match(activeContext.messages.at(-1).content, /Owner-parent policy/);
-  assert.match(activeContext.messages.at(-1).content, /orchestrator and final authority/);
+  assert.match(activeContext.messages.at(-1).content, /Owner-parent availability policy/);
+  assert.doesNotMatch(activeContext.messages.at(-1).content, /4–8|aggregation delegate|Delegate every|one `async: true` workflow/);
+  assert.match(activeContext.messages.at(-1).content, /not delegation/);
   assert.doesNotMatch(activeContext.messages.at(-1).content, /Inherited-child policy/);
 
   await harness.commands.get("auto").handler("off", harness.context);

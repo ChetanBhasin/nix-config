@@ -77,6 +77,22 @@ export function worktree(root: string): string | undefined {
   }
 }
 
+/** The worktree owning a lexical entry, independently of its symlink target. */
+export function lexicalWorktree(root: string): string | undefined {
+  let entry = path.resolve(root);
+  while (canonicalPath(entry) !== entry) {
+    const parent = path.dirname(entry);
+    if (parent === entry) throw new Error(`Cannot resolve lexical worktree for ${root}`);
+    entry = parent;
+  }
+  return worktree(entry);
+}
+
+export function sourceWorktrees(roots: string[]): string[] {
+  const trees = roots.flatMap((root) => [worktree(root), lexicalWorktree(root)]);
+  return [...new Set(trees.filter((tree): tree is string => tree !== undefined))].sort();
+}
+
 export interface WorkspaceStamp {
   revision: string;
   files: number;
@@ -86,7 +102,7 @@ export interface WorkspaceStamp {
 /** All root contents, including untracked/ignored files; only Git's administrative .git is omitted.
  * Symlink targets outside the declared inputs must be named explicitly. Bounds fail closed.
  */
-export function fingerprint(roots: string[], externalInputs: string[]): WorkspaceStamp {
+export function fingerprint(roots: string[], externalInputs: string[], entries?: Record<string, string>): WorkspaceStamp {
   const inputs = [...new Set([...roots, ...externalInputs].map((p) => path.resolve(p)))].sort();
   const allowed = inputs.map((p) => canonicalPath(p));
   const hash = createHash("sha256");
@@ -102,6 +118,7 @@ export function fingerprint(roots: string[], externalInputs: string[]): Workspac
       const target = fs.realpathSync(filename);
       if (!allowed.some((root) => contains(root, target))) throw new Error(`Declare external symlink input: ${target}`);
       add(["symlink", fs.readlinkSync(filename), target]);
+      if (entries) entries[filename] = digest([String(stat.mode), fs.readlinkSync(filename), target]);
       if (visiting.has(target)) throw new Error(`Cyclic input: ${target}`);
       visit(target);
     } else if (stat.isDirectory()) {
@@ -113,6 +130,7 @@ export function fingerprint(roots: string[], externalInputs: string[]): Workspac
       const after = fs.lstatSync(filename, { bigint: true });
       if (stat.ino !== after.ino || stat.mtimeNs !== after.mtimeNs || stat.ctimeNs !== after.ctimeNs) throw new Error(`Directory changed during fingerprint: ${filename}`);
       visiting.delete(filename);
+      if (entries) entries[filename] = digest([String(stat.mode), "directory"]);
     } else if (stat.isFile()) {
       bytes += Number(stat.size);
       if (bytes > 128 * 1024 * 1024) throw new Error("Fingerprint exceeds 128 MiB; narrow explicit roots");
@@ -122,14 +140,13 @@ export function fingerprint(roots: string[], externalInputs: string[]): Workspac
         throw new Error(`Input changed during fingerprint: ${filename}`);
       }
       add(["file", createHash("sha256").update(content).digest("hex")]);
+      if (entries) entries[filename] = digest([String(stat.mode), createHash("sha256").update(content).digest("hex")]);
     } else {
       throw new Error(`Unsupported input (not a regular file/directory): ${filename}`);
     }
   };
   for (const input of inputs) visit(input);
-  for (const root of roots) {
-    const tree = worktree(root);
-    if (!tree) continue;
+  for (const tree of sourceWorktrees(roots)) {
     try {
       add([tree, execFileSync("git", ["-C", tree, "rev-parse", "HEAD"], {
         encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], timeout: 2000,

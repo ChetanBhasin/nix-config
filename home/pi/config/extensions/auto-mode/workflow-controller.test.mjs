@@ -26,6 +26,7 @@ async function harness(t, f, controls = { enabled: true, owner: true }, sm = Ses
     appendEntry: (name, data) => sm.appendCustomEntry(name, structuredClone(data)),
     on: (name, handler) => handlers.set(name, [...(handlers.get(name) ?? []), handler]),
     getActiveTools: () => flags.activeTools,
+    getAllTools: () => [...tools.values(), { name: "bash", description: "Execute command", parameters: { type: "object", required: ["command"], properties: { command: { type: "string" } } } }],
     sendMessage: (message, options) => sent.push({ message, options }) };
   registerWorkflow(pi, () => controls, f.db);
   const fire = async (name, data = {}) => {
@@ -51,6 +52,33 @@ async function harness(t, f, controls = { enabled: true, owner: true }, sm = Ses
   t.after(() => fire("session_shutdown", { reason: "quit" }));
   return { sm, ctx, controls, flags, fire, tool, command, status, start, sent, notices, commands };
 }
+for (const controls of [{ enabled: false, owner: true }, { enabled: true, owner: true }, { enabled: true, owner: false }]) {
+  test(`recover is confirmation-free, schema-checked and lease-drained (${JSON.stringify(controls)})`, async (t) => {
+    const f = fixture(t), h = await harness(t, f, controls), initial = await h.start();
+    h.ctx.ui.confirm = async () => { throw new Error("Unexpected human confirmation"); };
+    const next = { ...initial.objective, journeys: initial.objective.journeys.map((j) => ({ ...j, input: { command: "cli --checked" } })) };
+    const repair = () => h.tool("workflow_contract", { action: "recover", revision: 1, definition: next, reason: "Correct placeholder command arguments" });
+    const bad = { ...next, journeys: next.journeys.map((j) => ({ ...j, input: {} })) };
+    await assert.rejects(() => h.tool("workflow_contract", { action: "recover", revision: 1, definition: bad, reason: "Must validate schema first" }), /command/);
+    const coerced = { ...next, journeys: next.journeys.map((j) => ({ ...j, input: { command: 123 } })) };
+    await assert.rejects(() => h.tool("workflow_contract", { action: "recover", revision: 1, definition: coerced, reason: "No implicit coercion" }), /schema-correct/);
+    assert.equal((await h.status()).objective.revision, 1);
+    const { writer } = await h.tool("writer_lease", { action: "claim", roots: [f.root] });
+    await h.fire("tool_call", { toolName: "write", toolCallId: "pending", input: { path: path.join(f.root, "input") } });
+    await assert.rejects(repair, /not drained/);
+    await h.fire("tool_execution_end", { toolName: "write", toolCallId: "pending", result: { content: [] }, isError: false });
+    await assert.rejects(repair, /not drained/);
+    await h.fire("turn_end");
+    const recovered = await repair();
+    assert.equal(recovered.objective.revision, 2); assert.equal(recovered.acceptance, "open");
+    assert.equal(recovered.writer.nonce, writer.nonce); assert.deepEqual(recovered.objective.requirements, initial.objective.requirements);
+    await assert.rejects(() => h.tool("workflow_contract", { action: "complete" }), /UNACCEPTED/);
+    await h.tool("writer_lease", { action: "release", nonce: writer.nonce });
+    await assert.rejects(() => h.fire("tool_call", { toolName: "write", toolCallId: "after-release", input: { path: path.join(f.root, "input") } }), /Claim/);
+    assert.match((await h.fire("context", { messages: [] })).messages.at(-1).content, /normal OR Auto mode/);
+  });
+}
+
 
 test("deleting a file root drains and releases ownership without accepting missing inputs", async (t) => {
   for (const git of [false, true]) {

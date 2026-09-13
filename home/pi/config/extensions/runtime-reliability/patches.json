@@ -448,6 +448,63 @@
             { "before": "\tconst warnings: string[] = [];\n\tconst scopeHint = asDisambiguationScope(params.agentScope);\n\tconst targetOrError = resolveTarget(params.agent, findAgents(params.agent, ctx, scopeHint ?? \"both\"), ctx.cwd, scopeHint);", "after": "\tconst warnings: string[] = [];\n\tconst scopeHint = asDisambiguationScope(params.agentScope);\n\tconst targetOrError = resolveTarget(params.agent, findAgents(params.agent, ctx, scopeHint ?? \"both\"), ctx, scopeHint);" },
             { "before": "function handleDelete(params: ManagementParams, ctx: ManagementContext): AgentToolResult<Details> {\n\tif (!params.agent) return result(\"Specify 'agent' for delete.\", true);\n\tconst scopeHint = asDisambiguationScope(params.agentScope);\n\tconst targetOrError = resolveTarget(params.agent, findAgents(params.agent, ctx, scopeHint ?? \"both\"), ctx.cwd, scopeHint);", "after": "function handleDelete(params: ManagementParams, ctx: ManagementContext): AgentToolResult<Details> {\n\tif (!params.agent) return result(\"Specify 'agent' for delete.\", true);\n\tconst scopeHint = asDisambiguationScope(params.agentScope);\n\tconst targetOrError = resolveTarget(params.agent, findAgents(params.agent, ctx, scopeHint ?? \"both\"), ctx, scopeHint);" }
           ]
+        },
+        {
+          "file": "src/slash/slash-commands.ts",
+          "beforeHash": "6f2e1ae187c8d80f0aa19dff851e30c19d1a62fcdbc7be1395fbce7512428926",
+          "afterHash": "90eb8865d2cd9eec0af6b0c43938d7947b3007fb3592f49930630d60fd66fc3b",
+          "edits": [
+            { "before": "\treadSubagentProfile,\n", "after": "" },
+            { "before": "import { findModelInfo, toModelInfo } from \"../shared/model-info.ts\";\n", "after": "" },
+            { "before": "function getProfileWorkerModel(profile: { subagents?: { agentOverrides?: Record<string, { model?: string }> } }): string | undefined {\n\tconst model = profile.subagents?.agentOverrides?.worker?.model;\n\treturn typeof model === \"string\" && model.trim() ? model.trim() : undefined;\n}\n\n", "after": "" },
+            { "before": "\t\t\t\t\tconst { profile } = readSubagentProfile(parsed.value);\n\t\t\t\t\tconst workerModel = getProfileWorkerModel(profile);\n", "after": "" },
+            { "before": "\t\t\t\t\tif (workerModel && typeof pi.setModel === \"function\" && typeof ctx.modelRegistry?.find === \"function\" && typeof ctx.modelRegistry?.getAvailable === \"function\") {\n\t\t\t\t\t\tconst shouldSwitch = await ctx.ui.confirm(\n\t\t\t\t\t\t\t\"\",\n\t\t\t\t\t\t\t`Profile loaded. Also switch this session to the profile worker model?\\n\\n${workerModel}`,\n\t\t\t\t\t\t);\n\t\t\t\t\t\tif (shouldSwitch) {\n\t\t\t\t\t\t\tconst modelInfo = findModelInfo(workerModel, ctx.modelRegistry.getAvailable().map(toModelInfo));\n\t\t\t\t\t\t\tconst model = modelInfo ? ctx.modelRegistry.find(modelInfo.provider, modelInfo.id) : undefined;\n\t\t\t\t\t\t\tif (!modelInfo || !model) {\n\t\t\t\t\t\t\t\tlines.push(`Could not switch current session model: '${workerModel}' is not available in the current model registry.`);\n\t\t\t\t\t\t\t} else {\n\t\t\t\t\t\t\t\tconst success = await pi.setModel(model);\n\t\t\t\t\t\t\t\tif (success) lines.push(`Current session model switched to: ${modelInfo.fullId}`);\n\t\t\t\t\t\t\t\telse lines.push(`Could not switch current session model to '${workerModel}': no API key or provider access is available.`);\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t}\n\t\t\t\t\t} else if (workerModel) {\n\t\t\t\t\t\tlines.push(`Profile worker model: ${workerModel}`);\n\t\t\t\t\t}\n\n", "after": "" }
+          ]
+        },
+        {
+          "file": "src/runs/shared/completion-guard.ts",
+          "beforeHash": "713ed1761e7c3458aab636a3cdd6f79b5baf96ea7a9f9912b2f944c51b0fc58f",
+          "afterHash": "78b19d547d80191fa64dc5da8e470970888af68305daf94eb728326347e80cde",
+          "edits": [
+            { "before": "\t\"ls\",\n\t\"web_search\",", "after": "\t\"ls\",\n\t\"symbol_search\",\n\t\"module_report\",\n\t\"read_symbol\",\n\t\"web_run\",\n\t\"web_search\"," }
+          ]
+        },
+        {
+          "file": "src/runs/shared/completion-guard.ts",
+          "beforeHash": "78b19d547d80191fa64dc5da8e470970888af68305daf94eb728326347e80cde",
+          "afterHash": "47bb96831254d66b85b94713d6b57127d62160d55cbfcf3e063ad7a298af13da",
+          "edits": [
+            { "before": "\tconst configuredExtensionCapability = (input.configuredExtensions?.length ?? 0) > 0 && !declaredMutationToolsWereRemoved;", "after": "\tconst configuredExtensionCapability = input.tools === undefined && (input.configuredExtensions?.length ?? 0) > 0 && !declaredMutationToolsWereRemoved;" }
+          ]
+        },
+        {
+          "file": "src/extension/tool-result.ts",
+          "beforeHash": "14fb8162d7c0a5948c0068b5990c82c4b1f4fbf04176c04618286a71e7f55b87",
+          "afterHash": "06f44decc708a6a0506f813128891cb65075410be48a8a8a3afc4d253c96c136",
+          "edits": [
+            { "before": "import type { AgentToolResult } from \"@earendil-works/pi-agent-core\";\n", "after": "import type { AgentToolResult as CoreToolResult } from \"@earendil-works/pi-agent-core\";\nimport type { ExtensionAPI } from \"@earendil-works/pi-coding-agent\";\n\ntype AgentToolResult<T> = CoreToolResult<T> & { isError?: boolean };\n" },
+            { "before": "\tthrow new Error(message || \"pi-subagents reported a logical tool failure.\");\n}\n", "after": "\tthrow new Error(message || \"pi-subagents reported a logical tool failure.\");\n}\n\n/** Preserve native error receipts through Pi's supported tool_result hook. */\nexport function createToolResultFinalizer(pi: ExtensionAPI) {\n\tconst pending = new Map<string, AgentToolResult<unknown>>();\n\tpi.on(\"tool_result\", (event) => {\n\t\tif (event.toolName !== \"subagent\") return;\n\t\tconst result = pending.get(event.toolCallId);\n\t\tif (!result) return;\n\t\tpending.delete(event.toolCallId);\n\t\treturn { isError: true, details: result.details };\n\t});\n\tpi.on(\"session_shutdown\", () => { pending.clear(); });\n\treturn <T>(result: AgentToolResult<T>, toolCallId: string): AgentToolResult<T> => {\n\t\tif (!toolCallId) return finalizeToolResult(result);\n\t\tif (result.isError === true) pending.set(toolCallId, result);\n\t\telse pending.delete(toolCallId);\n\t\treturn result;\n\t};\n}\n" }
+          ]
+        },
+        {
+          "file": "src/extension/index.ts",
+          "beforeHash": "886bf0bbf33ec2bec12e4b328ee8628d69676585f4bde57878bd6a5678e21b5b",
+          "afterHash": "5590121dd3684b4a4c831fb539f88b3b6bbda09b4b2975aad1db3589bfcc38cd",
+          "edits": [
+            { "before": "import { finalizeToolResult } from \"./tool-result.ts\";", "after": "import { createToolResultFinalizer } from \"./tool-result.ts\";" },
+            { "before": "\tconst runtimeRegistry = getRuntimeRegistry();", "after": "\tconst finalizeToolResult = createToolResultFinalizer(pi);\n\tconst runtimeRegistry = getRuntimeRegistry();" },
+            { "before": "return finalizeToolResult(await executeSubagentCollapsed(id, params as SubagentParamsLike, signal ?? new AbortController().signal, onUpdate, ctx));", "after": "return finalizeToolResult(await executeSubagentCollapsed(id, params as SubagentParamsLike, signal ?? new AbortController().signal, onUpdate, ctx), id);" }
+          ]
+        },
+        {
+          "file": "src/extension/fanout-child.ts",
+          "beforeHash": "2b3dfc33aed4bc63bbb91a59624edcb51801dd673c599699748616d94cc21022",
+          "afterHash": "52c8dad5dc65aef02d5111c188ec58b7e4d9f6dff63c550d23c43df2c87ec745",
+          "edits": [
+            { "before": "import { finalizeToolResult } from \"./tool-result.ts\";", "after": "import { createToolResultFinalizer } from \"./tool-result.ts\";" },
+            { "before": "\tregisteredApis.add(pi);", "after": "\tregisteredApis.add(pi);\n\tconst finalizeToolResult = createToolResultFinalizer(pi);" },
+            { "before": "return finalizeToolResult(await executor.executePublic(id, params as SubagentParamsLike, signal ?? new AbortController().signal, onUpdate, ctx));", "after": "return finalizeToolResult(await executor.executePublic(id, params as SubagentParamsLike, signal ?? new AbortController().signal, onUpdate, ctx), id);" }
+          ]
         }
       ]
     }

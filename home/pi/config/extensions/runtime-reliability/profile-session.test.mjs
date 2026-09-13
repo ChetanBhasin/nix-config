@@ -15,7 +15,6 @@ const complex = JSON.parse(fs.readFileSync(path.join(scratch, 'profiles/pi-subag
 const customName = 'custom-fast';
 const custom = structuredClone(complex);
 custom.subagents.agentOverrides.worker.model = 'openai-codex/gpt-5.6-terra';
-custom.subagents.modelScope.agents.worker.allow = ['openai-codex/gpt-5.6-terra'];
 fs.writeFileSync(path.join(scratch, `profiles/pi-subagents/${customName}.json`), JSON.stringify(custom, null, 2) + '\n');
 const settingsPath = path.join(scratch, 'settings.json');
 fs.writeFileSync(settingsPath, JSON.stringify({ packages: ['unchanged-package'], subagents: { sentinel: { exact: false }, ...complex.subagents } }, null, 2) + '\n');

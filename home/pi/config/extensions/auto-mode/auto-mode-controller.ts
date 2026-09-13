@@ -28,18 +28,10 @@ const AUTO_MODE_SHARED_INSTRUCTIONS = `Unattended Auto Mode is ON for this Pi pr
 - Other interactive confirmations are denied; adapt by taking a safe, non-destructive path.
 - Auto Mode does not authorize destructive, security-sensitive, privacy-sensitive, production, purchase, publication, merge, release, or account changes unless the user already authorized them explicitly.`;
 
-const AUTO_MODE_PARENT_INSTRUCTIONS = `Owner-parent policy:
-- Remain the orchestrator and final authority. Resolve child questions yourself, verify the final source, diff, and tests, then deliver the final response.
-- Delegate every useful non-trivial independent or context-heavy lane; keep genuinely tiny deterministic work local.
-- Inspect executable agents and their authority, tools, and output contracts before assigning lanes.
-- Use one \`async: true\` workflow per wave. Normally assign 4–8 distinct useful lanes and never exceed 8 active lanes in a wave.
-- Use fresh contexts by default; fork only an \`oracle\` when conversation history is necessary evidence.
-- Give each child a bounded contract with goal, scope, cwd/worktree, authority, evidence, acceptance, validation, stop conditions, and output artifact.
-- Enforce one writer per cwd/worktree. Fan out read-only work only; hand back artifacts, not transcripts.
-- After wide fan-out, use an aggregation delegate so the parent reads synthesis plus load-bearing evidence rather than every report.
-- Consume artifacts at dependency barriers; do not poll child runs. Reject cloned or duplicative prompts.
-- Reserve run capacity for implementation, fixes, and review. Grant spawn budget only for named necessary lanes.
-- Child Pi processes inherit this runtime mode automatically; include the inherited-child boundary in every child task contract.`;
+const AUTO_MODE_PARENT_INSTRUCTIONS = `Owner-parent availability policy:
+- Resolve routine questions from available context; record genuine blockers without waiting for the user.
+- Auto Mode controls unattended availability, not delegation, lane counts, scheduling or review strategy.
+- Child Pi processes inherit the signed runtime mode automatically. Preserve assigned authority, workflow obligations, writer leases and protected-action boundaries.`;
 
 const AUTO_MODE_CHILD_INSTRUCTIONS = `Inherited-child policy:
 - You are a bounded executor, not an orchestrator. Complete only the assigned contract.
@@ -505,7 +497,7 @@ interface AutoModeRuntime {
   confirmBinding?: ConfirmBinding;
 }
 
-export function registerAutoMode(pi: ExtensionApi): void {
+export function registerAutoMode(pi: ExtensionApi, workflowDatabase?: string): void {
   refreshInheritedState();
   writeOwnedState();
   const runtime: AutoModeRuntime = {
@@ -516,7 +508,7 @@ export function registerAutoMode(pi: ExtensionApi): void {
   registerWorkflow(pi as unknown as WorkflowApi, () => {
     syncInheritedRuntime(runtime);
     return { enabled: state.enabled, owner: state.ownsControlFile };
-  });
+  }, workflowDatabase);
   registerCommand(runtime);
   registerEventHandlers(runtime);
 }
@@ -753,24 +745,12 @@ function appendChildControl(message: string, enabled: boolean): string {
   return `${message.trimEnd()}\n\n${childTransitionInstructions(enabled)}`;
 }
 
-function shouldPromoteOwnerLaunchToAsync(input: Record<string, unknown>): boolean {
-  return (
-    state.enabled &&
-    state.ownsControlFile &&
-    !Object.hasOwn(input, "async") &&
-    input.foregroundOnly !== true
-  );
-}
-
 function propagateAutoModeToSubagent(input: Record<string, unknown>): void {
   const action = typeof input.action === "string" ? input.action : undefined;
   const isLaunch =
     action === undefined &&
     (typeof input.agent === "string" || typeof input.workflowScript === "string");
   if (isLaunch) {
-    if (shouldPromoteOwnerLaunchToAsync(input)) {
-      input.async = true;
-    }
     if (state.enabled && typeof input.task === "string") {
       input.task = appendChildControl(input.task, true);
     }

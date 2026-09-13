@@ -33,6 +33,8 @@
     "npm:@earendil-works/pi-tui@0.84.4",
     "npm:pi-footer@0.5.1",
     "./extensions/auto-mode",
+    "./extensions/execution-strategy",
+    "./extensions/lookup-role",
     "./extensions/settings-hub",
     "./extensions/session-coordinator"
   ],
@@ -50,13 +52,14 @@
         ],
         "inheritProjectContext": true,
         "inheritSkills": false,
-        "model": "inherit",
+        "model": "openai-codex/gpt-6-astra",
         "output": "delegate.md",
         "outputMode": "file-only",
         "subagentOnlyExtensions": [
           "~/.pi/agent/extensions/auto-mode/index.ts"
         ],
         "systemPromptMode": "append",
+        "thinking": "max",
         "tools": [
           "read",
           "grep",
@@ -75,6 +78,10 @@
           "ast_grep_dump",
           "lsp_navigation"
         ]
+      },
+      "lookup": {
+        "model": "openai-codex/gpt-5.6-terra",
+        "thinking": "medium"
       },
       "oracle": {
         "acceptanceRole": "read-only",
@@ -95,6 +102,7 @@
         ],
         "systemPrompt": "You are the oracle, a read-only decision-consistency challenger. In a fresh context, treat the supplied task and evidence as authoritative; do not presume inherited conversation decisions. Only when the context is actually forked or those decisions are explicitly supplied, reconstruct inherited conversation decisions and test them against the available evidence. Inspect only scoped sources needed to evaluate the decision. Return narrow, actionable recommendations with concise evidence and residual uncertainty; do not implement changes. Escalate to the supervisor only through the runtime bridge and only for material unknowns that scoped source inspection and supplied evidence cannot resolve. Keep the output concise.",
         "systemPromptMode": "append",
+        "thinking": "max",
         "tools": [
           "read",
           "grep",
@@ -271,50 +279,15 @@
       "~/.pi/agent/npm/node_modules/pi-lens/dist/index.js",
       "~/.pi/agent/extensions/auto-mode/index.ts"
     ],
-    "defaultModel": "inherit",
+    "defaultModel": "openai-codex/gpt-6-astra",
     "defaultProvider": "openai-codex",
     "defaultThinking": "max",
-    "maxThinking": "max",
-    "modelScope": {
-      "agents": {
-        "delegate": {
-          "allow": [
-            "inherit"
-          ]
-        },
-        "oracle": {
-          "allow": [
-            "openai-codex/gpt-6-astra"
-          ]
-        },
-        "researcher": {
-          "allow": [
-            "openai-codex/gpt-6-astra"
-          ]
-        },
-        "reviewer": {
-          "allow": [
-            "openai-codex/gpt-6-astra"
-          ]
-        },
-        "scout": {
-          "allow": [
-            "openai-codex/gpt-5.6-terra"
-          ]
-        },
-        "worker": {
-          "allow": [
-            "openai-codex/gpt-6-astra"
-          ]
-        }
-      },
-      "allow": [
-        "inherit",
-        "openai-codex/gpt-6-astra",
-        "openai-codex/gpt-5.6-terra"
+    "executionStrategy": {
+      "delegation": "comprehensive",
+      "reviewers": [
+        "reviewer"
       ],
-      "enforce": true,
-      "strict": true
+      "version": 1
     }
   },
   "terminal": {

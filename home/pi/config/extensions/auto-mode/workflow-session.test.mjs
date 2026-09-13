@@ -9,6 +9,13 @@ import { AssistantMessageEventStream, InMemoryCredentialStore } from "../../npm/
 const jiti = createJiti(import.meta.url);
 const { registerWorkflow } = await jiti.import("./workflow-controller.ts");
 const { LEDGER_ENTRY, INPUT_ENTRY } = await jiti.import("./workflow-ledger.ts");
+const { checkRecovery } = await import("./workflow-recovery-check.mjs");
+
+test("real Pi SDK workflow recovery in normal and Auto modes", () => {
+  const artifact = checkRecovery();
+  assert.equal(JSON.parse(fs.readFileSync(artifact, "utf8")).pass, true);
+  console.log(`Workflow recovery SDK artifact: ${artifact}`);
+});
 
 function response(content, stopReason = "toolUse") {
   const stream = new AssistantMessageEventStream();

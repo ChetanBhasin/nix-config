@@ -58,6 +58,8 @@ if (process.argv[2] === "contender") {
     assert.throws(() => f.evidence("j1", "failed"), /failed/);
     f.executed("child", false, "subagent");
     assert.throws(() => f.evidence("r1", "child"), /attestations/);
+    f.executed("strategy", false, "execution_strategy");
+    assert.throws(() => f.evidence("r1", "strategy"), /attestations/);
     assert.throws(() => f.evidence("j1", "child"), /real interface/);
     assert.throws(() => f.evidence("j1", "child", { kind: "attestation" }), /attestations/);
     f.executed(); f.evidence("r1");
@@ -422,5 +424,7 @@ if (process.argv[2] === "contender") {
     assert.deepEqual(mutationTargets("ast_grep_replace", { paths: ["/tmp/file"] }, "/tmp"), ["/tmp/file"]);
     assert.equal(mutationTargets("ast_grep_replace", { paths: ["**/*.ts"] }, "/tmp"), "permit");
     for (const tool of ["read", "grep", "module_report", "lens_diagnostics", "ast_grep_search"]) assert.equal(mutationTargets(tool, {}, "/tmp"), undefined);
+    for (const action of ["plan", "prepare", "consume", "gate"]) assert.equal(mutationTargets("execution_strategy", { action }, "/tmp"), undefined);
+    assert.equal(mutationTargets("execution_strategy_unknown", { action: "prepare" }, "/tmp"), "permit");
   });
 }

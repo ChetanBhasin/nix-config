@@ -21,19 +21,11 @@ The footer/status area shows `AUTO` while the mode is enabled.
 - Rejects tampered records and records older than the child's last authenticated revision, retaining that last state when the control file is unavailable.
 - Keeps the existing model policy against purchases, production control, destructive/irreversible actions, and account/security/privacy changes. This is advisory for tools such as unrestricted `bash`; Auto Mode itself is not a sandbox or permission system.
 
-## Parent and child delegation policy
+## Availability is separate from execution strategy
 
-The owner parent remains the orchestrator and final authority. It delegates useful non-trivial independent or context-heavy lanes, keeps only genuinely tiny deterministic work local, inspects executable agents first, and uses one `async: true` workflow per wave. Waves normally contain 4–8 distinct useful lanes and never exceed 8 active lanes.
+Auto Mode owns unattended availability and signed parent/child propagation. It does **not** prescribe delegation frequency, lane counts, aggregation/review waves or async scheduling. An inherited child still obeys its bounded role and cannot become an orchestrator or expand its authority.
 
-Every child contract names its goal, scope, cwd/worktree, authority, evidence, acceptance, validation, stop conditions, and output artifact. Fresh context is the default and deliberately has no intercom bridge or `contact_supervisor`; its bounded task contract and output artifact are the escalation path. Only the policy-permitted, actually forked `oracle` receives inherited-conversation supervisor dialogue when that history is necessary evidence. One writer owns a cwd/worktree, fan-out is read-only, and handoffs are artifacts rather than transcripts. After wide fan-out, an aggregation delegate returns synthesis plus load-bearing evidence; the parent consumes artifacts at dependency barriers without polling, rejects cloned prompts, reserves capacity for implementation/fixes/review, grants budget only for named necessary lanes, and verifies final source, diff, and tests before responding.
-
-An inherited child is a bounded executor, not an orchestrator: it completes only its assigned contract, neither calls nor proposes subagents, honors read-only or sole-writer authority, resolves routine details safely, records unapproved product/API/scope/architecture/authority/protected decisions as artifact blockers, and returns a concise evidence/changes/commands/blockers/risks artifact.
-
-## Owner-only async promotion and limits
-
-For an enabled owner parent, a no-action launch with an `agent` or `workflowScript` receives outer `async: true` only when `async` is omitted and `foregroundOnly` is not explicitly `true`. Explicit `async` values, child calls, OFF mode, management/schedule/resume/steer actions, `extensionBindings`, and workflow source bytes are preserved. Signed child controls remain appended to eligible launch, steer, and resume task text.
-
-The configured boundary keeps `asyncByDefault=false`, `forceTopLevelAsync=false`, `artifactDir=session`, and depth 1. It allows two top-level async runs and 16 per-run spawn admissions. The per-session spawn budget is **0 (unlimited)**, not a lifetime quota. `globalConcurrencyLimit`, legacy `parallel.concurrency`, and legacy `parallel.maxTasks` remain 8; the advisory 8-lane wave policy remains, and `globalConcurrencyLimit` does not itself throttle modern `runs.all`.
+Async/default-delegation capability has been extracted into `execution-strategy-handoff.ts`: `promoteOwnerLaunchToAsync(input, {enabled, owner})` and `DELEGATION_GUIDANCE`. Auto Mode never imports or registers it. The separate execution-strategy extension owns enabling/integrating this migration surface independently of `/auto`. Explicit `async`, `foregroundOnly`, management actions and workflow source bytes remain untouched by Auto Mode. Signed controls continue to propagate on eligible launch/steer/resume task text. No native package/profile settings are changed by this extraction.
 
 Turning the mode off restores the question tool to its prior active-tool position and injects a one-turn instruction that normal interactive behavior has resumed.
 
@@ -44,6 +36,8 @@ The signed control record authenticates parent-produced state and rejects ordina
 ## Workflow acceptance and writer ownership
 
 `/workflow status` and `workflow_contract` track explicit branch-local objectives, mandatory outcomes, real-interface journeys and finalized tool evidence. Completion is a validated ledger state, not assistant prose or coordinator settlement. Owner-parent Auto Mode can queue at most three marked remediation follow-ups; unchanged evidence, blockers, waiting, cancellation and `/auto off` stop automatic remediation.
+`workflow_contract recover` automatically repairs agent-authored technical setup errors in **normal and Auto modes**, without asking for confirmation or an owner-TUI reset. It preserves all acceptance obligations and changed-source coverage, atomically preflights bindings, records old/new hashes and reason, increments revision and clears stale evidence/permits. Recovery leaves acceptance **open** and budgets/leases unchanged; new executed evidence is mandatory. `/workflow reset` remains confirmed human scope retirement, not this lossless recovery.
+
 
 `writer_lease` provides cooperative one-writer ownership for parent and child-loaded controllers, independent of the Auto toggle. File/Hashline/AST mutations need a matching explicit-root claim; shell, LSP rename and unknown effects additionally need an exact one-use scope permit. Read-only tools require neither a claim nor a contract. SQLite state lives outside captured extensions, at `~/.pi/agent/state/auto-mode/`.
 

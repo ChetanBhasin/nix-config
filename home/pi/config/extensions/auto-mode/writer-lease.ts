@@ -190,7 +190,7 @@ export class WriterLeaseStore {
 const NON_SOURCE_TOOLS = new Set([
   "read", "grep", "find", "ls", "project_report", "module_report", "read_symbol", "read_enclosing", "symbol_search",
   "lens_diagnostics", "lsp_diagnostics", "ast_grep_search", "ast_grep_outline", "ast_grep_dump", "pi_lens_activate_tools",
-  "ask_user_question", "subagent", "contact_supervisor", "workflow_contract", "writer_lease", "web_run", "view_image",
+  "ask_user_question", "subagent", "contact_supervisor", "workflow_contract", "writer_lease", "execution_strategy", "web_run", "view_image",
   "todo", "ctx_search", "ctx_expand", "ctx_memory", "ctx_note", "ctx_reduce",
   "subagent_wait", "subagent_supervisor", "agent_browser",
 ]);

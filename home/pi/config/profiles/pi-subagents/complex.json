@@ -1,24 +1,12 @@
 {
-  "description": "Complex work: Terra/high for lookup roles, Sol/high for implementation, review and advice. Thinking ceiling: high. No expensive parent inheritance or Astra models.",
+  "description": "Subsystem execution: Terra discovery/lookup and Sol implementation/review/advice; proactively transfer owned work before parent integration.",
   "subagents": {
     "defaultModel": "openai-codex/gpt-5.6-sol",
     "defaultProvider": "openai-codex",
     "defaultThinking": "high",
-    "maxThinking": "high",
-    "modelScope": {
-      "enforce": true,
-      "strict": true,
-      "allow": ["openai-codex/gpt-5.6-terra", "openai-codex/gpt-5.6-sol"],
-      "agents": {
-        "delegate": {"allow": ["openai-codex/gpt-5.6-terra"]},
-        "oracle": {"allow": ["openai-codex/gpt-5.6-sol"]},
-        "researcher": {"allow": ["openai-codex/gpt-5.6-terra"]},
-        "reviewer": {"allow": ["openai-codex/gpt-5.6-sol"]},
-        "scout": {"allow": ["openai-codex/gpt-5.6-terra"]},
-        "worker": {"allow": ["openai-codex/gpt-5.6-sol"]}
-      }
-    },
+    "executionStrategy": {"version": 1, "delegation": "proactive", "reviewers": ["reviewer"]},
     "agentOverrides": {
+      "lookup": {"model": "openai-codex/gpt-5.6-terra", "thinking": "medium"},
       "delegate": {
         "acceptanceRole": "read-only",
         "defaultContext": "fresh",

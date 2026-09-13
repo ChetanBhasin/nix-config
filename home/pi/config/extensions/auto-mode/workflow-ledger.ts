@@ -1,7 +1,8 @@
 import { randomUUID } from "node:crypto";
 import path from "node:path";
-import { canonicalRoots, digest, fingerprint, type WorkspaceStamp } from "./workflow-workspace.js";
+import { canonicalRoots, digest, fingerprint, sourceWorktrees, type WorkspaceStamp } from "./workflow-workspace.js";
 import { canonicalToolName, sameToolName } from "./workflow-tool-name.js";
+import { setupCoverage, priorCoverage, repairCoverage, validateCoverage, type RecoveryCoverage } from "./workflow-recovery.js";
 
 export const LEDGER_ENTRY = "cb-workflow-ledger-v1";
 export const INPUT_ENTRY = "cb-workflow-input-v1";
@@ -64,6 +65,8 @@ export interface Contract extends Definition {
   continuations: number;
   noProgress: number;
   progressFingerprint?: string;
+  recoveryCoverage?: RecoveryCoverage;
+  recoveryAudit?: Record<string, unknown>;
 }
 
 export function text(value: unknown, label: string, max = 4000): string {
@@ -79,7 +82,7 @@ function list(value: unknown, max: number): unknown[] {
   return value;
 }
 const NON_JOURNEY_TOOLS = new Set([
-  "subagent", "subagent_wait", "subagent_supervisor", "workflow_contract", "writer_lease",
+  "subagent", "subagent_wait", "subagent_supervisor", "workflow_contract", "writer_lease", "execution_strategy",
   "read", "read_symbol", "read_enclosing", "grep", "find", "ls", "symbol_search",
   "project_report", "module_report", "ast_grep_search", "ast_grep_outline", "ast_grep_dump",
   "lsp_navigation", "lsp_diagnostics", "lens_diagnostics", "pi_lens_activate_tools", "lens_diagnostic_mark",
@@ -103,7 +106,7 @@ export function definition(value: unknown, historical = false): Definition {
     if (NON_JOURNEY_TOOLS.has(tool)) {
       throw new Error("Journey must invoke the real interface, not read files, edit source, or attest via a child/ledger");
     }
-    const input = object(j.input);
+    const input = structuredClone(object(j.input));
     if (JSON.stringify(input).length > 16000) throw new Error("Journey arguments too large");
     return { id: text(j.id, "journey ID", 80), scenario: text(j.scenario, "user scenario"), interface: text(j.interface, "real interface"), tool, input, expected: text(j.expected, "journey outcome"), artifactRequired: j.artifactRequired === true };
   });
@@ -115,6 +118,7 @@ export function definition(value: unknown, historical = false): Definition {
     if (!path.isAbsolute(filename)) throw new Error("External inputs must be absolute file/directory paths");
     return path.resolve(filename);
   }).sort();
+  if (list(data.roots, 16).length === 0) throw new Error("Declare 1–16 explicit roots");
   return {
     objective: text(data.objective, "objective"), kind: data.kind as Definition["kind"],
     roots: historical ? list(data.roots, 16).map((root) => {
@@ -143,6 +147,16 @@ function strengthens(current: Definition, next: Definition): boolean {
       && (!before.artifactRequired || after.artifactRequired);
   });
   return requirementsPreserved && journeysPreserved;
+}
+/** Recovery changes technical bindings only, never acceptance obligations. */
+function obligations(value: Definition): unknown {
+  const byId = <T extends { id: string }>(items: T[]) => [...items].sort((a, b) => a.id.localeCompare(b.id));
+  return { objective: value.objective, kind: value.kind, requirements: byId(value.requirements),
+    journeys: byId(value.journeys.map(({ tool: _tool, input: _input, ...obligation }) => obligation)) };
+}
+function bindings(value: Definition): unknown {
+  return { roots: value.roots, externalInputs: value.externalInputs,
+    journeys: value.journeys.map(({ id, tool, input }) => ({ id, tool, input })).sort((a, b) => a.id.localeCompare(b.id)) };
 }
 
 function resultOnBranch(branch: BranchEntry[], receipt: Receipt): { output: string; hash: string } | undefined {
@@ -186,7 +200,13 @@ export class WorkflowLedger {
     this.retirement = undefined;
     this.audit = [];
     try {
-      this.audit = branch.filter((entry) => entry.type === "custom" && entry.customType === AUDIT_ENTRY).slice(-20).map((entry) => object(entry.data));
+      const audits = new Map<string, Record<string, unknown>>();
+      for (const entry of branch) {
+        if (entry.type !== "custom") continue;
+        const raw = entry.customType === AUDIT_ENTRY ? object(entry.data) : entry.customType === LEDGER_ENTRY ? (entry.data as Contract)?.recoveryAudit : undefined;
+        if (raw) { const audit = object(raw); audits.set(digest(audit), audit); }
+      }
+      this.audit = [...audits.values()].slice(-20);
       // A confirmed reset is a checkpoint, not deletion of prior audit/session history.
       let reset = -1;
       branch.forEach((entry, index) => {
@@ -212,9 +232,11 @@ export class WorkflowLedger {
               !c.input?.id || !c.confirmedInput || !Array.isArray(c.evidence) || c.evidence.length > 80 || !Array.isArray(c.blockers)) {
             throw new Error("Invalid ledger snapshot");
           }
-          // Historical completion must survive removed roots and unrelated later settings.
-          Object.assign(c, definition(c, c.status === "complete"));
+          // Stored scope is structurally validated even when a current input was deleted.
+          // Availability belongs to fingerprint/evidence validation, not ledger restoration.
+          Object.assign(c, definition(c, true));
           c.evidence = c.evidence.map((e) => ({ ...e, receipt: { ...e.receipt, tool: canonicalToolName(e.receipt.tool) } }));
+          if (c.recoveryCoverage) validateCoverage(c.recoveryCoverage);
           this.contract = c;
         } else if (entry.customType === INPUT_ENTRY) {
           // SAFETY: object() yields a plain record; version, source, and identity are validated before assignment.
@@ -229,6 +251,9 @@ export class WorkflowLedger {
           this.receipts.set(receipt.toolCallId, receipt);
           if (this.receipts.size > 256) this.receipts.delete(this.receipts.keys().next().value!);
         }
+      }
+      for (const [id, receipt] of this.receipts) {
+        if (receipt.objectiveId !== this.contract?.id || receipt.revision !== this.contract?.revision) this.receipts.delete(id);
       }
     } catch (error) {
       this.fault = `Workflow restore failed closed: ${String(error)}`;
@@ -321,7 +346,7 @@ export class WorkflowLedger {
       && this.input.precedingCompletion.revision === this.contract.revision;
     if (this.contract && !finishedBeforeInput && !this.authorized("start", next)) throw new Error("Replacing an objective requires explicit workflow-scope start input; old requirements are not silently dropped");
     this.contract = { ...next, version: 1, id: randomUUID(), revision: 1, input: this.input, confirmedInput: inputId,
-      evidence: [], blockers: [], disposition: "actionable", status: "open", continuations: 0, noProgress: 0 };
+      evidence: [], blockers: [], disposition: "actionable", status: "open", continuations: 0, noProgress: 0, recoveryCoverage: setupCoverage(next) };
     this.retirement = undefined;
     this.save();
     return this.contract;
@@ -332,9 +357,51 @@ export class WorkflowLedger {
     const next = definition(value);
     if (digest(scope(c)) === digest(next)) { this.confirm(revision, inputId); return; }
     const pendingAuthorization = this.input?.authorization && c.confirmedInput !== inputId;
-    const additive = !pendingAuthorization && !this.input?.invalidAuthorization && strengthens(c, next);
-    if (!additive && !this.authorized("revise", next)) throw new Error("Scope changes require exact genuine workflow-scope input with the current revision; mandatory requirements cannot be silently weakened");
-    Object.assign(c, next, { revision: c.revision + 1, input: this.input, confirmedInput: inputId, evidence: [], status: "open" });
+    const strengthening = strengthens(c, next);
+    const autonomous = !pendingAuthorization && !this.input?.invalidAuthorization && strengthening;
+    if (!autonomous && !this.authorized("revise", next)) throw new Error("Scope changes require exact genuine workflow-scope input with the current revision; mandatory requirements cannot be silently weakened");
+    // Explicit approval of strengthening is not approval to retire source coverage.
+    const recoveryCoverage = strengthening ? c.recoveryCoverage : setupCoverage(next);
+    Object.assign(c, next, { revision: c.revision + 1, input: this.input, confirmedInput: inputId, evidence: [], status: "open", recoveryCoverage });
+    this.save();
+  }
+  /** Lossless setup reset. No user authorization is asserted or synthesized. */
+  recover(value: unknown, revision: number, reason: string): void {
+    const c = this.requireOpen();
+    if (c.revision !== revision) throw new Error("Recovery revision mismatch; read workflow_contract status before retrying");
+    const justification = text(reason, "technical binding correction reason");
+    if (this.input?.invalidAuthorization || (this.input?.authorization && this.input.id !== c.confirmedInput)) {
+      throw new Error("Pending workflow-scope input must be resolved explicitly; recovery cannot impersonate human authorization");
+    }
+    const next = definition(value);
+    if (digest(obligations(c)) !== digest(obligations(next))) throw new Error("Recovery must preserve objective/kind and EVERY requirement/journey ID, scenario, interface, expected, mandatory and artifact obligation; scope loss requires genuine human authorization");
+    const oldBindingHash = digest(bindings(c)), newBindingHash = digest(bindings(next));
+    if (oldBindingHash === newBindingHash) throw new Error("Recovery has no binding correction; rerun the actual interface for fresh evidence, not a reset loop");
+    const { coverage, revision: workspaceRevision } = repairCoverage(c, next);
+    const record = { version: 1, action: "recover-bindings", reason: justification, confirmed: false, at: new Date().toISOString(),
+      objectiveId: c.id, revision: c.revision, nextRevision: c.revision + 1, oldBindingHash, newBindingHash,
+      obligationsHash: digest(obligations(c)), workspaceRevision, retainedCoverageHash: digest(coverage.retained) };
+    const replacement: Contract = { ...c, ...next, revision: c.revision + 1, evidence: [], status: "open", recoveryCoverage: coverage, recoveryAudit: record };
+    // SDK append can persist/update the branch and THEN throw from a subscriber.
+    // Preflight failures are atomic; append exceptions have uncertain durability.
+    try { this.append(LEDGER_ENTRY, structuredClone(replacement)); }
+    catch (error) {
+      this.receipts.clear();
+      c.evidence = [];
+      this.fault = `Workflow persistence uncertain; release ownership and reload the authoritative session before continuing: ${String(error)}`;
+      throw new Error(this.fault, { cause: error });
+    }
+    this.contract = replacement;
+    this.receipts.clear();
+    this.audit = [...this.audit, record].slice(-20);
+  }
+  retainMutation(affected: string[]): void {
+    if (!this.contract || this.contract.status !== "open") return;
+    const c = this.requireOpen(), previous = priorCoverage(c);
+    const retained = [...new Set([...previous.retained, ...affected])].sort();
+    if (retained.length > 20000) throw new Error("Changed-source coverage exceeds 20,000 entries; cannot safely track further mutations");
+    const trees = [...new Set([...(previous.trees ?? []), ...sourceWorktrees(affected)])].sort();
+    c.recoveryCoverage = { ...previous, started: true, retained, trees };
     this.save();
   }
   confirm(revision: number, inputId: string): void {
@@ -385,7 +452,7 @@ export class WorkflowLedger {
       const journey = target as Journey;
       if (!sameToolName(receipt.tool, journey.tool) || receipt.inputHash !== digest(journey.input)) throw new Error("Journey did not execute its declared real interface and arguments");
     }
-    if (["subagent", "workflow_contract", "writer_lease"].includes(receipt.tool)) throw new Error("Child/ledger attestations are not acceptance evidence");
+    if (["subagent", "workflow_contract", "writer_lease", "execution_strategy"].includes(receipt.tool)) throw new Error("Child/ledger attestations are not acceptance evidence");
     let artifact: string | undefined;
     let artifactRevision: string | undefined;
     if (data.artifact !== undefined) {
