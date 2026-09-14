@@ -28,6 +28,13 @@
       url = "github:dmmulroy/jj-starship";
     };
 
+    # Maki is not in nixpkgs. Its own flake pins the Rust toolchain and the
+    # Cargo git dependencies the workspace needs, so do not make it follow this
+    # configuration's nixpkgs.
+    maki = {
+      url = "github:tontinton/maki";
+    };
+
     mac-app-util = {
       url = "github:hraban/mac-app-util";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -60,6 +67,9 @@
               jj-starship-no-git = packages.jj-starship-no-git;
             }
           )
+          (final: _prev: {
+            maki = inputs.maki.packages.${final.stdenv.hostPlatform.system}.default;
+          })
           (_final: prev: {
             tmux = prev.tmux.overrideAttrs (old: {
               configureFlags = (old.configureFlags or [ ]) ++ [ "--disable-jemalloc" ];

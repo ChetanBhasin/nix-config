@@ -8,6 +8,7 @@
 #   inputs.nix-config.homeManagerModules.tmux     # Just tmux
 #   inputs.nix-config.homeManagerModules.zellij   # Just zellij
 #   inputs.nix-config.homeManagerModules.pi       # Just Pi Coding Agent
+#   inputs.nix-config.homeManagerModules.maki     # Just Maki coding agent
 #   inputs.nix-config.homeManagerModules.default  # All modules combined
 {
   # Individual modules
@@ -17,6 +18,7 @@
   tmux = import ./tmux.nix;
   zellij = import ./zellij.nix;
   pi = import ./pi.nix;
+  maki = import ./maki.nix;
 
   # Combined module that imports all
   default = { ... }: {
@@ -27,6 +29,7 @@
       ./tmux.nix
       ./zellij.nix
       ./pi.nix
+      ./maki.nix
     ];
   };
 }

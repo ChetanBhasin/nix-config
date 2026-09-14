@@ -1,0 +1,14 @@
+# Capability grant for ~/.config/maki/init.lua itself.
+#
+# A key that is absent defaults to granted for a plugin.toml you wrote, so the
+# unused capabilities are revoked explicitly. `run` is what the bash guard in
+# init.lua costs: a layer on `tool.bash.input` borrows the capability the bash
+# tool declares, and a layer without it is silently skipped.
+min_maki_version = "0.5.3"
+
+[permissions]
+fs_read = true
+run = true
+env = false
+fs_write = false
+net = false

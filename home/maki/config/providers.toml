@@ -1,0 +1,39 @@
+# Seeded once, then yours: `maki auth login` writes plan and base-URL choices
+# back into this file, so Home Manager will not overwrite an existing copy.
+#
+# Built-in providers need nothing here. OpenAI is `maki auth login openai`
+# (the same Codex backend Pi uses); OpenRouter is just OPENROUTER_API_KEY in
+# the environment, and its 300+ models are addressed as
+# `openrouter/<vendor>/<model>`, e.g. `openrouter/anthropic/claude-sonnet-4`.
+
+# Hetzner's inference endpoint, ported from home/pi/config/models.json. It
+# speaks plain OpenAI chat-completions — `max_tokens`, no developer role, no
+# reasoning_effort — which is exactly maki's `openai` protocol, so the compat
+# flags Pi needed have no counterpart here.
+[hetzner]
+display_name = "Hetzner Inference"
+protocol = "openai"
+base_url = "https://inference.hetzner.com/api/v1"
+api_key_env = "HETZNER_INFERENCE_API_KEY"
+
+# The endpoint's own model list is the authority as models come and go.
+discover_models = true
+
+# A3B activates 3B of its 35B per token, so it is the fast one despite being
+# the larger model. Flip either assignment in `/model` with `#` weak,
+# `@` medium, `!` strong, `$` compaction; that choice lives in the state dir.
+[[hetzner.models]]
+id = "Qwen/Qwen3.6-35B-A3B-FP8"
+tier = "weak"
+context_window = 229376
+max_output_tokens = 32768
+supports_thinking = true
+supports_vision = true
+
+[[hetzner.models]]
+id = "Qwen3.8-27B"
+tier = "medium"
+context_window = 229376
+max_output_tokens = 32768
+supports_thinking = true
+supports_vision = true

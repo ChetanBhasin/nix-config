@@ -32,6 +32,7 @@ in
     ./tmux
     ./zellij
     ./pi
+    ./maki
     ./darwin
     ./hyprland
     ./quickshell

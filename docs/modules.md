@@ -304,6 +304,66 @@ Pi credentials, sessions, package realizations, and project-local resources rema
 
 ---
 
+### `homeManagerModules.maki`
+
+[Maki](https://github.com/tontinton/maki) is a Rust TUI coding agent built around minimal context spend: a tree-sitter `index` tool instead of whole-file reads, a Python sandbox (`code_execution`) that pipes tool output without it entering the context window, tree-sitter-parsed bash permissions, and Lua plugins. It is not in nixpkgs; this flake takes it from `github:tontinton/maki` through an overlay.
+
+Maki owns its writable state (sessions, auth tokens, memories, folder trust, model tiers) under `~/.local/state/maki`. The module projects only the files Maki never writes, and seeds the two it does.
+
+#### Options
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `cb.maki.enable` | boolean | `false` | Enable the Maki configuration |
+| `cb.maki.package` | package | `pkgs.maki` | Maki package, supplied by this flake's overlay |
+| `cb.maki.initLua` | path | `home/maki/config/init.lua` | File providing the single `maki.setup()` call |
+| `cb.maki.extraLua` | lines | `""` | Lua appended after `initLua`; keymaps, commands and slots only, since `maki.setup()` may only run once |
+| `cb.maki.extraPackages` | list of packages | `[]` | Extra tools on the PATH Maki hands to bash, MCP servers and subagents |
+| `cb.maki.enableRtk` | boolean | `true` | Put [rtk](https://github.com/rtk-ai/rtk) on PATH; Maki uses it automatically to shrink bash output |
+| `cb.maki.enableRoles` | boolean | `true` | Load the delegation-roles plugin: a `role` tool with scout, researcher, reviewer, oracle and worker, plus `/profile` and `/roles` |
+| `cb.maki.roleProfile` | `"simple"`, `"complex"` or `"max"` | `"max"` | Delegation profile a session starts on, mirroring `home/pi/config/profiles/pi-subagents`. `/profile` overrides it live |
+| `cb.maki.enableRv` | boolean | `true` | Install [rv](https://github.com/Firaenix/rv) with difftastic and load the Lua plugin that turns a jj review into the agent's task list |
+| `cb.maki.writableRuntimeConfig` | boolean | `true` | Seed `permissions.toml` once instead of projecting it read-only |
+| `cb.maki.installTheme` | boolean | `true` | Install the shared Gruvbox Night palette as a Maki theme |
+
+#### Managed paths
+
+| Path | Ownership |
+|------|-----------|
+| `~/.config/maki/init.lua` | Read-only store symlink |
+| `~/.config/maki/plugin.toml` | Read-only store symlink |
+| `~/.config/maki/AGENTS.md` | Read-only store symlink |
+| `~/.config/maki/themes/gruvbox-night.toml` | Read-only store symlink, generated from `modules/theme/gruvbox-night.nix` |
+| `~/.config/maki/lua/roles.lua` | Read-only store symlink, with `require("roles").setup{...}` appended to `init.lua` |
+| `~/.config/maki/lua/rv.lua` | Read-only store symlink, with `require("rv")` appended to `init.lua` |
+| `~/.config/maki/commands/` | Read-only symlink per file; the directory stays writable |
+| `~/.config/maki/skills/` | Read-only symlink per file; the directory stays writable |
+| `~/.config/maki/permissions.toml` | Seeded once, then yours (`A` in a permission prompt appends here) |
+| `~/.config/maki/providers.toml` | Seeded once, then yours (`maki auth login` writes plan and base-URL choices here) |
+| `~/.config/maki/mcp.toml` | Not managed; Maki creates and writes it through `/mcp` |
+
+Set `writableRuntimeConfig = false` to project `permissions.toml` and `providers.toml` read-only as well. Maki's in-app "always allow globally" and the choices `maki auth login` records then fail, which is the point.
+
+#### Example
+
+```nix
+{
+  cb.maki = {
+    enable = true;
+    extraPackages = with pkgs; [ kubectl ];
+    extraLua = ''
+      maki.keymap.set("n", "<C-y>", function()
+        require("maki.scroll")(-1)
+      end, { desc = "Scroll up one line" })
+    '';
+  };
+}
+```
+
+`~/.maki/` is a legacy layout Maki prefers over the XDG paths this module manages. Activation warns if it exists; run `maki migrate xdg` and remove it. See the [Maki Configuration Guide](maki.md) for what the shipped configuration decides and why.
+
+---
+
 ### `homeManagerModules.default`
 
 Convenience module that imports all exported Home Manager modules.
@@ -316,6 +376,7 @@ Convenience module that imports all exported Home Manager modules.
   cb.terminal.enable = true;
   cb.tmux.enable = true;
   cb.pi.enable = true;
+  cb.maki.enable = true;
 }
 ```
 

@@ -1,0 +1,87 @@
+# Seeded once, then owned by you: pressing `A` in a permission prompt appends
+# here. Home Manager will not overwrite an existing file, so your saved
+# answers survive a rebuild. Delete the file and re-activate to reset it.
+#
+# Anything not matched below prompts. Deny always wins, over an allow in any
+# layer and over YOLO mode.
+default = "prompt"
+
+[bash]
+allow = [
+    # Read-only inspection.
+    "ls *",
+    "eza *",
+    "cat *",
+    "bat *",
+    "head *",
+    "tail *",
+    "wc *",
+    "file *",
+    "stat *",
+    "rg *",
+    "fd *",
+    "tokei *",
+    "jq *",
+    "ast-grep *",
+    "difft *",
+
+    # Version control, read-only subcommands only. Mutating git/jj still
+    # prompts, and the destructive ones are blocked in init.lua.
+    "git status *",
+    "git diff *",
+    "git log *",
+    "git show *",
+    "git branch *",
+    "git remote *",
+    "jj status *",
+    "jj diff *",
+    "jj log *",
+    "jj show *",
+    "jj op log *",
+
+    # Build and test. These are the loops worth not interrupting.
+    "cargo *",
+    "just *",
+    "bazel *",
+    "bazelisk *",
+    "buildifier *",
+    "nix eval *",
+    "nix build *",
+    "nix flake check *",
+    "nix flake metadata *",
+    "nix repl *",
+    "nixfmt *",
+    "hyperfine *",
+
+    # This repository's build targets only. Bare `make *` is deliberately not
+    # allowed: `make apply-darwin` shells out to darwin-rebuild, and the deny
+    # below cannot see through a Makefile recipe.
+    "make build-darwin *",
+    "make build-nixos *",
+]
+deny = [
+    # Applying a host configuration is a protected action. Building one is not,
+    # and is allowed above.
+    "darwin-rebuild *",
+    "nixos-rebuild *",
+    "home-manager *",
+
+    # Irreversible, or reaches outside the working tree.
+    "rm -rf *",
+    "sudo *",
+    "doas *",
+    "shutdown *",
+    "reboot *",
+    "diskutil *",
+    "nix-collect-garbage *",
+
+    # Kills the user's live multiplexer. An acceptance run belongs on its own
+    # `tmux -L <name>` server.
+    "tmux kill-server *",
+]
+
+[webfetch]
+allow = ["https://*"]
+
+[websearch]
+allow = ["*"]
