@@ -9,6 +9,7 @@ let
   cfg = config.home-config-manager;
   slackOfficialCli = pkgs.callPackage ../packages/slack-official-cli.nix { };
   slackTui = pkgs.callPackage ../packages/slack-tui.nix { };
+  zen = pkgs.callPackage ../packages/zen.nix { };
 in
 {
   options.home-config-manager = {
@@ -28,9 +29,7 @@ in
     ./defaultPrograms
     ./zsh
     ./neovim
-    ./helix
     ./tmux
-    ./zellij
     ./pi
     ./maki
     ./darwin
@@ -60,6 +59,7 @@ in
         lens
         obsidian
         slack
+        zed-editor
 
         # User shell and terminal utilities
         zsh-completions
@@ -155,6 +155,7 @@ in
         systemd
         vlc
         openlogi
+        zen
       ];
 
     home.stateVersion = "23.05";

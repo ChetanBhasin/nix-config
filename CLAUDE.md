@@ -10,7 +10,7 @@ This is a cross-platform Nix configuration supporting both macOS (Darwin) and Li
 
 **Flake Structure (`flake.nix`)**:
 - `darwinConfigurations`: macOS systems using nix-darwin (hugh, markus)
-- `homeManagerModules`: Exportable Home Manager modules for external use (helix, neovim, terminal, tmux, zellij, pi, maki)
+- `homeManagerModules`: Exportable Home Manager modules for external use (neovim, terminal, tmux, pi, maki)
 - `nixosModules` and `darwinModules`: Reusable module functions for platform-specific setups
 - Home Manager integration for both platforms with user-specific configurations
 
@@ -104,11 +104,9 @@ FZF configuration is managed via `programs.fzf` in nix, not shell exports.
 The repository exports standalone Home Manager modules via `homeManagerModules` for use in other flakes:
 
 **Module Structure (`modules/homeManager/`)**:
-- `helix.nix`: Helix editor configuration (options under `cb.helix.*`)
 - `neovim.nix`: NeoVim IDE with LSP, treesitter, 50+ plugins (options under `cb.neovim.*`)
 - `terminal.nix`: Zsh + FZF + Starship + Direnv + Zoxide + Alacritty (options under `cb.terminal.*`)
 - `tmux.nix`: Modern tmux with sessions, FZF, Gruvbox Night theme (options under `cb.tmux.*`)
-- `zellij.nix`: Zellij multiplexer configuration (options under `cb.zellij.*`)
 - `pi.nix`: Package-only regular Pi with writable state, explicit synchronization, and optional activation-time forced apply (options under `cb.pi.*`)
 - `maki.nix`: Maki coding agent with a Lua config, Gruvbox Night theme, the rv review plugin, and seeded writable permissions (options under `cb.maki.*`)
 - `default.nix`: Index that exports all modules

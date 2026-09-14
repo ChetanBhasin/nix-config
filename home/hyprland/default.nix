@@ -10,6 +10,8 @@ let
   theme = import ../../modules/theme/gruvbox-night.nix;
   # Hyprland/hyprlock take colours as rgb(RRGGBB); the palette stores them as #RRGGBB.
   rgb = colour: "rgb(${removePrefix "#" colour})";
+  # Hyprlang parses alpha colours only as rgba(RRGGBBAA), alpha last.
+  rgba = alpha: colour: "rgba(${removePrefix "#" colour}${alpha})";
   font = "JetBrainsMono Nerd Font";
   terminal = "alacritty";
   toLua = generators.toLua { };
@@ -146,9 +148,14 @@ in
             gaps_in = 4;
             gaps_out = 8;
             border_size = 2;
+            # Local overrides rather than theme roles: `activeBorder`/
+            # `inactiveBorder` are shared by quickshell, fzf, bat, maki
+            # and hyprlock, so window borders pick their own colours here.
+            # Orange marks focus, blue marks unfocused, and neither is the
+            # amber (#c9a257) that tmux paints its focused pane frame in.
             col = {
-              active_border = rgb theme.activeBorder;
-              inactive_border = rgb theme.inactiveBorder;
+              active_border = rgb theme.base09;
+              inactive_border = rgb theme.base0D;
             };
             layout = "dwindle";
             resize_on_border = true;
@@ -175,6 +182,20 @@ in
 
           dwindle.preserve_split = true;
         };
+
+        # The renderer emits rules after the important prefixes (curve,
+        # monitor, config), so these land after `general`. Terminals keep a
+        # blue frame in both focus states: their outer border never reads like
+        # the amber (#c9a257) tmux active-pane frame they enclose, while every
+        # other app signals focus with orange, which tmux never draws.
+        window_rule = [
+          {
+            match = {
+              class = "Alacritty";
+            };
+            border_color = "${rgb theme.base0D} ${rgb theme.base0D}";
+          }
+        ];
 
         curve = [
           {
@@ -343,28 +364,36 @@ in
           grace = 2;
         };
 
-        # This host ships no wallpaper asset, so lock onto a solid themed
-        # surface instead of an image path.
+        # A live screencopy of the desktop, blurred and dimmed toward base00,
+        # reads as a layered veil over the session. The semi-transparent
+        # base00 colour stands in when screencopy is unavailable.
         background = [
           {
             monitor = "";
-            color = rgb theme.base00;
-            blur_passes = 0;
+            path = "screenshot";
+            blur_size = 25;
+            blur_passes = 2;
+            brightness = 0.45;
+            contrast = 0.8;
+            vibrancy = 0.1;
+            color = rgba "cc" theme.base00;
           }
         ];
 
         input-field = [
           {
             monitor = "";
-            size = "280, 48";
-            position = "0, -60";
+            # hyprlock sizes the field font from its height, so the taller
+            # field gives the larger type.
+            size = "300, 56";
+            position = "0, 58";
             halign = "center";
             valign = "center";
-            rounding = 6;
+            rounding = 14;
             outline_thickness = 2;
             dots_center = true;
-            outer_color = rgb theme.activeBorder;
-            inner_color = rgb theme.base01;
+            outer_color = rgb theme.inactiveBorder;
+            inner_color = rgba "66" theme.base01;
             font_color = rgb theme.base05;
             check_color = rgb theme.base0C;
             fail_color = rgb theme.base08;
@@ -372,14 +401,25 @@ in
           }
         ];
 
+        # A centered vertical stack: account, clock, date, field, hint.
         label = [
+          {
+            monitor = "";
+            text = "cmd[update:0] whoami";
+            color = rgb theme.dimNeutral;
+            font_family = font;
+            font_size = 16;
+            position = "0, -124";
+            halign = "center";
+            valign = "center";
+          }
           {
             monitor = "";
             text = "cmd[update:1000] date +%H:%M";
             color = rgb theme.base07;
             font_family = font;
             font_size = 64;
-            position = "0, 120";
+            position = "0, -62";
             halign = "center";
             valign = "center";
           }
@@ -389,7 +429,17 @@ in
             color = rgb theme.base04;
             font_family = font;
             font_size = 18;
-            position = "0, 56";
+            position = "0, -6";
+            halign = "center";
+            valign = "center";
+          }
+          {
+            monitor = "";
+            text = "Press Enter to unlock";
+            color = rgb theme.hint;
+            font_family = font;
+            font_size = 15;
+            position = "0, 112";
             halign = "center";
             valign = "center";
           }

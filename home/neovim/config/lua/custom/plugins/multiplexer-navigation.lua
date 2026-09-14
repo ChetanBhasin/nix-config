@@ -1,13 +1,11 @@
--- Seamless navigation between Neovim windows and tmux/Zellij panes.
+-- Seamless navigation between Neovim windows and tmux panes.
 
 local function present(value)
 	return value ~= nil and value ~= ""
 end
 
 local multiplexer = false
-if present(vim.env.ZELLIJ) then
-	multiplexer = "zellij"
-elseif present(vim.env.TMUX) then
+if present(vim.env.TMUX) then
 	multiplexer = "tmux"
 end
 
@@ -73,9 +71,8 @@ end
 smart_splits.setup({
 	multiplexer_integration = multiplexer,
 	at_edge = "stop",
-	zellij_move_focus_or_tab = false,
-	-- smart-splits can query tmux zoom state, but Zellij does not expose it to
-	-- this integration.
+	-- smart-splits can query tmux zoom state, but this integration does not
+	-- track it.
 	disable_multiplexer_nav_when_zoomed = true,
 })
 
@@ -86,10 +83,7 @@ local function previous_pane()
 	end
 
 	local command
-	if multiplexer == "zellij" then
-		-- Zellij 0.44 fallback; use focus-last-pane in 0.45 for exact last-active behavior.
-		command = { "zellij", "action", "focus-previous-pane" }
-	elseif multiplexer == "tmux" then
+	if multiplexer == "tmux" then
 		command = { "tmux", "select-pane", "-l" }
 	end
 
