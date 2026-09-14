@@ -43,12 +43,15 @@ Live gate receipts remain local at `/tmp/pi-native-live-xue223/result.json` and 
 
 From the repository root, after the live packages have been resolved/repaired:
 
+On macOS, run the launcher tests with `TMPDIR=/private/tmp`. Their temporary script paths must be canonical: Node resolves `/var` symlinks before evaluating `import.meta.url`, which otherwise makes the direct-script guards and path assertions fail. The runtime suite's release-chain regression also requires the cached `pi-subagents@0.56.0` npm archive, or an explicit `PI_TEST_SUBAGENTS_TARBALL` path; it never downloads or installs packages.
+
 ```sh
 raw=$(nix eval --raw .#nixosConfigurations.boris.config.home-manager.users.chetan.cb.pi.package.outPath)
 wrapper=$(nix build --no-link --print-out-paths .#nixosConfigurations.boris.config.home-manager.users.chetan.programs.pi-coding-agent.package)
 export PI_TEST_PACKAGE_DIR="$raw/lib/node_modules/pi-monorepo"
 
 npm --prefix ~/.pi/agent/extensions/runtime-reliability test
+node --test ~/.pi/agent/extensions/auto-mode/workflow-startup.test.mjs
 npm --prefix ~/.pi/agent/extensions/auto-mode test
 PI_NATIVE_CONTEXT_HELPERS_DIR="$PWD/home/pi/config/extensions/runtime-reliability" \
   node --test home/pi/native-auto-context-acceptance.test.mjs

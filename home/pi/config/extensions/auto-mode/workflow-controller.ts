@@ -1,5 +1,5 @@
-import type { ExtensionAPI, ExtensionContext, ToolCallEvent } from "../../npm/node_modules/@earendil-works/pi-coding-agent/dist/index.js";
-import { validateToolArguments } from "../../npm/node_modules/@earendil-works/pi-ai/dist/utils/validation.js";
+import type { ExtensionAPI, ExtensionContext, ToolCallEvent } from "@earendil-works/pi-coding-agent";
+import { validateToolArguments } from "@earendil-works/pi-ai";
 import { WorkflowLedger, definition, object, text, type Contract, type Receipt } from "./workflow-ledger.js";
 import { canonicalRoots, contains, digest } from "./workflow-workspace.js";
 import { WriterLeaseStore, mutationTargets, type Lease } from "./writer-lease.js";

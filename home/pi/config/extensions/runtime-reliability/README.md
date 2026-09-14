@@ -22,6 +22,8 @@ nix shell nixpkgs#typescript --command tsc --project .
 
 `preflight.test.mjs` checks missing/partial/corrupt roots and all-or-nothing validation. `bootstrap.test.mjs` uses real source and bundled Pi resource loaders and offline npm installation from local tarballs; it covers cold/partial installs, pre-trust loading, reload and rejection before any unknown extension executes. `PI_TEST_PACKAGE_DIR` can select a specific installed Pi package. `home/pi/test_pi_launcher.py` additionally exercises the real Nix launcher through version and RPC startup; set `PI_TEST_RELIABILITY_DIR` to this live directory while testing before capture.
 
+`repair-chain.test.mjs` applies the full native repair manifest to the published `pi-subagents@0.56.0` archive, then checks every profile/entrypoint intermediate stage and idempotence. It uses `npm pack --offline --ignore-scripts` from the local npm cache, or an explicit `PI_TEST_SUBAGENTS_TARBALL` path, and fails if the fixture is unavailable. The release entrypoint needs a checksum-pinned blank-line normalization before the historical repair chain; the profile overlay replacement includes surrounding context to distinguish its two call sites. Already-repaired files alone cannot validate these fresh-install paths.
+
 ## Context and tool output
 
 With `config.json` selecting `pi-native`, Pi owns compaction. The context bridge reconstructs legacy Magic Context gaps from branch-scoped raw history and consistent database snapshots, preserves earlier summaries across repeated compaction, and fails closed on incomplete recovery. Magic Context remains available for memory, notes, search and raw expansion, without a competing window manager. Native checkpoints and abandoned branches have separate recall boundaries.

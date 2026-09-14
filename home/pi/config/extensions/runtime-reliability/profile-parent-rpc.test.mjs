@@ -10,7 +10,8 @@ import { digest, patchedText } from './patcher.mjs';
 
 const agentDir = path.resolve(fileURLToPath(new URL('../..', import.meta.url)));
 const nativeDir = path.join(agentDir, 'npm/node_modules/pi-subagents');
-const cli = path.join(agentDir, 'npm/node_modules/@earendil-works/pi-coding-agent/dist/cli.js');
+const packageDir = process.env.PI_TEST_PACKAGE_DIR || path.join(agentDir, 'npm/node_modules/@earendil-works/pi-coding-agent');
+const cli = path.join(packageDir, 'dist/cli.js');
 const manifest = JSON.parse(fs.readFileSync(new URL('./patches.json', import.meta.url), 'utf8'));
 
 // Regression for the parent-model leak only. This is NOT the full execution

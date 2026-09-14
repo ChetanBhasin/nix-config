@@ -251,6 +251,17 @@
         },
         {
           "file": "src/extension/index.ts",
+          "beforeHash": "00c761903589186f9f38841b291e65aeb143029557ca8e1086e2167a845bc6b2",
+          "afterHash": "2fd36f7fdf2bd059e02db9db567b3b484933eea96bcf6c0e77ece880d7e1b3c2",
+          "edits": [
+            {
+              "before": "\t\tsupervisorChannel.activateTransport();\n\t});\n\n\tpi.on(\"session_shutdown\", async () => {",
+              "after": "\t\tsupervisorChannel.activateTransport();\n\t});\n\tpi.on(\"session_shutdown\", async () => {"
+            }
+          ]
+        },
+        {
+          "file": "src/extension/index.ts",
           "beforeHash": "2fd36f7fdf2bd059e02db9db567b3b484933eea96bcf6c0e77ece880d7e1b3c2",
           "afterHash": "a36d9e97b736c4a3acfc104e82d2e462c9a2cc22138ac7d48a40b75f02ae8db3",
           "edits": [
@@ -312,7 +323,7 @@
             { "before": "setSubagentProfileOverlay(profileName, {", "after": "setSubagentProfileOverlay(session, profileName, {" },
             { "before": "function restorePersistedSubagentProfile(warning?: string): SubagentProfileRestore {", "after": "function restorePersistedSubagentProfile(session: SubagentProfileSessionState, warning?: string): SubagentProfileRestore {" },
             { "before": "const { profileName } = applySubagentProfile(detected);", "after": "const { profileName } = applySubagentProfile(session, detected);" },
-            { "before": "\tclearSubagentProfileOverlay();", "after": "\tclearSubagentProfileOverlay(session);" },
+            { "before": "\tclearSubagentProfileOverlay();\n\treturn {\n\t\tname: \"default\",", "after": "\tclearSubagentProfileOverlay(session);\n\treturn {\n\t\tname: \"default\"," },
             { "before": "export function restoreSubagentProfileSession(branch: readonly unknown[]): SubagentProfileRestore {", "after": "export function restoreSubagentProfileSession(session: SubagentProfileSessionState, branch: readonly unknown[]): SubagentProfileRestore {" },
             { "before": "const { profileName } = applySubagentProfile(marker.name);", "after": "const { profileName } = applySubagentProfile(session, marker.name);" },
             { "before": "return restorePersistedSubagentProfile(warning);", "after": "return restorePersistedSubagentProfile(session, warning);" },

@@ -1,4 +1,4 @@
-import type { ExtensionAPI, ExtensionCommandContext } from "../../npm/node_modules/@earendil-works/pi-coding-agent/dist/index.js";
+import type { ExtensionAPI, ExtensionCommandContext } from "@earendil-works/pi-coding-agent";
 import { WorkflowLedger, type Retirement } from "./workflow-ledger.js";
 import { digest } from "./workflow-workspace.js";
 
