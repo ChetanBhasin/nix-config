@@ -2,14 +2,13 @@
 # back into this file, so Home Manager will not overwrite an existing copy.
 #
 # Built-in providers need nothing here. OpenAI is `maki auth login openai`
-# (the same Codex backend Pi uses); OpenRouter is just OPENROUTER_API_KEY in
+# against the Codex backend; OpenRouter is just OPENROUTER_API_KEY in
 # the environment, and its 300+ models are addressed as
 # `openrouter/<vendor>/<model>`, e.g. `openrouter/anthropic/claude-sonnet-4`.
 
-# Hetzner's inference endpoint, ported from home/pi/config/models.json. It
-# speaks plain OpenAI chat-completions — `max_tokens`, no developer role, no
-# reasoning_effort — which is exactly maki's `openai` protocol, so the compat
-# flags Pi needed have no counterpart here.
+# Hetzner's inference endpoint. It speaks plain OpenAI chat-completions —
+# `max_tokens`, no developer role, no reasoning_effort — which is exactly
+# maki's `openai` protocol, so no compatibility flags are needed.
 [hetzner]
 display_name = "Hetzner Inference"
 protocol = "openai"

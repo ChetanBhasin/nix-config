@@ -1,35 +1,34 @@
 -- Maki configuration, projected read-only from this flake.
 --
--- The shape mirrors the Track B contract the Pi configuration encodes:
--- explicit reasoning effort, bounded fan-out, one writer, and no blanket
--- permission bypass. Maki has no Lens/Hashline layer, so the discovery funnel
--- is `index` -> `grep`/`glob` -> `read`, and anchored edits are `edit_lines`
--- and `insert_lines` rather than Hashline.
+-- The shape encodes one operating contract: explicit reasoning effort,
+-- bounded fan-out, one writer, and no blanket permission bypass. The
+-- discovery funnel is `index` -> `grep`/`glob` -> `read`, and anchored edits
+-- are `edit_lines` and `insert_lines`.
 --
 -- The `require` lines for the roles and rv plugins are appended by the Home
 -- Manager module, so a disabled plugin is never required into a missing file.
 
 maki.setup({
-  -- Pi runs `defaultThinkingLevel: max`. Keep the same default instead of
-  -- paying for a picker interaction at the start of every session.
+  -- Reasoning effort is worth more than the tokens it costs on this work.
+  -- Default to max instead of paying for a picker interaction at the start of
+  -- every session.
   always_thinking = "max",
 
-  -- Deliberately absent from this file: `always_yolo`. Pi routes protected
-  -- actions through explicit permits, and permissions.toml carries the
-  -- equivalent allowlist. Toggle per session with `/yolo` when a sandbox
-  -- already is the boundary.
+  -- Deliberately not enabled: `always_yolo`. Protected actions go through
+  -- explicit permits, and permissions.toml carries the allowlist. Toggle per
+  -- session with `/yolo` when a sandbox already is the boundary.
   always_yolo = false,
 
   -- `code_execution` calling `task` turns one sandbox script into a fan-out
-  -- tree. Pi caps this at `maxSubagentDepth: 1`; leave it to `/workflow` for
-  -- the sessions that actually want it.
+  -- tree. Keep delegation one level deep; leave the unbounded shape to
+  -- `/workflow` for the sessions that actually want it.
   always_workflow = false,
 
   ui = {
     theme = "gruvbox-night",
-    -- Pi's `quietStartup`.
+    -- Quiet startup: no animation between invocation and prompt.
     splash_animation = false,
-    -- Pi's `hideThinkingBlock: false`: reasoning stays visible.
+    -- Reasoning stays visible.
     show_thinking = true,
     scrollbar = true,
     inline_images = true,
@@ -38,8 +37,8 @@ maki.setup({
     mouse_scroll_lines = 5,
     max_input_lines = 30,
 
-    -- Pi shows full tool output; maki collapses it. Raise the ceilings that
-    -- matter for review (bash, sandbox scripts, indexes) and leave the rest.
+    -- Maki collapses tool output. Raise the ceilings that matter for review
+    -- (bash, sandbox scripts, indexes) and leave the rest.
     tool_output_lines = {
       bash = 12,
       code_execution = 12,
@@ -58,8 +57,8 @@ maki.setup({
     -- filtered before it reaches the context window.
     rtk = true,
 
-    -- Re-read a file that changed on disk before editing it. This is the
-    -- closest maki has to Hashline's fresh-anchor requirement.
+    -- Re-read a file that changed on disk before editing it. An anchored edit
+    -- against a stale read lands silently in the wrong place.
     stale_read_check = true,
 
     max_output_lines = 3000,
@@ -83,14 +82,13 @@ maki.setup({
   },
 
   provider = {
-    -- Pi: defaultProvider `openai-codex`, defaultModel `gpt-6-astra`. Maki's
-    -- `openai` provider is the same backend once `maki auth login openai`
-    -- signs in with the ChatGPT subscription.
+    -- Maki's `openai` provider is the Codex backend once `maki auth login
+    -- openai` signs in with the ChatGPT subscription.
     default_model = "openai/gpt-6-astra",
 
-    -- Deliberately no `allowed_models`. Porting Pi's `enabledModels` here was
-    -- a mistake: in Pi it is a picker convenience, in Maki it is a hard policy
-    -- that also blocks delegation, `--model`, and every provider you later add.
+    -- Deliberately no `allowed_models`. In Maki that list is hard policy, not
+    -- a picker convenience: it also blocks delegation, `--model`, and every
+    -- provider you later add.
     -- Curate with tiers in `/model` (`!` strong, `@` medium, `#` weak,
     -- `$` compaction) instead, which steers cost without locking the door.
     -- To ban something specific, list it in `excluded_models`; exclusions win.
@@ -108,14 +106,14 @@ maki.setup({
     input_history_size = 500,
   },
 
-  -- Pi's `defaultProjectTrust: "ask"`. No `paths` entries: a cloned repo
+  -- Ask before trusting a project, with no `paths` entries: a cloned repo
   -- should not get to run its own `.maki/init.lua` before you have read it.
   trust = {
     prompt = true,
     paths = {},
   },
 
-  -- Pi's `enableInstallTelemetry: false`.
+  -- No install telemetry.
   telemetry = {
     enabled = false,
   },
@@ -136,8 +134,8 @@ maki.setup({
       max_memory_mb = 256,
     },
 
-    -- The anchored-edit surface. `insert_lines` is opt-in upstream; Pi's
-    -- worker role has the equivalent `insert`, so turn it on.
+    -- The anchored-edit surface. `insert_lines` is opt-in upstream; the
+    -- worker role needs it, so turn it on.
     edit = {
       edit_lines = true,
       insert_lines = true,
@@ -150,9 +148,9 @@ maki.setup({
     glob = { search_result_limit = 200 },
     grep = { search_result_limit = 200 },
 
-    -- Pi: `globalConcurrencyLimit: 8` and `parallel.concurrency: 8`.
-    -- `allow_model` stays off so the tier ladder, not the model name, is
-    -- what a delegating turn chooses.
+    -- Eight keeps a fan-out legible and the bill bounded. `allow_model` stays
+    -- off so the tier ladder, not the model name, is what a delegating turn
+    -- chooses.
     task = {
       max_concurrent = 8,
       allow_model = false,
@@ -163,8 +161,8 @@ maki.setup({
   },
 })
 
--- Names Pi and Claude Code trained into muscle memory. Aliasing adds a name,
--- it never hides the original.
+-- Names other agents trained into muscle memory. Aliasing adds a name, it
+-- never hides the original.
 for _, alias in ipairs({
   { name = "/clear", target = "/new", description = "Alias for /new" },
   { name = "/resume", target = "/sessions", description = "Alias for /sessions" },

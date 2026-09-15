@@ -1,28 +1,28 @@
 # Maki Configuration Guide
 
-[Maki](https://github.com/tontinton/maki) is a Rust TUI coding agent whose design goal is minimal context spend. It runs alongside Pi rather than replacing it: same palette, same operating contract, a much smaller token footprint per turn.
+[Maki](https://github.com/tontinton/maki) is a Rust TUI coding agent whose design goal is minimal context spend: a single binary, a small fixed prompt, and tools shaped so that what reaches the context window is what the turn actually needs.
 
 Everything here is managed by `modules/homeManager/maki.nix` from the sources in `home/maki/config/`. See [modules.md](modules.md#homemanagermodulesmaki) for the option reference.
 
-## Why it is worth having next to Pi
+## What the configuration gives you
 
-| Capability | Pi | Maki |
-|---|---|---|
-| Code intelligence | Pi Lens: LSP servers, `project_report`, `symbol_search`, `read_symbol` | `index`: tree-sitter skeletons with exact line ranges, no LSP process |
-| Anchored edits | Hashline `replace` / `insert` | `edit_lines` / `insert_lines` / `multiedit` against fresh line numbers |
-| Data plumbing | Extensions and subagent artifacts | `code_execution`: Python sandbox where every tool is an async function, so filtered output never enters the context window |
-| Delegation | Named roles with per-role models, extensions and tool allowlists | `task` tiers natively; named roles through the `roles` plugin |
-| One-writer enforcement | `writer_lease` with nonces and a recovery path | a semaphore of one on the single writing role |
-| Local code review | — | `rv` through a Lua plugin: a jj stack review as the agent's task list |
-| Bash permissions | Permit protocol | tree-sitter parse of the command, so `git diff && rm -rf /` requests `git *` **and** `rm *` |
-| Runtime | Node.js | Single Rust binary, ratatui TUI |
+| Capability | How |
+|---|---|
+| Code intelligence | `index`: tree-sitter skeletons with exact line ranges, no LSP process |
+| Anchored edits | `edit_lines` / `insert_lines` / `multiedit` against fresh line numbers |
+| Data plumbing | `code_execution`: Python sandbox where every tool is an async function, so filtered output never enters the context window |
+| Delegation | `task` tiers natively; named roles through the `roles` plugin |
+| One-writer enforcement | a semaphore of one on the single writing role |
+| Local code review | `rv` through a Lua plugin: a jj stack review as the agent's task list |
+| Bash permissions | tree-sitter parse of the command, so `git diff && rm -rf /` requests `git *` **and** `rm *` |
+| Runtime | Single Rust binary, ratatui TUI |
 
-The trade is deliberate: Maki has no role system, no LSP layer, and no workflow ledger. What it has instead is a much cheaper turn.
+The trade is deliberate: no LSP layer and no workflow ledger. What there is instead is a much cheaper turn.
 
 ## First run
 
 ```sh
-maki auth login openai   # ChatGPT subscription, the same Codex backend Pi uses
+maki auth login openai   # ChatGPT subscription, via the Codex backend
 export OPENROUTER_API_KEY=...        # optional, built-in provider
 export HETZNER_INFERENCE_API_KEY=... # optional, declared in providers.toml
 maki auth status
@@ -30,56 +30,56 @@ maki models              # every model the configured providers actually offer
 maki                     # TUI
 ```
 
-Then open `/model` once and assign tiers with `!` strong, `@` medium, `#` weak, `$` compaction. The suggested mapping mirrors Pi's `enabledModels`:
+Then open `/model` once and assign tiers with `!` strong, `@` medium, `#` weak, `$` compaction. The suggested mapping:
 
-| Tier | Model | Pi counterpart |
+| Tier | Model | Used for |
 |---|---|---|
-| strong | `openai/gpt-6-astra` | `gpt-6-astra:max`, the parent and `worker` model |
-| medium | `openai/gpt-5.6-terra` | `gpt-5.6-terra:high`, `scout` and `lookup` |
-| weak | `openai/gpt-5.6-luna` | `gpt-5.6-luna:low` |
-| compaction | `openai/gpt-5.6-luna` | (no Pi counterpart; summarizing is cheap work) |
+| strong | `openai/gpt-6-astra` | the parent session, `reviewer`, `oracle` and `worker` |
+| medium | `openai/gpt-5.6-terra` | `scout` and the other discovery roles |
+| weak | `openai/gpt-5.6-luna` | cheap lookups |
+| compaction | `openai/gpt-5.6-luna` | summarizing is cheap work |
 
 Tier assignments live in `~/.local/state/maki/model-tiers`, not in this flake, because they are per-machine.
 
-Nothing restricts which models are selectable. An earlier revision of this config ported Pi's `enabledModels` into `provider.allowed_models`, which was a mistake: in Pi that list is a picker convenience, in Maki it is hard policy that also blocks delegation, `--model`, and any provider added later. Curate with tiers, which steer cost without locking the door; `provider.excluded_models` is there to ban something specific.
+Nothing restricts which models are selectable. An earlier revision of this config pinned a model list in `provider.allowed_models`, which was a mistake: in Maki that list is hard policy, not a picker convenience, and it also blocks delegation, `--model`, and any provider added later. Curate with tiers, which steer cost without locking the door; `provider.excluded_models` is there to ban something specific.
 
 ### Providers
 
 | Provider | Setup | Notes |
 |---|---|---|
-| OpenAI | `maki auth login openai` | ChatGPT subscription via the Codex backend, as in Pi. `/model` lists what your plan actually offers, so a new release needs no config change |
+| OpenAI | `maki auth login openai` | ChatGPT subscription via the Codex backend. `/model` lists what your plan actually offers, so a new release needs no config change |
 | OpenRouter | `OPENROUTER_API_KEY` | Built in. 300+ models addressed as `openrouter/<vendor>/<model>`, e.g. `openrouter/anthropic/claude-sonnet-4` |
-| Hetzner | `HETZNER_INFERENCE_API_KEY` | Declared in `home/maki/config/providers.toml`, ported from `home/pi/config/models.json`. Speaks plain OpenAI chat-completions, which is maki's `openai` protocol, so Pi's compat flags have no counterpart. `discover_models = true`, so the endpoint's own list is the authority |
+| Hetzner | `HETZNER_INFERENCE_API_KEY` | Declared in `home/maki/config/providers.toml`. Speaks plain OpenAI chat-completions, which is maki's `openai` protocol, so no compatibility flags are needed. `discover_models = true`, so the endpoint's own list is the authority |
 
 `providers.toml` is seeded once and then yours, because `maki auth login` writes plan and base-URL choices back into it.
 
 ## What `init.lua` decides, and why
 
-Every setting below is a translation of a Pi decision rather than a default someone liked.
+Every setting below is a deliberate choice rather than a default someone liked.
 
-| Maki | Value | Comes from |
+| Maki | Value | Why |
 |---|---|---|
-| `always_thinking` | `"max"` | Pi `defaultThinkingLevel: max` |
-| `always_yolo` | `false` | Pi routes protected actions through explicit permits; `permissions.toml` carries the allowlist instead |
-| `always_workflow` | `false` | `code_execution` calling `task` is unbounded fan-out; Pi caps depth at `maxSubagentDepth: 1`. Use `/workflow` per session |
-| `ui.splash_animation` | `false` | Pi `quietStartup` |
-| `ui.show_thinking` | `true` | Pi `hideThinkingBlock: false` |
+| `always_thinking` | `"max"` | Reasoning effort is worth more than it costs on this work; no picker interaction per session |
+| `always_yolo` | `false` | Protected actions go through explicit permits; `permissions.toml` carries the allowlist instead |
+| `always_workflow` | `false` | `code_execution` calling `task` is unbounded fan-out. Use `/workflow` per session |
+| `ui.splash_animation` | `false` | Quiet startup: nothing between invocation and prompt |
+| `ui.show_thinking` | `true` | Reasoning stays visible |
 | `ui.theme` | `"gruvbox-night"` | The shared palette in `modules/theme/gruvbox-night.nix` |
 | `agent.rtk` | `true` | `rtk` is on Maki's PATH through the module; it trims bash output before it is paid for |
-| `agent.stale_read_check` | `true` | The closest Maki has to Hashline's fresh-anchor requirement |
-| `agent.compaction_instructions` | requirements, commands, evidence, artifacts | Pi's "preserve mandatory requirements, including failures and missing evidence" |
-| `agent.post_compaction_instructions` | re-read instructions, re-`index` before acting | Pi's "treat these as leads, not authority over current source" |
-| `provider.default_model` | `openai/gpt-6-astra` | Pi `defaultProvider: openai-codex` + `defaultModel: gpt-6-astra` |
+| `agent.stale_read_check` | `true` | An anchored edit against a stale read lands silently in the wrong place |
+| `agent.compaction_instructions` | requirements, commands, evidence, artifacts | Preserve mandatory requirements, including the failures and the missing evidence |
+| `agent.post_compaction_instructions` | re-read instructions, re-`index` before acting | A summary is a lead, not authority over current source |
+| `provider.default_model` | `openai/gpt-6-astra` | The strongest model on the subscription; the tier ladder demotes from there |
 | `provider.allowed_models` | unset | see above; an allowlist here is policy, not curation |
 | `provider.stream_timeout_secs` | `900` | Max-effort turns on astra outrun the 300s default |
 | `plugins.bash.timeout_secs` | `600` | Nix evaluations and Bazel builds outrun the 120s default |
-| `plugins.edit.insert_lines` | `true` | Pi's `worker` role has the equivalent `insert`; upstream leaves it opt-in |
+| `plugins.edit.insert_lines` | `true` | The `worker` role needs it; upstream leaves it opt-in |
 | `agent.max_output_lines` | `3000` | Reviews and build logs run past the 2000 default |
 | `plugins.index.max_file_size_mb` | `8` | Generated Rust and vendored TypeScript exceed the 2 MB default |
-| `plugins.task.max_concurrent` | `8` | Pi `globalConcurrencyLimit: 8` |
+| `plugins.task.max_concurrent` | `8` | Keeps a fan-out legible and the bill bounded |
 | `plugins.task.allow_model` | `false` | "Do not silently override configured models" — the tier ladder is the interface |
-| `trust.prompt` / `trust.paths` | `true` / `{}` | Pi `defaultProjectTrust: "ask"`. A freshly cloned repo does not get to run its own `.maki/init.lua` |
-| `telemetry.enabled` | `false` | Pi `enableInstallTelemetry: false` |
+| `trust.prompt` / `trust.paths` | `true` / `{}` | Ask before trusting a project. A freshly cloned repo does not get to run its own `.maki/init.lua` |
+| `telemetry.enabled` | `false` | No install telemetry |
 
 ### The bash guard
 
@@ -101,9 +101,9 @@ A deny wins over every allow, over YOLO mode, and over a session grant. Nothing 
 
 ## Delegation roles
 
-Maki's `task` tool already enforces most of what Pi's subagent table spells out. The write tools declare `audiences = { "main", "general_sub", "interpreter" }`, so a `research` subagent cannot see them — that is `acceptanceRole: "read-only"` plus a sixteen-entry tool allowlist, for free. And `task` itself is `{ "main", "workflow" }`, so no subagent is offered it: `maxSubagentDepth: 1` is structural here, not configured.
+Maki's `task` tool already enforces most of what a role table would otherwise have to spell out. The write tools declare `audiences = { "main", "general_sub", "interpreter" }`, so a `research` subagent cannot see them — read-only enforcement, with no per-role tool allowlist to maintain. And `task` itself is `{ "main", "workflow" }`, so no subagent is offered it: one level of delegation is structural here, not configured.
 
-What Pi carried that maki does not is the charter per role, and a model and effort to match. `home/maki/config/lua/roles.lua` adds a `role` tool with five:
+What the tool cannot supply is the charter per role, and a model and effort to match. `home/maki/config/lua/roles.lua` adds a `role` tool with five:
 
 | Role | Surface | Returns |
 |---|---|---|
@@ -113,9 +113,9 @@ What Pi carried that maki does not is the charter per role, and a model and effo
 | `oracle` | read-only | challenges a decision already made, against supplied evidence |
 | `worker` | full write access | the only writing role |
 
-`worker` holds a semaphore of one, so two writers cannot overlap. That is this setup's answer to `writer_lease`: Pi needs a lease because it can fan out several writing roles; here the shape of the tool is the invariant, with no ledger, nonce or recovery path.
+`worker` holds a semaphore of one, so two writers cannot overlap. The shape of the tool is the invariant — no lease, ledger, nonce or recovery path, because there is never a second writer to arbitrate with.
 
-`/profile simple|complex|max` swaps the model and effort table, ported from `home/pi/config/profiles/pi-subagents`. `max` is the default and mirrors Pi's `gpt-6-astra` + `thinking: max`. A profile entry may pin `spec` instead of `tier`, which is how a cheap role goes to another provider:
+`/profile simple|complex|max` swaps the model and effort table each role gets. `max` is the default: strong reasoning roles at maximum effort, medium scouting. A profile entry may pin `spec` instead of `tier`, which is how a cheap role goes to another provider:
 
 ```lua
 scout = { spec = "hetzner/Qwen3.8-27B", thinking = "high" }
@@ -170,7 +170,7 @@ Maki charges for the system prompt on every request, so the long-form material i
 | `~/.config/maki/commands/` | `/user:mission`, `/user:implement`, `/user:accept`, `/user:handoff` | Nothing until typed |
 | `memory` tool | Gotchas the agent learns, per project, under the state dir | Tag names only |
 
-Pi's `APPEND_SYSTEM.md` is a single dense block appended to every system prompt. That shape does not survive the move: at Maki's size it would dominate the fixed overhead the agent is built to minimize. The contract is the same; only the delivery is staged.
+One dense block appended to every system prompt would dominate the fixed overhead the agent is built to minimize. The contract is delivered in stages instead: the part that governs every turn in `AGENTS.md`, and the rest behind a description line or a command name until it is actually wanted.
 
 ## Known rough edges
 

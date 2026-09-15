@@ -22,7 +22,7 @@ A comprehensive Nix configuration for reproducible development environments acro
 - 🚀 **Modern Terminal Setup**: Zsh + FZF + Alacritty with enhanced productivity workflows
 - 🧠 **Powerful IDE**: Neovim with LSP, type annotations, smart navigation, and Claude AI integration
 - 🎯 **Terminal Multiplexer**: tmux with discoverable bindings, session management, and persistence
-- 🤖 **Coding Agent**: Regular Pi 0.84.4 in package-only mode, with curated tooling and transactional writable-configuration synchronization
+- 🤖 **Coding Agent**: Maki, a Rust TUI agent built for minimal context spend, with delegation roles and a jj-backed review plugin
 - 📦 **Package Management**: Nix + Home Manager for reproducible environments
 - 🔧 **Cross-Platform**: macOS (Darwin) and Linux (NixOS) support
 - 🎨 **Consistent Theming**: Custom Gruvbox Night palette with muted-gold focus accents across all applications
@@ -71,7 +71,7 @@ You can use the editor, terminal, multiplexer, and coding-agent configurations i
         cb-config.homeManagerModules.neovim
         cb-config.homeManagerModules.terminal
         cb-config.homeManagerModules.tmux
-        cb-config.homeManagerModules.pi
+        cb-config.homeManagerModules.maki
 
         # Or import all at once
         # cb-config.homeManagerModules.default
@@ -81,7 +81,7 @@ You can use the editor, terminal, multiplexer, and coding-agent configurations i
           cb.neovim.enable = true;
           cb.terminal.enable = true;
           cb.tmux.enable = true;
-          cb.pi.enable = true;
+          cb.maki.enable = true;
         }
       ];
     };
@@ -96,7 +96,7 @@ You can use the editor, terminal, multiplexer, and coding-agent configurations i
 | `neovim` | Full NeoVim IDE with LSP, treesitter, and 50+ plugins | `cb.neovim.enable`, `cb.neovim.enableTmuxIntegration`, `cb.neovim.treesitterGrammars` |
 | `terminal` | Zsh + FZF + Starship + Direnv + Zoxide + Alacritty | `cb.terminal.enable`, `cb.terminal.enableFzf`, `cb.terminal.enableStarship`, `cb.terminal.viMode` |
 | `tmux` | Modern tmux with sessions, FZF, and Gruvbox Night theme | `cb.tmux.enable`, `cb.tmux.enableVimIntegration`, `cb.tmux.enableSessionPersistence` |
-| `pi` | Package-only regular Pi with curated tooling and writable configuration sync | `cb.pi.enable`, `cb.pi.package`, `cb.pi.forceApplyOnActivation`, `cb.pi.enableLspTooling`, `cb.pi.extraPackages` |
+| `maki` | Maki coding agent with Gruvbox Night theme, delegation roles, and the rv review plugin | `cb.maki.enable`, `cb.maki.package`, `cb.maki.enableRoles`, `cb.maki.roleProfile`, `cb.maki.enableRv`, `cb.maki.extraPackages` |
 | `default` | All modules combined | All options from above |
 
 See [Module Options Documentation](docs/modules.md) for complete configuration options.
@@ -109,7 +109,7 @@ See [Module Options Documentation](docs/modules.md) for complete configuration o
 
 📦 **[Module Options](docs/modules.md)** - Complete reference for all exportable Home Manager module options.
 
-🤖 **[Pi Configuration Guide](docs/pi.md)** - Ownership, writable-state synchronization, safety, and legacy migration.
+🤖 **[Maki Configuration Guide](docs/maki.md)** - Providers and model tiers, delegation roles, managed paths, and the tool-cost budget.
 
 ### Development
 

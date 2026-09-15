@@ -1,6 +1,6 @@
 # Exportable Home Manager Modules
 
-This repository exports standalone Home Manager modules that can be used in your own Nix flake configurations. These modules provide battle-tested configurations for editors, terminal tools, multiplexers, and the regular Pi coding agent.
+This repository exports standalone Home Manager modules that can be used in your own Nix flake configurations. These modules provide battle-tested configurations for editors, terminal tools, multiplexers, and the Maki coding agent.
 
 ## Quick Start
 
@@ -24,12 +24,12 @@ Add this repository as a flake input and import the modules you need:
         cb-config.homeManagerModules.neovim
         cb-config.homeManagerModules.terminal
         cb-config.homeManagerModules.tmux
-        cb-config.homeManagerModules.pi
+        cb-config.homeManagerModules.maki
         {
           cb.neovim.enable = true;
           cb.terminal.enable = true;
           cb.tmux.enable = true;
-          cb.pi.enable = true;
+          cb.maki.enable = true;
         }
       ];
     };
@@ -265,45 +265,6 @@ first chord.
 
 ---
 
-### `homeManagerModules.pi`
-
-Regular Pi Coding Agent in package-only mode. Nix installs the pinned Pi 0.84.4 binary, its wrapper toolchain, and `pi-config`; Pi and the user retain ownership of writable state, while an optional activation step can make the flake snapshot authoritative for managed portable paths.
-
-#### Options
-
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `cb.pi.enable` | boolean | `false` | Enable the package-only Pi configuration and install `pi-config` |
-| `cb.pi.package` | package | pinned Pi package (0.84.4 currently) | Override the installed Pi package; requires 0.84.4 or newer |
-| `cb.pi.forceApplyOnActivation` | boolean | `false` | Force the embedded snapshot over managed live Pi paths after the Home Manager write boundary |
-| `cb.pi.enableLspTooling` | boolean | `true` | Expose the curated language-server toolchain to Pi |
-| `cb.pi.extraPackages` | list of packages | `[]` | Add tools to Pi and its shell environment |
-
-#### Included Features
-
-- Regular Pi at its upstream default `~/.pi/agent` location
-- Node.js, Git, and FFmpeg (`ffmpeg` and `ffprobe`) in Pi's wrapper environment
-- Exact portable Pi package pins, including standalone Codex `web_run` without provider replacement, image generation, or voice
-- Optional curated tooling for Rust, Nix, Python, Go, Lua, TypeScript, web formats, shell, infrastructure, Markdown, TOML, Just, Bazel, and Starlark
-- `pi-config capture`, conservative `pi-config apply`, and explicit `pi-config apply --force` synchronization for a writable portable snapshot
-- A read-only activation preflight, plus optional transactional forced synchronization after the write boundary
-
-#### Example
-
-```nix
-{
-  cb.pi = {
-    enable = true;
-    forceApplyOnActivation = true; # Make the flake snapshot authoritative on activation
-    extraPackages = with pkgs; [ kubectl ];
-  };
-}
-```
-
-Pi credentials, sessions, package realizations, and project-local resources remain ordinary writable application state. Store-linked entries are accepted only below `~/.pi/agent/bin`, `~/.pi/agent/npm`, `~/.pi/agent/git`, and project `.pi/npm` or `.pi/git`; those realization roots themselves must remain real directories. Managed portable files are also writable between activations, but `forceApplyOnActivation = true` replaces uncaptured edits with the flake snapshot. Run `pi-config doctor` after activation and see the [Pi Configuration Guide](pi.md) for synchronization and recovery details.
-
----
-
 ### `homeManagerModules.maki`
 
 [Maki](https://github.com/tontinton/maki) is a Rust TUI coding agent built around minimal context spend: a tree-sitter `index` tool instead of whole-file reads, a Python sandbox (`code_execution`) that pipes tool output without it entering the context window, tree-sitter-parsed bash permissions, and Lua plugins. It is not in nixpkgs; this flake takes it from `github:tontinton/maki` through an overlay.
@@ -321,7 +282,7 @@ Maki owns its writable state (sessions, auth tokens, memories, folder trust, mod
 | `cb.maki.extraPackages` | list of packages | `[]` | Extra tools on the PATH Maki hands to bash, MCP servers and subagents |
 | `cb.maki.enableRtk` | boolean | `true` | Put [rtk](https://github.com/rtk-ai/rtk) on PATH; Maki uses it automatically to shrink bash output |
 | `cb.maki.enableRoles` | boolean | `true` | Load the delegation-roles plugin: a `role` tool with scout, researcher, reviewer, oracle and worker, plus `/profile` and `/roles` |
-| `cb.maki.roleProfile` | `"simple"`, `"complex"` or `"max"` | `"max"` | Delegation profile a session starts on, mirroring `home/pi/config/profiles/pi-subagents`. `/profile` overrides it live |
+| `cb.maki.roleProfile` | `"simple"`, `"complex"` or `"max"` | `"max"` | Delegation profile a session starts on: the model and effort each role gets. `/profile` overrides it live |
 | `cb.maki.enableRv` | boolean | `true` | Install [rv](https://github.com/Firaenix/rv) with difftastic and load the Lua plugin that turns a jj review into the agent's task list |
 | `cb.maki.writableRuntimeConfig` | boolean | `true` | Seed `permissions.toml` once instead of projecting it read-only |
 | `cb.maki.installTheme` | boolean | `true` | Install the shared Gruvbox Night palette as a Maki theme |
@@ -375,7 +336,6 @@ Convenience module that imports all exported Home Manager modules.
   cb.neovim.enable = true;
   cb.terminal.enable = true;
   cb.tmux.enable = true;
-  cb.pi.enable = true;
   cb.maki.enable = true;
 }
 ```
@@ -443,12 +403,12 @@ The terminal module uses starship. To customize further, you can override after 
               cb-config.homeManagerModules.neovim
               cb-config.homeManagerModules.terminal
               cb-config.homeManagerModules.tmux
-              cb-config.homeManagerModules.pi
+              cb-config.homeManagerModules.maki
             ];
             cb.neovim.enable = true;
             cb.terminal.enable = true;
             cb.tmux.enable = true;
-            cb.pi.enable = true;
+            cb.maki.enable = true;
           };
         }
       ];

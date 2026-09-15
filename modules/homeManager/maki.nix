@@ -23,7 +23,7 @@ let
 
   # Maki resolves themes by file name, so the palette has to be duplicated in
   # its format. Deriving it here keeps the single source of truth in
-  # modules/theme/gruvbox-night.nix alongside Alacritty, fzf, bat and Pi.
+  # modules/theme/gruvbox-night.nix alongside Alacritty, fzf and bat.
   gruvboxNightTheme = pkgs.writeText "gruvbox-night.toml" ''
     # Gruvbox Night for Maki.
     # Generated from modules/theme/gruvbox-night.nix. Do not edit by hand.
@@ -283,8 +283,8 @@ in
       default = true;
       description = ''
         Load the delegation-roles plugin: a `role` tool with scout,
-        researcher, reviewer, oracle and worker, ported from the Pi subagent
-        table, plus the `/profile` and `/roles` commands.
+        researcher, reviewer, oracle and worker, plus the `/profile` and
+        `/roles` commands.
       '';
     };
 
@@ -296,8 +296,8 @@ in
       ];
       default = "max";
       description = ''
-        Delegation profile a session starts on, mirroring
-        home/pi/config/profiles/pi-subagents. `/profile` overrides it live.
+        Delegation profile a session starts on: the model tier and reasoning
+        effort each role gets. `/profile` overrides it live.
       '';
     };
 

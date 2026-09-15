@@ -1,8 +1,0 @@
-{
-  "name": "pi-lookup-role",
-  "version": "1.0.0",
-  "private": true,
-  "keywords": ["pi-package"],
-  "pi": {"extensions": [], "skills": [], "prompts": [], "themes": []},
-  "pi-subagents": {"agents": ["./agents"]}
-}

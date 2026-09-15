@@ -30,7 +30,6 @@ in
     ./zsh
     ./neovim
     ./tmux
-    ./pi
     ./maki
     ./darwin
     ./hyprland

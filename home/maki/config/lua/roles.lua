@@ -1,18 +1,18 @@
--- Named delegation roles, ported from the Pi subagent table.
+-- Named delegation roles.
 --
--- Maki's `task` tool already enforces most of what Pi's role config spells
--- out. The write tools declare `audiences = { "main", "general_sub",
--- "interpreter" }`, so a `research` subagent cannot see them — that is Pi's
--- `acceptanceRole: "read-only"` plus its sixteen-entry tool allowlist, for
--- free. And `task` itself is `{ "main", "workflow" }`, so no subagent is
--- offered it: `maxSubagentDepth: 1` is structural here, not configured.
+-- Maki's `task` tool already enforces most of what a role table would
+-- otherwise have to spell out. The write tools declare `audiences = { "main",
+-- "general_sub", "interpreter" }`, so a `research` subagent cannot see them —
+-- read-only enforcement, for free, with no per-role tool allowlist to
+-- maintain. And `task` itself is `{ "main", "workflow" }`, so no subagent is
+-- offered it: one level of delegation is structural here, not configured.
 --
--- What is genuinely missing is the part Pi carried in prose: a charter per
--- role, and a model and reasoning effort to match. That is what this adds.
+-- What the tool cannot supply is the part that has to be written down: a
+-- charter per role, and a model and reasoning effort to match. That is what
+-- this adds.
 --
--- It also replaces `writer_lease` with something much smaller. Pi needs a
--- lease because it can fan out several writing roles; here `worker` is the
--- only role with a write surface and it holds a semaphore of one, so two
+-- Concurrent writers are handled by shape rather than by a lease. `worker` is
+-- the only role with a write surface and it holds a semaphore of one, so two
 -- writers cannot overlap by construction. No ledger, no nonce, no recovery
 -- path — the shape of the tool is the invariant.
 
@@ -35,9 +35,9 @@ local ROLES = {
   researcher = {
     audience = "research_sub",
     prompt_id = "research",
-    -- Pi's researcher gets `read` and `web_run` and nothing else. Keeping the
-    -- surface that narrow is what stops it wandering into the codebase and
-    -- answering from source instead of from the web.
+    -- `read` plus the web tools and nothing else. Keeping the surface that
+    -- narrow is what stops it wandering into the codebase and answering from
+    -- source instead of from the web.
     only = { "read", "websearch", "webfetch" },
     charter = "You are the researcher, working one assigned angle. Use `read` only for local evidence you were handed; everything else comes from the web. Prefer primary sources and open the most relevant ones rather than trusting a search snippet, and cite the final URL for every material claim. Return a conclusion, its supporting URLs, and the gap you could not close. On an authentication or provider failure, report the exact diagnostic — do not silently downgrade, and do not declare the question unanswerable. Modify nothing.",
   },
@@ -62,10 +62,10 @@ local ROLES = {
   },
 }
 
--- Ported from home/pi/config/profiles/pi-subagents/*.json. Pi names exact
--- models; tiers are the portable equivalent, and `/model` decides which model
--- each tier means. A role may pin `spec` instead, which is how you send the
--- cheap roles to another provider entirely:
+-- Tiers rather than model names, so `/model` decides which model each tier
+-- means and the table survives a provider change. A role may pin `spec`
+-- instead, which is how you send the cheap roles to another provider
+-- entirely:
 --
 --   scout = { spec = "hetzner/Qwen3.8-27B", thinking = "high" }
 --
