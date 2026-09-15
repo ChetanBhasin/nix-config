@@ -106,9 +106,21 @@ PopupWindow {
         }
     }
 
+    // The grab must be (re)activated only once the backing window exists.
+    // quickshell 0.3.1's HyprlandFocusGrab never picks up windows that are
+    // created after the grab becomes active, so binding active to visible
+    // leaves the grab dormant and keystrokes leak to the window behind.
+    onBackingWindowVisibleChanged: {
+        if (backingWindowVisible && visible) {
+            focusGrab.active = true
+        } else {
+            focusGrab.active = false
+        }
+    }
+
     HyprlandFocusGrab {
+        id: focusGrab
         windows: [root]
-        active: root.visible
         onCleared: {
             if (root.visible)
                 root.shellState.launcherOpen = false

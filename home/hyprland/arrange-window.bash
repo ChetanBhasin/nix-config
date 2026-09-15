@@ -22,12 +22,14 @@ monitor_id=$(jq -r '.monitor // empty' <<<"$active_window")
 
 # Geometry dispatchers target a floating window. Clear any maximized/fullscreen
 # state first so moving from one arrangement to another is deterministic.
-hyprctl dispatch focuswindow "address:$address" >/dev/null
-hyprctl dispatch fullscreenstate '0 0 set' >/dev/null
-hyprctl dispatch setfloating "address:$address" >/dev/null
+# Hyprland 0.56 dispatch takes a Lua expression; the legacy `focuswindow ...`
+# string form fails as a Lua syntax error.
+hyprctl dispatch "hl.dsp.focus({ window = \"address:$address\" })" >/dev/null
+hyprctl dispatch "hl.dsp.window.fullscreen_state({ window = \"address:$address\", internal = 0, client = 0, action = \"set\" })" >/dev/null
+hyprctl dispatch "hl.dsp.window.float({ window = \"address:$address\", action = \"set\" })" >/dev/null
 
 if [[ "$action" == center ]]; then
-  hyprctl dispatch centerwindow 1 >/dev/null
+  hyprctl dispatch "hl.dsp.window.center({ window = \"address:$address\" })" >/dev/null
   exit 0
 fi
 
@@ -70,5 +72,5 @@ target=$(
 )
 
 IFS=$'\t' read -r x y width height <<<"$target"
-hyprctl dispatch resizewindowpixel "exact $width $height,address:$address" >/dev/null
-hyprctl dispatch movewindowpixel "exact $x $y,address:$address" >/dev/null
+hyprctl dispatch "hl.dsp.window.resize({ window = \"address:$address\", x = $width, y = $height })" >/dev/null
+hyprctl dispatch "hl.dsp.window.move({ window = \"address:$address\", x = $x, y = $y })" >/dev/null

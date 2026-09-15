@@ -56,31 +56,56 @@ let
     ];
     text = builtins.readFile ./arrange-window.bash;
   };
+  # Focus the first window whose class matches the pattern; only spawn the
+  # command when no such window exists (the launcher layer is focus-or-open).
+  focusOrOpen = pkgs.writeShellApplication {
+    name = "hyprland-focus-or-open";
+    runtimeInputs = [
+      pkgs.hyprland
+      pkgs.jq
+    ];
+    text = ''
+      #!/usr/bin/env bash
+      # usage: hyprland-focus-or-open <class-pattern> <command...>
+      # Focus the first window whose class matches <class-pattern> (unanchored
+      # regex); only spawn <command...> when no such window exists.
+      set -euo pipefail
+      pattern=$1; shift
+      if hyprctl -j clients | jq -e --arg p "$pattern" '.[] | select(.class | test("(?i)" + $p))' >/dev/null; then
+        hyprctl dispatch "hl.dsp.focus({ window = \"class:$pattern\" })" >/dev/null
+      else
+        exec "$@"
+      fi
+    '';
+  };
   quickshell = getExe pkgs.quickshell;
   launcherCommand = "${quickshell} ipc --config gruvbox-night call launcher toggle";
   dashboardCommand = "${quickshell} ipc --config gruvbox-night call dashboard toggle";
   arrangeCommand = action: "${arrangeWindow}/bin/hyprland-arrange-window ${action}";
-  # A fresh Hyprland install gives no hint that SUPER is the modkey, so one
+  # The XKB swap hides both modifier layers from a fresh Hyprland install
+  # (Win key = Cmd in apps, leftmost key = Ctrl for window ops), so one
   # bind prints the map. The helper passes the complete body as one
   # shell-escaped argument to libnotify.
   keybindHelp = concatStringsSep "\n" [
-    "SUPER + Return      terminal"
-    "SUPER + D / Space   launcher"
-    "SUPER + N           control center"
-    "SUPER + Q           close window"
-    "SUPER + M           exit Hyprland"
-    "SUPER + H/J/K/L     focus left/down/up/right"
-    "SUPER + SHIFT + …   move window"
-    "SUPER + CTRL + …    resize window"
-    "SUPER + 1..0        workspace"
-    "CTRL + Left/Right      previous/next workspace"
-    "CTRL + ALT + arrows    align window to screen half"
-    "CTRL + ALT + H/J/K/L   same alignment (Vim aliases)"
-    "CTRL + ALT + Return/C  maximize/center window"
-    "SUPER + SHIFT + 1..0  move to workspace"
-    "SUPER + V / F / P   float / fullscreen / pseudo"
-    "SUPER + ALT + L     lock screen"
-    "Print / SHIFT+Print screenshot screen / region"
+    "Mac layout: Win key = Cmd (app shortcuts), leftmost key = Ctrl (window ops)"
+    "Cmd + Space            launcher"
+    "Cmd + Option + B/T/F/E/S/G/N/Z/V/L   launch apps (focus or open)"
+    "Cmd + Option + J       toggle split"
+    "Cmd + Shift + 3/4      screenshot screen / region"
+    "Ctrl + Option + arrows align window to screen half"
+    "Ctrl + Option + H/J/K  same alignment (Vim aliases)"
+    "Ctrl + Option + Return/C maximize/center window"
+    "Ctrl + Option + L      lock screen"
+    "Ctrl + Left/Right      previous/next workspace"
+    "Ctrl + 1..0            workspace"
+    "Ctrl + Shift + 1..0    move to workspace"
+    "Ctrl + H/J/K/L         focus window"
+    "Ctrl + Shift + ...     move window"
+    "Ctrl + Cmd + ...       resize window"
+    "Ctrl + Return          terminal"
+    "Ctrl + Q / V           close window / float"
+    "Ctrl + Cmd + F / P / N / M  fullscreen / pseudo / control center / exit"
+    "Print / SHIFT+Print    screenshot screen / region"
   ];
   cheatsheet = pkgs.writeShellScript "hyprland-cheatsheet" ''
     exec ${getExe pkgs.libnotify} -t 15000 -a Hyprland \
@@ -134,8 +159,14 @@ in
         config = {
           input = {
             kb_layout = "us";
+            # XKB swap makes the physical Win key send Ctrl (macOS-Cmd behavior
+            # in apps) and the physical leftmost key send Super (the WM layer).
+            kb_options = "ctrl:swap_lwin_lctl,ctrl:swap_rwin_rctl";
             follow_mouse = 1;
             sensitivity = 0;
+            # macOS "natural scroll" inverts mouse-wheel scrolling too; the
+            # touchpad-only setting left the mouse wheel in the wrong direction.
+            natural_scroll = true;
             touchpad = {
               natural_scroll = true;
               disable_while_typing = true;
@@ -182,20 +213,6 @@ in
 
           dwindle.preserve_split = true;
         };
-
-        # The renderer emits rules after the important prefixes (curve,
-        # monitor, config), so these land after `general`. Terminals keep a
-        # blue frame in both focus states: their outer border never reads like
-        # the amber (#c9a257) tmux active-pane frame they enclose, while every
-        # other app signals focus with orange, which tmux never draws.
-        window_rule = [
-          {
-            match = {
-              class = "Alacritty";
-            };
-            border_color = "${rgb theme.base0D} ${rgb theme.base0D}";
-          }
-        ];
 
         curve = [
           {
@@ -244,46 +261,59 @@ in
         bind = [
           (mkBind "SUPER + Return" (dsp "exec_cmd" [ terminal ]))
           (mkBind "SUPER + Q" (windowDsp "close" [ ]))
-          (mkBind "SUPER + M" (dsp "exit" [ ]))
+          (mkBind "SUPER + CTRL + M" (dsp "exit" [ ]))
           (mkBind "SUPER + V" (windowDsp "float" [ { action = "toggle"; } ]))
-          (mkBind "SUPER + F" (windowDsp "fullscreen" [ ]))
-          (mkBind "SUPER + P" (windowDsp "pseudo" [ ]))
-          (mkBind "SUPER + D" (execDsp launcherCommand))
-          (mkBind "SUPER + SPACE" (execDsp launcherCommand))
-          (mkBind "SUPER + N" (execDsp dashboardCommand))
+          (mkBind "SUPER + CTRL + F" (windowDsp "fullscreen" [ ]))
+          (mkBind "SUPER + CTRL + P" (windowDsp "pseudo" [ ]))
+          (mkBind "CTRL + SPACE" (execDsp launcherCommand))
+          (mkBind "SUPER + CTRL + N" (execDsp dashboardCommand))
           (mkBind "SUPER + slash" (dsp "exec_cmd" [ "${cheatsheet}" ]))
 
           # SUPER+J and SUPER+L are taken by Vim-style focus movement below, so
-          # togglesplit and the lock screen keep their mnemonic letters one
-          # modifier over rather than firing alongside a focus move.
-          (mkBind "SUPER + ALT + J" (dsp "layout" [ "togglesplit" ]))
+          # togglesplit keeps its mnemonic letter one modifier over rather than
+          # firing alongside a focus move. The lock screen sits on the SUPER+ALT
+          # (Ctrl+Option) layer: CTRL+ALT is the app launcher layer, where L
+          # opens Slack.
+          (mkBind "CTRL + ALT + J" (dsp "layout" [ "togglesplit" ]))
           (mkBind "SUPER + ALT + L" (dsp "exec_cmd" [ "hyprlock" ]))
 
           # Match macOS Mission Control's default desktop navigation.
-          (mkBind "CTRL + left" (dsp "focus" [ { workspace = "r-1"; } ]))
-          (mkBind "CTRL + right" (dsp "focus" [ { workspace = "r+1"; } ]))
+          (mkBind "SUPER + left" (dsp "focus" [ { workspace = "r-1"; } ]))
+          (mkBind "SUPER + right" (dsp "focus" [ { workspace = "r+1"; } ]))
 
           # Mirror Hammerspoon's Ctrl+Option window arrangement layer. The
           # H/J/K/L variants provide the same placements without leaving home row.
-          (mkBind "CTRL + ALT + Return" (execDsp (arrangeCommand "maximize")))
-          (mkBind "CTRL + ALT + C" (execDsp (arrangeCommand "center")))
-          (mkBind "CTRL + ALT + left" (execDsp (arrangeCommand "left")))
-          (mkBind "CTRL + ALT + down" (execDsp (arrangeCommand "down")))
-          (mkBind "CTRL + ALT + up" (execDsp (arrangeCommand "up")))
-          (mkBind "CTRL + ALT + right" (execDsp (arrangeCommand "right")))
-          (mkBind "CTRL + ALT + H" (execDsp (arrangeCommand "left")))
-          (mkBind "CTRL + ALT + J" (execDsp (arrangeCommand "down")))
-          (mkBind "CTRL + ALT + K" (execDsp (arrangeCommand "up")))
-          (mkBind "CTRL + ALT + L" (execDsp (arrangeCommand "right")))
+          (mkBind "SUPER + ALT + Return" (execDsp (arrangeCommand "maximize")))
+          (mkBind "SUPER + ALT + C" (execDsp (arrangeCommand "center")))
+          (mkBind "SUPER + ALT + left" (execDsp (arrangeCommand "left")))
+          (mkBind "SUPER + ALT + down" (execDsp (arrangeCommand "down")))
+          (mkBind "SUPER + ALT + up" (execDsp (arrangeCommand "up")))
+          (mkBind "SUPER + ALT + right" (execDsp (arrangeCommand "right")))
+          (mkBind "SUPER + ALT + H" (execDsp (arrangeCommand "left")))
+          (mkBind "SUPER + ALT + J" (execDsp (arrangeCommand "down")))
+          (mkBind "SUPER + ALT + K" (execDsp (arrangeCommand "up")))
+
+          # Mirror Hammerspoon's Cmd+Option app launcher layer: on the Mac the
+          # hyper combo is Cmd+Option, which lands on the Win+Alt keys here.
+          # Each combo focuses the app when a window with the matching class
+          # already exists and only opens a new instance otherwise.
+          (mkBind "CTRL + ALT + B" (execDsp "${focusOrOpen}/bin/hyprland-focus-or-open zen zen"))
+          (mkBind "CTRL + ALT + T" (execDsp "${focusOrOpen}/bin/hyprland-focus-or-open Alacritty ${terminal}"))
+          (mkBind "CTRL + ALT + F" (execDsp "${focusOrOpen}/bin/hyprland-focus-or-open figma figma-linux"))
+          (mkBind "CTRL + ALT + E" (execDsp "${focusOrOpen}/bin/hyprland-focus-or-open signal signal-desktop"))
+          (mkBind "CTRL + ALT + S" (execDsp "${focusOrOpen}/bin/hyprland-focus-or-open spotify spotify"))
+          (mkBind "CTRL + ALT + G" (execDsp "${focusOrOpen}/bin/hyprland-focus-or-open Discord Discord"))
+          (mkBind "CTRL + ALT + N" (execDsp "${focusOrOpen}/bin/hyprland-focus-or-open obsidian obsidian"))
+          (mkBind "CTRL + ALT + Z" (execDsp "${focusOrOpen}/bin/hyprland-focus-or-open zoom zoom"))
+          (mkBind "CTRL + ALT + V" (execDsp "${focusOrOpen}/bin/hyprland-focus-or-open protonvpn protonvpn-app"))
+          (mkBind "CTRL + ALT + L" (execDsp "${focusOrOpen}/bin/hyprland-focus-or-open slack slack"))
 
           (mkBind "SUPER + H" (dsp "focus" [ { direction = "left"; } ]))
           (mkBind "SUPER + J" (dsp "focus" [ { direction = "down"; } ]))
           (mkBind "SUPER + K" (dsp "focus" [ { direction = "up"; } ]))
           (mkBind "SUPER + L" (dsp "focus" [ { direction = "right"; } ]))
-          (mkBind "SUPER + left" (dsp "focus" [ { direction = "left"; } ]))
           (mkBind "SUPER + down" (dsp "focus" [ { direction = "down"; } ]))
           (mkBind "SUPER + up" (dsp "focus" [ { direction = "up"; } ]))
-          (mkBind "SUPER + right" (dsp "focus" [ { direction = "right"; } ]))
 
           (mkBind "SUPER + SHIFT + H" (windowDsp "move" [ { direction = "left"; } ]))
           (mkBind "SUPER + SHIFT + J" (windowDsp "move" [ { direction = "down"; } ]))
@@ -325,14 +355,14 @@ in
           (mkBind "SUPER + SHIFT + 9" (windowDsp "move" [ { workspace = "9"; } ]))
           (mkBind "SUPER + SHIFT + 0" (windowDsp "move" [ { workspace = "10"; } ]))
 
-          (mkBind "SUPER + S" (dsp "workspace.toggle_special" [ "magic" ]))
-          (mkBind "SUPER + SHIFT + S" (windowDsp "move" [ { workspace = "special:magic"; } ]))
+          (mkBind "SUPER + CTRL + S" (dsp "workspace.toggle_special" [ "magic" ]))
+          (mkBind "SUPER + CTRL + SHIFT + S" (windowDsp "move" [ { workspace = "special:magic"; } ]))
 
-          (mkBind "SUPER + mouse_down" (dsp "focus" [ { workspace = "e+1"; } ]))
-          (mkBind "SUPER + mouse_up" (dsp "focus" [ { workspace = "e-1"; } ]))
-
+          # Print/SHIFT+Print plus the macOS Cmd+Shift+3/4 positions.
           (mkBind "Print" (dsp "exec_cmd" [ "grim - | wl-copy" ]))
           (mkBind "SHIFT + Print" (dsp "exec_cmd" [ "grim -g \"$(slurp)\" - | wl-copy" ]))
+          (mkBind "CTRL + SHIFT + 3" (dsp "exec_cmd" [ "grim - | wl-copy" ]))
+          (mkBind "CTRL + SHIFT + 4" (dsp "exec_cmd" [ "grim -g \"$(slurp)\" - | wl-copy" ]))
 
           (mkBindWith "SUPER + mouse:272" (windowDsp "drag" [ ]) { mouse = true; })
           (mkBindWith "SUPER + mouse:273" (windowDsp "resize" [ ]) { mouse = true; })
@@ -451,8 +481,9 @@ in
       enable = true;
       settings = {
         general = {
-          # Guard against stacking lockers when several triggers coincide.
-          lock_cmd = "pidof hyprlock || hyprlock";
+          # flock is atomic where a pidof check is not: a trigger that
+          # coincides with a manual lock leaves exactly one hyprlock running.
+          lock_cmd = "flock -n ~/.cache/hyprlock.lock hyprlock";
           before_sleep_cmd = "loginctl lock-session";
           after_sleep_cmd = "hyprctl dispatch dpms on";
         };

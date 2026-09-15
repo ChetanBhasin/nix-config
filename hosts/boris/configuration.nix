@@ -36,6 +36,15 @@ in
   i18n.defaultLocale = "en_US.UTF-8";
   console.keyMap = "us";
 
+  # hidraw is a loadable module nothing auto-loads on this machine; OpenLogi
+  # (Logitech BT keyboard/mouse remapping) cannot enumerate a single device
+  # without it. Apply this, then reboot once so the module is up before the
+  # Bluetooth devices reconnect (udev uaccess ACLs only attach on connect).
+  boot.kernelModules = [
+    "hidraw"
+    "uinput"
+  ];
+
   nix = {
     settings = {
       auto-optimise-store = true;
@@ -123,8 +132,13 @@ in
   };
 
   # `services.graphical-desktop` renders the localed keyboard config from these
-  # options, so the layout applies without an X server.
-  services.xserver.xkb.layout = "us";
+  # options, so the layout applies without an X server. The Win<->Ctrl swap
+  # mirrors the Hyprland-side `input.kb_options` (home/hyprland) so TUI
+  # surfaces (tuigreet, etc.) see the same macOS-style mapping.
+  services.xserver.xkb = {
+    layout = "us";
+    options = "ctrl:swap_lwin_lctl,ctrl:swap_rwin_rctl";
+  };
 
   security = {
     rtkit.enable = true;
@@ -161,6 +175,11 @@ in
     pcscd.enable = true;
     power-profiles-daemon.enable = true;
     printing.enable = true;
+    # OpenLogi ships `lib/udev/rules.d/70-openlogi.rules` (TAG+="uaccess" for
+    # Logitech 046D hidraw/uinput/event nodes). The `70-` prefix matters: it
+    # must land before systemd's 73-seat-late.rules consumes the tag —
+    # `services.udev.extraRules` (99-local.rules) is too late for uaccess.
+    udev.packages = [ pkgs.openlogi ];
     tailscale = {
       enable = true;
       extraSetFlags = [ "--accept-routes=false" ];
@@ -198,7 +217,18 @@ in
       jdk
       podman-compose
       podman-tui
+      # A bare Wayland session ships no default cursor theme, so the pointer
+      # falls back to a built-in arrow that reads as broken. Bibata-Original-Ice
+      # is the closest standard match to the Mac pointer: sharp, white, black
+      # outline.
+      bibata-cursors
     ];
+    # System-wide so greetd sessions and every client inherit it; shell-profile
+    # variables (home-manager's sessionVariables) never reach the compositor.
+    sessionVariables = {
+      XCURSOR_THEME = "Bibata-Original-Ice";
+      XCURSOR_SIZE = "24";
+    };
   };
 
   system.stateVersion = "26.05";

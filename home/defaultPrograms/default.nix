@@ -4,6 +4,11 @@ let
 
   # Keep escape-sequence keybindings independent of TOML string quoting.
   esc = builtins.fromJSON ''"\u001b"'';
+  ctrlC = builtins.fromJSON ''"\u0003"'';
+  ctrlV = builtins.fromJSON ''"\u0016"'';
+  ctrlK = builtins.fromJSON ''"\u000B"'';
+  ctrlW = builtins.fromJSON ''"\u0017"'';
+  ctrlN = builtins.fromJSON ''"\u000E"'';
 
   # Encode the physical platform shortcut with the standard CSI-u protocol.
   # Tmux normalizes Super+number to Alt+number, which would collide with the
@@ -21,6 +26,45 @@ let
       chars = "${esc}[${toString codepoint};6u";
     }
   ) 9;
+  # The two logical modifier layers, mapped to physical keys per platform. On
+  # macOS these are the physical Command ("Cmd layer") and Control ("Ctrl
+  # layer") keys. On Linux the Hyprland XKB swap (ctrl:swap_lwin_lctl) makes
+  # the physical Win key send Control and the physical leftmost key send
+  # Command/Super, so the same layers land on the same physical keys and macOS
+  # muscle memory carries over.
+  cmdMod = if pkgs.stdenv.hostPlatform.isDarwin then "Command" else "Control";
+  ctrlMod = if pkgs.stdenv.hostPlatform.isDarwin then "Control" else "Command";
+
+  # Linux-only: after the XKB swap the physical leftmost key is logical
+  # Command/Super; map it to the classic terminal control bytes. On macOS those
+  # physical keys are the Command actions, so this list is empty there.
+  ctrlLayerBindings = if pkgs.stdenv.hostPlatform.isDarwin then [ ] else [
+    {
+      key = "C";
+      mods = "Command";
+      chars = ctrlC; # interrupt
+    }
+    {
+      key = "V";
+      mods = "Command";
+      chars = ctrlV; # quote insert
+    }
+    {
+      key = "K";
+      mods = "Command";
+      chars = ctrlK; # kill to end of line
+    }
+    {
+      key = "W";
+      mods = "Command";
+      chars = ctrlW; # kill to beginning of line
+    }
+    {
+      key = "N";
+      mods = "Command";
+      chars = ctrlN;
+    }
+  ];
 in
 {
   programs.direnv.enable = true;
@@ -226,62 +270,68 @@ in
       };
 
       keyboard.bindings = [
-        # Ctrl+Space: Send CSI u sequence so tmux recognizes it as C-Space (not C-@/NUL)
-        # Without this, Ctrl+Space sends NUL (0x00) which tmux sees as C-@
-        # \u001b[32;5u = ESC [ 32 ; 5 u = CSI u encoding for Ctrl+Space
+        # <ctrlMod>+Space: send CSI-u so tmux reads C-Space (not C-@/NUL). On
+        # macOS this is the physical Control key (Ctrl+Space); on Linux it is
+        # the physical leftmost key (logical Command after the XKB swap).
         {
           key = "Space";
-          mods = "Control";
+          mods = ctrlMod;
           chars = "${esc}[32;5u";
         }
-        # Shift+Enter: preserve a distinct newline key through tmux and SSH via CSI u
+        # Shift+Enter: preserve a distinct newline key through tmux and SSH via CSI-u.
         {
           key = "Enter";
           mods = "Shift";
           chars = "${esc}[13;2u";
         }
-        # Standard macOS shortcuts
+        # Cmd layer: copy/paste/quit/new/clear-history/font size. On macOS the
+        # physical Command key; on Linux the physical Win key (logical Control
+        # after the XKB swap).
         {
           key = "K";
-          mods = "Command";
+          mods = cmdMod;
           action = "ClearHistory";
         }
         {
           key = "N";
-          mods = "Command";
+          mods = cmdMod;
           action = "SpawnNewInstance";
         }
         {
           key = "W";
-          mods = "Command";
+          mods = cmdMod;
           action = "Quit";
         }
         {
           key = "C";
-          mods = "Command";
+          mods = cmdMod;
           action = "Copy";
         }
         {
           key = "V";
-          mods = "Command";
+          mods = cmdMod;
           action = "Paste";
         }
         {
           key = "Plus";
-          mods = "Command";
+          mods = cmdMod;
           action = "IncreaseFontSize";
         }
         {
           key = "Minus";
-          mods = "Command";
+          mods = cmdMod;
           action = "DecreaseFontSize";
         }
         {
           key = "Key0";
-          mods = "Command";
+          mods = cmdMod;
           action = "ResetFontSize";
         }
       ]
+      # Linux-only: the Ctrl layer sends classic terminal control bytes to the
+      # pty (like macOS Terminal). Empty on macOS, where those physical keys
+      # are the Command actions above.
+      ++ ctrlLayerBindings
       # Direct tab/window navigation: Cmd+1-9 on Darwin, Ctrl+Shift+1-9 elsewhere.
       ++ multiplexerTabBindings;
     };
