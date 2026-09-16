@@ -70,6 +70,9 @@
           (final: _prev: {
             maki = inputs.maki.packages.${final.stdenv.hostPlatform.system}.default;
           })
+          (final: _prev: {
+            rust-glancer = final.callPackage ./packages/rust-glancer.nix { };
+          })
           (_final: prev: {
             tmux = prev.tmux.overrideAttrs (old: {
               configureFlags = (old.configureFlags or [ ]) ++ [ "--disable-jemalloc" ];

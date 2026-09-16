@@ -7,6 +7,7 @@
   writeShellScriptBin,
   rustc,
   cargo,
+  rustfmt,
 }:
 
 let
@@ -32,16 +33,16 @@ let
 in
 rustPlatform.buildRustPackage {
   pname = "rust-glancer";
-  version = "0-unstable-2026-08-22";
+  version = "0.2.0";
 
   src = fetchFromGitHub {
     owner = "rust-glancer";
     repo = "rust-glancer";
-    rev = "b63c61536cd6a58ec0281f208cfeab17615c4781";
-    hash = "sha256-DaaeZ+WpfnPQQn3IcSBkAGJPW/qgksPWbrXs5yk3x70=";
+    rev = "v0.2.0";
+    hash = "sha256-3oQpIUsBnYL8dt/wUCHsHcK9/kwJxNlSAw8jbkLf6XY=";
   };
 
-  cargoHash = "sha256-GA1AbHuAqs97oJ7HsKxua1+LSylwqL/uSErlxZmBebA=";
+  cargoHash = "sha256-snH6iK+hQgnqc24Z7xXmg457mf5R+ujdc4PGgOXK7Vs=";
 
   nativeBuildInputs = [ makeWrapper ];
 
@@ -55,12 +56,15 @@ rustPlatform.buildRustPackage {
   # The test suite needs a full toolchain, on-disk fixtures, and network access.
   doCheck = false;
 
+  # The engine spawns cargo (metadata, check) and rustfmt (textDocument/formatting)
+  # from PATH, and rustc through the shim above.
   postInstall = ''
     wrapProgram $out/bin/rust-glancer \
       --prefix PATH : ${
         lib.makeBinPath [
           rustcWithSrc
           cargo
+          rustfmt
         ]
       }
   '';
