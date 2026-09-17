@@ -32,7 +32,7 @@
     # Cargo git dependencies the workspace needs, so do not make it follow this
     # configuration's nixpkgs.
     maki = {
-      url = "github:tontinton/maki";
+      url = "github:ChetanBhasin/maki/cb/cancel-behavior";
     };
 
     mac-app-util = {
