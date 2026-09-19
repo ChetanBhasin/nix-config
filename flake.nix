@@ -28,11 +28,14 @@
       url = "github:dmmulroy/jj-starship";
     };
 
-    # Maki is not in nixpkgs. Its own flake pins the Rust toolchain and the
-    # Cargo git dependencies the workspace needs, so do not make it follow this
-    # configuration's nixpkgs.
+    # Maki is not in nixpkgs. It is a git submodule at vendor/maki (the gitlink
+    # pins the fork's commit in-tree). nix cannot build a gitlink, so the flake
+    # reads the checkout through its absolute path: move the submodule to a
+    # branch or commit to change the build without touching this file. Its own
+    # flake pins the Rust toolchain and the Cargo git deps, so do not make it
+    # follow this configuration's nixpkgs.
     maki = {
-      url = "github:ChetanBhasin/maki/cb/cancel-behavior";
+      url = "path:/home/chetan/Projects/nix-config/vendor/maki";
     };
 
     mac-app-util = {

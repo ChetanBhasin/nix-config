@@ -140,6 +140,14 @@ Subagents spawned by `role` appear in `/tasks` (Ctrl-X) like any other: the chat
 
 Neither tool declares a permission scope, so neither prompts — the treatment `read` and `grep` get. That is deliberate for rv specifically: it cannot rewrite history, and settling is reversible, so the worst case is bookkeeping noise rather than lost work.
 
+## Goal mode
+
+`/goal <text>` keeps the agent working across turns until it calls the `goal_complete` tool, hits the budget ($2.00) or round cap (12), or the user intervenes — `/goal pause|resume|clear|status` from the menu, interrupting mid-turn, or cancelling the turn, which pauses the goal. While it runs, the status line shows round and spend, the objective is re-injected into every system prompt so it survives auto-compaction, and a reviewer vetoes the `question` tool, so the agent decides autonomously and notes its assumptions instead of asking. State persists as `goal.json` in Maki's state directory, and a restart restores the goal paused — it never resumes spending on its own.
+
+`home/maki/config/lua/goal.lua` is vendored from [Firaenix/maki-plugins](https://github.com/Firaenix/maki-plugins), adapted to our fork's plugin-platform API in two places: cost tracking rides on the real `TurnEnd` autocmd (the upstream `TurnComplete` event does not exist), and the in-flight-queue check reads the `maki.session.read()` snapshot's `queue.count` instead of a `maki.session.queue()` function that does not exist. The plugin also registers the `goal_complete` tool, adding one small definition to every request while `cb.maki.enableGoal` is on — the same standing charge the table below describes.
+
+Beyond the base grants, `home/maki/config/plugin.toml` gives it two more: `reviewers`, because registering the question-veto reviewer is an explicit grant, and `fs_write`, because `maki.fs.write` is guarded unconditionally — the state directory is not exempt by design. Toggled with `cb.maki.enableGoal`.
+
 ## What the plugins cost
 
 Tool definitions are sent on every request, so a plugin is a standing charge whether or not it is used. Measured with `maki prompt --tools`, counting compact JSON at four bytes per token:

@@ -337,18 +337,12 @@
         "rust-overlay": "rust-overlay"
       },
       "locked": {
-        "lastModified": 1789636961,
-        "narHash": "sha256-QNzvKcIV5R9Ng4rgqhz7S8ejEvkiH792Az+UI5Jk79M=",
-        "owner": "ChetanBhasin",
-        "repo": "maki",
-        "rev": "814f549d6167d67d32064a400e34d0453472af5e",
-        "type": "github"
+        "path": "/home/chetan/Projects/nix-config/vendor/maki",
+        "type": "path"
       },
       "original": {
-        "owner": "ChetanBhasin",
-        "ref": "cb/cancel-behavior",
-        "repo": "maki",
-        "type": "github"
+        "path": "/home/chetan/Projects/nix-config/vendor/maki",
+        "type": "path"
       }
     },
     "nix": {

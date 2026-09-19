@@ -10,5 +10,6 @@ min_maki_version = "0.5.3"
 fs_read = true
 run = true
 env = false
-fs_write = false
+fs_write = true
 net = false
+reviewers = true

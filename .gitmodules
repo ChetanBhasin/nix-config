@@ -1,0 +1,3 @@
+[submodule "vendor/maki"]
+	path = vendor/maki
+	url = git@github.com:ChetanBhasin/maki.git

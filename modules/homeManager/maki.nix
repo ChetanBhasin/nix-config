@@ -215,6 +215,12 @@ let
         require("rv")
       ''
     )
+    ++ lib.optional cfg.enableGoal (
+      pkgs.writeText "maki-goal-require.lua" ''
+        -- Loaded from ~/.config/maki/lua/goal.lua by the Home Manager module.
+        require("goal")
+      ''
+    )
     ++ lib.optional (cfg.extraLua != "") (pkgs.writeText "maki-extra.lua" cfg.extraLua);
   };
 
@@ -310,6 +316,16 @@ in
       '';
     };
 
+    enableGoal = lib.mkOption {
+      type = lib.types.bool;
+      default = false;
+      description = ''
+        Load the goal-mode plugin: `/goal <text>` keeps the agent working
+        across turns until it calls `goal_complete`, hits the budget or round
+        cap, or the user intervenes. Needs the fork's plugin-platform APIs.
+      '';
+    };
+
     writableRuntimeConfig = lib.mkOption {
       type = lib.types.bool;
       default = true;
@@ -358,6 +374,9 @@ in
     }
     // lib.optionalAttrs cfg.enableRv {
       ".config/maki/lua/rv.lua".source = configDir + "/lua/rv.lua";
+    }
+    // lib.optionalAttrs cfg.enableGoal {
+      ".config/maki/lua/goal.lua".source = configDir + "/lua/goal.lua";
     }
     // lib.optionalAttrs cfg.installTheme {
       ".config/maki/themes/gruvbox-night.toml".source = gruvboxNightTheme;
