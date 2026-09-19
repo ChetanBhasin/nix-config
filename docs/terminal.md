@@ -93,6 +93,18 @@ fzf_kill       # Interactive process killer with search
 fzf_env        # Interactive environment variable browser
 ```
 
+### 🤖 **Claude Code Profiles**
+```bash
+ccode --profile=work     # claude-code with config in ~/.ccode/profiles/work
+ccode --profile=home     # different account, fully separate state
+ccode --list             # show available profiles
+```
+- `ccode` is a profile proxy for `claude`: it sets `CLAUDE_CONFIG_DIR=~/.ccode/profiles/<profile>` and passes everything else through
+- Without `--profile`, the default profile is used (built-in: `default`)
+- Configure the default: `export CCODE_PROFILE=work` in `~/.sources` or `~/.creds`
+- A new profile starts clean; run `/login` inside it once
+- Seed from an existing setup: `cp -a ~/.claude ~/.ccode/profiles/<name>`
+
 ### 📚 **History Management**
 ```bash
 hist_search    # Alternative history search with FZF

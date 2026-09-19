@@ -66,6 +66,7 @@
       gnutar
 
       claude-code
+      (pkgs.callPackage ../packages/ccode.nix { })
       opencode
 
       # Git and Version Control
