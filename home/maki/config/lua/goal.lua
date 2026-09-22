@@ -1,6 +1,6 @@
 -- Goal mode: /goal <text> keeps the agent working across turns until it
 -- calls the goal_complete tool, the budget or round cap is hit, or the
--- human intervenes. Built on the fork's turn-boundary autocmds,
+-- human intervenes. Built on Maki's turn-boundary autocmds,
 -- session.queue introspection, and dynamic prompt hints.
 
 local BUDGET_USD = 2.00
@@ -73,24 +73,6 @@ end
 local function mine(ev)
   return goal and (ev.data or {}).session_id == goal.session
 end
-
--- Registered once; the handler consults live state, so no toggling
--- churn. Naming the question tool explicitly opts it into the fork's
--- veto review even though it needs no permission.
-maki.api.register_reviewer({
-  name = "goal-no-questions",
-  tools = { "question" },
-  order = -1,
-  timeout_ms = 2000,
-  handler = function()
-    if goal and not goal.paused and settings.block_questions then
-      return "DENY",
-        "goal mode is active — do not ask the user; decide autonomously, "
-          .. "note the assumption, and call goal_complete when the goal is done"
-    end
-    return "ALLOW"
-  end,
-})
 
 -- The hint re-enters every system prompt, so the objective survives
 -- auto-compaction without any bookkeeping here.
@@ -222,7 +204,7 @@ local function config_menu()
     local res = ListPicker.open({
       {
         label = (settings.block_questions and "[x]" or "[ ]") .. " block questions",
-        detail = "veto the question tool while a goal runs",
+        detail = "tell the model not to ask questions while a goal runs",
       },
     }, { title = " Goal Config " })
     if res.type ~= "choice" then

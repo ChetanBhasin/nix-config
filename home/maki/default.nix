@@ -6,7 +6,7 @@
   # footprint per turn.
   cb.maki.enable = true;
 
-  # Goal mode: /goal keeps the agent working across turns. It calls the
-  # fork's plugin-platform APIs, so the maki input must carry that branch.
+  # Goal mode: /goal keeps the agent working across turns using Maki's Lua
+  # plugin APIs.
   cb.maki.enableGoal = true;
 }

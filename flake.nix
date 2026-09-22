@@ -28,16 +28,12 @@
       url = "github:dmmulroy/jj-starship";
     };
 
-    # Maki is not in nixpkgs. It lives in a git submodule at vendor/maki; the
-    # gitlink pins the fork's commit in-tree. nix cannot materialize a gitlink,
-    # so the input fetches the commit through git from the local checkout —
-    # flake.lock records the rev and narHash (a plain path: input makes the
-    # lock "dirty" under recent nix). To update: check out a new commit in
-    # vendor/maki, commit the gitlink, then `nix flake update maki`. Its own
-    # flake pins the Rust toolchain and the Cargo git deps, so do not make it
-    # follow this configuration's nixpkgs.
+    # Maki is not in nixpkgs. Fetch the personal fork through GitHub so the
+    # locked input is portable across Darwin and Linux home-directory layouts.
+    # Its own flake pins the Rust toolchain and the Cargo git deps, so do not
+    # make it follow this configuration's nixpkgs.
     maki = {
-      url = "git+file:///home/chetan/Projects/nix-config/vendor/maki?ref=cb/plugin-platform";
+      url = "github:ChetanBhasin/maki";
     };
 
     mac-app-util = {

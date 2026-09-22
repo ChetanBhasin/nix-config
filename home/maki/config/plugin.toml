@@ -12,4 +12,3 @@ run = true
 env = false
 fs_write = true
 net = false
-reviewers = true

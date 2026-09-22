@@ -322,7 +322,7 @@ in
       description = ''
         Load the goal-mode plugin: `/goal <text>` keeps the agent working
         across turns until it calls `goal_complete`, hits the budget or round
-        cap, or the user intervenes. Needs the fork's plugin-platform APIs.
+        cap, or the user intervenes.
       '';
     };
 
