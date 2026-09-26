@@ -15,7 +15,6 @@
       "whatsapp@beta"
       "shureplus-motiv"
       "screen-studio"
-      "netdownloadhelpercoapp"
       "insta360-studio"
       "cryptomator"
     ];
