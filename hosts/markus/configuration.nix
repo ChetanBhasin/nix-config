@@ -5,6 +5,10 @@
     enableExtras = true;
     enableProf = false;
     theme = "nord";
+
+    extraBrews = [
+      "octopusdeploy/taps/octopus-cli"
+    ];
   };
 
   # Force U.S. keyboard layout so ~ is produced directly instead of as a dead key
