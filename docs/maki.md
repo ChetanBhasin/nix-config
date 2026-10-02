@@ -35,9 +35,9 @@ Then open `/model` once and assign tiers with `!` strong, `@` medium, `#` weak, 
 | Tier | Model | Used for |
 |---|---|---|
 | strong | `openai/gpt-6-astra` | the parent session, `reviewer`, `oracle` and `worker` |
-| medium | `openai/gpt-5.6-terra` | `scout` and the other discovery roles |
-| weak | `openai/gpt-5.6-luna` | cheap lookups |
-| compaction | `openai/gpt-5.6-luna` | summarizing is cheap work |
+| medium | `openai/gpt-6.1-sol` | `scout` and the other discovery roles |
+| weak | `openai/gpt-6-luna` | cheap lookups |
+| compaction | `openai/gpt-6-luna` | summarizing is cheap work |
 
 Tier assignments live in `~/.local/state/maki/model-tiers`, not in this flake, because they are per-machine.
 
