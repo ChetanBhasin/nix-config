@@ -10,6 +10,7 @@
 let
   cfg = config.cb.neovim;
   bazelLsp = pkgs.callPackage ../../packages/bazel-lsp.nix { };
+  rustGlancer = pkgs.callPackage ../../packages/rust-glancer.nix { };
 
   # Path to the neovim lua config directory (relative to this module)
   nvimConfigPath = ../../home/neovim/config;
@@ -17,6 +18,15 @@ in
 {
   options.cb.neovim = {
     enable = lib.mkEnableOption "Chetan's NeoVim configuration";
+
+    rustLsp = lib.mkOption {
+      type = lib.types.enum [
+        "rust-analyzer"
+        "rust-glancer"
+      ];
+      default = "rust-glancer";
+      description = "Which Rust language server Neovim should use for `.rs` files.";
+    };
 
     defaultEditor = lib.mkOption {
       type = lib.types.bool;
@@ -125,6 +135,7 @@ in
           typescript-language-server
           yaml-language-server
         ]
+        ++ lib.optional (cfg.rustLsp == "rust-glancer") rustGlancer
         ++ cfg.extraPackages;
 
       plugins =
@@ -172,9 +183,6 @@ in
           # FZF integration
           fzf-vim
 
-          # Rust support
-          rustaceanvim
-
           # Mini plugins
           mini-nvim
 
@@ -203,6 +211,8 @@ in
           nvim-dap-python
           nvim-dap-ui
         ]
+        # rustaceanvim auto-starts rust-analyzer even without explicit setup.
+        ++ lib.optional (cfg.rustLsp == "rust-analyzer") rustaceanvim
         # Multiplexer integration (option name retained for compatibility)
         ++ lib.optionals cfg.enableTmuxIntegration [
           smart-splits-nvim
@@ -361,5 +371,9 @@ in
     # Link the NeoVim lua configuration
     xdg.configFile."nvim".source = nvimConfigPath;
     xdg.configFile."nvim".recursive = true;
+
+    xdg.configFile."nvim/lua/custom/rust_lsp_choice.lua".text = ''
+      return "${cfg.rustLsp}"
+    '';
   };
 }

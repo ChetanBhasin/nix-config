@@ -48,6 +48,7 @@ Full-featured NeoVim IDE with LSP, treesitter, completion, and 50+ curated plugi
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `cb.neovim.enable` | boolean | `false` | Enable the NeoVim configuration |
+| `cb.neovim.rustLsp` | `"rust-glancer"` or `"rust-analyzer"` | `"rust-glancer"` | Select the Rust server; rustaceanvim is installed only for rust-analyzer |
 | `cb.neovim.defaultEditor` | boolean | `true` | Set NeoVim as the default `$EDITOR` |
 | `cb.neovim.withNodeJs` | boolean | `true` | Enable Node.js integration |
 | `cb.neovim.withPython3` | boolean | `true` | Enable Python 3 integration |

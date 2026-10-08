@@ -35,11 +35,6 @@
     maki = {
       url = "github:ChetanBhasin/maki";
     };
-
-    mac-app-util = {
-      url = "github:hraban/mac-app-util";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
   };
 
   outputs =
@@ -196,7 +191,6 @@
           users.users.${user}.home = "/Users/${user}";
           home-manager = {
             useGlobalPkgs = true;
-            sharedModules = [ inputs.mac-app-util.homeManagerModules.default ];
             users.${user} = import (./. + "/hosts/${host}/home.nix");
           };
         }

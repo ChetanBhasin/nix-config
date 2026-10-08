@@ -18,7 +18,7 @@ with lib;
       "rust-glancer"
     ];
     default = "rust-glancer";
-    description = "Which Rust language server Neovim (rustaceanvim) should use for `.rs` files.";
+    description = "Which Rust language server Neovim should use for `.rs` files.";
   };
 
   config = {
@@ -103,8 +103,6 @@ with lib;
         lazyjj-nvim # Lazyjj floating window (for jj VCS)
         # FZF integration
         fzf-vim
-        # Modern Rust plugin (successor to rust-tools.nvim)
-        rustaceanvim
         mini-nvim
         conform-nvim
         nvim-lspconfig
@@ -263,7 +261,7 @@ with lib;
             zig
           ]
         ))
-      ];
+      ] ++ lib.optional (cfg.rustLsp == "rust-analyzer") rustaceanvim;
     };
 
     xdg.configFile."nvim".source = ./config;

@@ -200,7 +200,7 @@ When you first open Neovim:
 
 | Language | LSP Server | Features |
 |----------|------------|----------|
-| **Rust** | `rust-analyzer` | Full inlay hints, debugging, testing |
+| **Rust** | `rust-glancer` (default) | All Cargo features, inlay hints, formatting, check on save |
 | **TypeScript/JS** | `tsserver` | Parameter hints, type information |
 | **Python** | `ruff` | Type checking, imports |
 | **Go** | `gopls` | Comprehensive inlay hints |
@@ -249,7 +249,20 @@ process(data, options)       // data: DataType, options: Options
 
 ## 🦀 Rust Development
 
-Your IDE is specially optimized for Rust development with **rustaceanvim** providing advanced features:
+Rust uses **rust-glancer** by default, with all Cargo features enabled through
+`init_options.cargo.allFeatures = true`. Inlay hints, completion, navigation,
+formatting and cargo check on save use glancer. Run `:RustGlancerReindex` to restart
+the server and reindex; restart Neovim after editing initialization options.
+
+Both Home Manager modules support `cb.neovim.rustLsp = "rust-analyzer"` as an
+explicit opt-in. Only that choice installs **rustaceanvim**, which otherwise
+auto-starts rust-analyzer on Rust buffers even without setup. The rustaceanvim
+commands and features below apply to that opt-in.
+
+All Cargo features is a Cargo feature selection, not full rust-analyzer parity:
+glancer v0.2.0 does not execute proc macros, and build script outputs must already
+exist from a build or check. New items and imports may need a save before they
+appear in completions. See [glancer's limitations](https://github.com/rust-glancer/rust-glancer/blob/v0.2.0/docs/src/usage/LIMITATIONS.md).
 
 ### 🔧 **Core Features**
 
@@ -292,10 +305,10 @@ Your IDE is specially optimized for Rust development with **rustaceanvim** provi
 
 ### 🎯 **Rust-Specific Settings**
 
-- **Clippy on save**: Automatic linting with `cargo clippy`
-- **All features enabled**: `cargo.allFeatures = true`
-- **Proc macros**: Full support for procedural macros
-- **Build scripts**: Integration with build.rs
+- **Glancer Cargo features**: `init_options.cargo.allFeatures = true`; default features remain enabled
+- **Glancer diagnostics**: `cargo check` on save; startup checks are disabled
+- **Analyzer opt-in**: check on save and all features are disabled in its existing configuration
+- **Proc macros and build scripts**: Support depends on the selected server
 - **Cargo integration**: Automatic project structure detection
 
 ### 🔍 **Code Lens Features**
@@ -561,7 +574,9 @@ lspconfig.your_language_server.setup({
 
 ### 🦀 **Rust-Specific Customization**
 
-Edit `home/neovim/config/lua/custom/plugins/rust.lua` for Rust-specific settings:
+Edit `home/neovim/config/lua/custom/plugins/rust_glancer.lua` for the default
+server's initialization options. `rust.lua` selects the server and holds the
+optional rust-analyzer settings, including the inlay hint example below:
 
 ```lua
 -- Modify inlay hints

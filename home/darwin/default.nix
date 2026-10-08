@@ -15,9 +15,12 @@ in
       recursive = true;
     };
 
+    # Copy app bundles into ~/Applications/Home Manager Apps so Spotlight and
+    # the Dock see real apps. Updating a notarised bundle needs the terminal to
+    # hold App Management (Privacy & Security); activation checks for it first.
     targets.darwin = {
-      copyApps.enable = false;
-      linkApps.enable = true;
+      copyApps.enable = true;
+      linkApps.enable = false;
     };
 
     # Zen picks its profile by hashing the app's path and rebuilds

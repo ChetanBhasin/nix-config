@@ -38,14 +38,14 @@ vim.lsp.config('rust_glancer', {
             vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })
         end
     end,
-    -- Read once at startup; edit these and run :RustGlancerReindex
+    -- Read once at startup; restart Neovim after changing these options.
     init_options = {
+        cargo = { allFeatures = true, noDefaultFeatures = false },
         -- cargo check diagnostics (both flags default to false)
         diagnostics = { onStartup = false, onSave = true },
         -- Also valid, left at server defaults:
-        -- cargo = { allFeatures = true, noDefaultFeatures = true,
-        --           features = { '...' }, target = 'triple',
-        --           overrides = { { path = 'firmware', target = 'riscv32imac-unknown-none-elf' } } }
+        -- cargo also accepts features = { '...' }, target = 'triple', and
+        -- overrides = { { path = 'firmware', target = 'riscv32imac-unknown-none-elf' } }
         -- indexing = { performancePreference = 'lower-peak-memory', packageBatchSize = 128 }
         -- cache = { packageResidency = 'all-resident' }  -- default: 'all-offloadable'
     },
@@ -58,27 +58,26 @@ vim.api.nvim_create_autocmd("BufWritePre", {
     pattern = "*.rs",
     callback = function(args)
         local bufnr = args.buf
-        local client = vim.lsp.get_client_by_name('rust_glancer')
-        if client and client:supports_method('textDocument/formatting') then
-            vim.lsp.buf.format({
-                bufnr = bufnr,
-                async = false,
-                timeout_ms = 3000,
-                filter = function(c)
-                    return c.name == 'rust_glancer'
-                end,
-            })
+        for _, client in ipairs(vim.lsp.get_clients({ name = 'rust_glancer', bufnr = bufnr })) do
+            if client:supports_method('textDocument/formatting') then
+                vim.lsp.buf.format({
+                    bufnr = bufnr,
+                    async = false,
+                    timeout_ms = 3000,
+                    filter = function(c)
+                        return c.name == 'rust_glancer'
+                    end,
+                })
+                return
+            end
         end
     end,
 })
 
--- Restart the server to trigger reindex or pick up init_options changes
+-- Restart the server to trigger reindex with the current init_options.
 vim.api.nvim_create_user_command("RustGlancerReindex", function()
-    local client = vim.lsp.get_client_by_name('rust_glancer')
-    if client then
-        client:stop()
-    end
+    vim.lsp.enable('rust_glancer', false)
     vim.defer_fn(function()
-        vim.cmd("LspStart rust_glancer")
+        vim.lsp.enable('rust_glancer')
     end, 500)
 end, { desc = "Restart rust-glancer to trigger reindex" })
