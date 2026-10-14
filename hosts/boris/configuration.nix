@@ -100,6 +100,10 @@ in
     };
   };
 
+  # Secret Service for CLI tools such as SecretSpec, including in a plain TTY.
+  # The module unlocks the login keyring through PAM; greetd includes that stack.
+  services.gnome.gnome-keyring.enable = true;
+
   # Hyprland owns the graphical session. Enabling it here (rather than in
   # home-manager) provides the capability-wrapped `Hyprland` binary, the
   # wayland session entry greetd offers, the xdg portals, polkit and dconf.
