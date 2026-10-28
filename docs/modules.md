@@ -262,7 +262,6 @@ first chord.
 | `Prefix g` | Git menu |
 | `Prefix f` | Find menu |
 | `Alt+1-5` | Quick session switch |
-| `Alt+h/l` | Previous/next window |
 
 ---
 

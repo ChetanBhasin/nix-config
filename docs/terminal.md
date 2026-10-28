@@ -919,7 +919,6 @@ C-Space c        # New window
 C-Space n / N    # Next / previous window
 C-Space w l      # Open Windows menu, then choose a window
 C-Space w r      # Rename window in a centered input popup
-Alt+h / Alt+l    # Previous / next window
 ```
 
 **Pane Management:**
