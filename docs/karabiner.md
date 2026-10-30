@@ -15,9 +15,9 @@ the keyboard type that matches your hardware. macOS permissions require your
 interaction; Hammerspoon is uninstalled on apply.
 
 The first activation seeds a writable `~/.config/karabiner/karabiner.json` with
-all four rule groups enabled. Existing profiles and UI changes are preserved.
+all six rule groups enabled. Existing profiles and UI changes are preserved.
 To enable these rules in an existing profile, open **Complex Modifications →
-Add predefined rule** and add the four groups under **nix-config keyboard shortcuts**.
+Add predefined rule** and add the groups under **nix-config keyboard shortcuts**.
 
 The importable asset is managed by Nix; Karabiner copies enabled rules into its
 own config. After changing the Nix rules and applying, remove only the old
@@ -44,6 +44,35 @@ These are common aliases rather than a complete Linux keyboard layer. Other
 Ctrl combinations retain their app behavior; Ctrl+H does not become Command+H
 (Hide). To resolve an app-specific conflict, edit the GUI rule's application
 condition. Boris is unchanged: its Linux config still swaps physical Ctrl and Super.
+
+## Text navigation
+
+Outside the five terminals above, these shortcuts send macOS's native editing
+commands. Both Control keys work; hold Shift with movement keys to select text.
+
+| Shortcut | Action while editing | macOS shortcut sent |
+| --- | --- | --- |
+| Ctrl+Left/Right | Move one word | Option+Left/Right |
+| Ctrl+Backspace | Delete the previous word | Option+Backspace |
+| Home/End | Move to the start/end of the line | Command+Left/Right |
+
+Ctrl+Left/Right therefore replaces macOS desktop switching in these apps.
+Home/End follow the focused app's Command-arrow behavior: outside a text field,
+browsers may navigate back/forward instead of moving a cursor. See the
+[Apple editing shortcuts](https://support.apple.com/en-us/102650) and
+[Chrome shortcuts](https://support.google.com/chrome/answer/157179).
+Ctrl+Shift+Backspace and Ctrl+Home/End retain their existing behavior.
+
+## Application switching
+
+**Alt+Tab** (Option+Tab on a Mac keyboard) opens the native macOS app switcher.
+Keep Alt held and press Tab again to cycle; **Alt+Shift+Tab** cycles backwards.
+Release Alt to select the app. Both Option keys work, including in terminals.
+This switches applications, rather than individual windows, and Cmd+Tab still works.
+
+The [held-modifier rule](https://karabiner-elements.pqrs.org/docs/json/complex-modifications-manipulator-definition/to-if-other-key-pressed/)
+requires Karabiner-Elements 16 or newer. Ordinary Option typing and the existing
+Ctrl+Option window shortcuts and Cmd+Option launchers keep working.
 
 ## Window placement and app launchers
 
