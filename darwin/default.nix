@@ -257,7 +257,7 @@ in
         "codex"
         "zen"
         "postico"
-        "hammerspoon"
+        "karabiner-elements"
         "openlogi"
       ]
       ++ lib.optionals cfg.enableProf [ "thunderbird" ]

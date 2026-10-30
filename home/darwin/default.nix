@@ -22,12 +22,9 @@ let
   '';
 in
 {
-  config = mkIf config.home-config-manager.isDarwin {
-    home.file.".hammerspoon" = {
-      source = ./hammerspoon;
-      recursive = true;
-    };
+  imports = [ ./karabiner.nix ];
 
+  config = mkIf config.home-config-manager.isDarwin {
     # Copy app bundles into ~/Applications/Home Manager Apps so Spotlight and
     # the Dock see real apps. Updating a notarised bundle needs the terminal to
     # hold App Management (Privacy & Security); activation checks for it first.
