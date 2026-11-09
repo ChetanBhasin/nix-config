@@ -35,10 +35,10 @@ Original Command shortcuts keep working.
 
 Alacritty, Terminal, iTerm2, kitty and WezTerm preserve ordinary Ctrl commands,
 including Ctrl+C, Ctrl+Z, Ctrl+K and tmux's Ctrl+Space. Use **Ctrl+Shift+C/V**
-for terminal copy/paste. Alacritty already sends the CSI-u Ctrl+Space sequence
-that the old Hammerspoon handler injected. On other Macs, disable the macOS
-**Keyboard → Keyboard Shortcuts → Input Sources → Select the previous input source**
-Ctrl+Space binding if it intercepts tmux's prefix.
+for terminal copy/paste. Alacritty sends the CSI-u Ctrl+Space sequence that the
+old Hammerspoon handler injected. Activation disables macOS's **Select the
+previous input source** shortcut so Ctrl+Space reaches tmux, preserving other
+system shortcuts.
 
 These are common aliases rather than a complete Linux keyboard layer. Other
 Ctrl combinations retain their app behavior; Ctrl+H does not become Command+H

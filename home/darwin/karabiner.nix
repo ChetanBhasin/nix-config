@@ -250,6 +250,14 @@ in
       inherit rules;
     };
 
+    # Reserve Ctrl+Space for tmux. Merge just this entry to preserve other
+    # keyboard shortcuts, then refresh the running macOS settings.
+    home.activation.disableInputSourceShortcut = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      run /usr/bin/defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys \
+        -dict-add 60 '<dict><key>enabled</key><false/></dict>'
+      run /System/Library/PrivateFrameworks/SystemAdministration.framework/Resources/activateSettings -u
+    '';
+
     # Karabiner rewrites this file, so seed a writable copy instead of linking
     # it to the read-only Nix store. Later UI changes remain intact.
     home.activation.seedKarabiner = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
