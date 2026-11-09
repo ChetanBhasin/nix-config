@@ -258,7 +258,6 @@ in
         "zen"
         "postico"
         "karabiner-elements"
-        "openlogi"
       ]
       ++ lib.optionals cfg.enableProf [ "thunderbird" ]
       ++ lib.optionals cfg.enableExtras [

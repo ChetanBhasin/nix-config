@@ -15,7 +15,7 @@ the keyboard type that matches your hardware. macOS permissions require your
 interaction; Hammerspoon is uninstalled on apply.
 
 The first activation seeds a writable `~/.config/karabiner/karabiner.json` with
-all six rule groups enabled. Existing profiles and UI changes are preserved.
+all seven rule groups enabled. Existing profiles and UI changes are preserved.
 To enable these rules in an existing profile, open **Complex Modifications →
 Add predefined rule** and add the groups under **nix-config keyboard shortcuts**.
 
@@ -48,15 +48,15 @@ condition. Boris is unchanged: its Linux config still swaps physical Ctrl and Su
 ## Text navigation
 
 Outside the five terminals above, these shortcuts send macOS's native editing
-commands. Both Control keys work; hold Shift with movement keys to select text.
+commands. Both Control keys work; hold Shift with Home/End to select text.
 
 | Shortcut | Action while editing | macOS shortcut sent |
 | --- | --- | --- |
-| Ctrl+Left/Right | Move one word | Option+Left/Right |
 | Ctrl+Backspace | Delete the previous word | Option+Backspace |
 | Home/End | Move to the start/end of the line | Command+Left/Right |
 
-Ctrl+Left/Right therefore replaces macOS desktop switching in these apps.
+Ctrl+Left/Right switches workspaces in every app. Use native Option+Left/Right
+to move by word in GUI apps.
 Home/End follow the focused app's Command-arrow behavior: outside a text field,
 browsers may navigate back/forward instead of moving a cursor. See the
 [Apple editing shortcuts](https://support.apple.com/en-us/102650) and
@@ -73,6 +73,26 @@ This switches applications, rather than individual windows, and Cmd+Tab still wo
 The [held-modifier rule](https://karabiner-elements.pqrs.org/docs/json/complex-modifications-manipulator-definition/to-if-other-key-pressed/)
 requires Karabiner-Elements 16 or newer. Ordinary Option typing and the existing
 Ctrl+Option window shortcuts and Cmd+Option launchers keep working.
+
+## Mouse workspace switching
+
+Enable **Modify events** for the mouse in Karabiner's **Devices** tab, then add
+**Switch workspaces with mouse side buttons** from the Nix predefined rules.
+The LIFT connected through a Bolt receiver appears as **USB Receiver**.
+
+The directions match the previous OpenLogi configuration:
+
+| Mouse button | Action | macOS shortcut sent |
+| --- | --- | --- |
+| Back (`button4`) | Next workspace | Ctrl+Right |
+| Forward (`button5`) | Previous workspace | Ctrl+Left |
+
+Keep **Move left a space** and **Move right a space** enabled under macOS
+**Keyboard → Keyboard Shortcuts → Mission Control**. Karabiner emits these
+shortcuts directly, so the text-navigation rules do not change them.
+
+OpenLogi is no longer installed on Darwin. The LIFT's DPI button does not
+produce an event in Karabiner, so its former screenshot action is dropped.
 
 ## Window placement and app launchers
 

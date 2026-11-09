@@ -122,8 +122,6 @@ let
     {
       description = "Use Linux text navigation in macOS apps";
       manipulators = lib.mapAttrsToList textNavigation {
-        left_arrow = "left_arrow";
-        right_arrow = "right_arrow";
         delete_or_backspace = "delete_or_backspace";
         home = "left_arrow";
         end = "right_arrow";
@@ -227,6 +225,24 @@ let
         n = "Obsidian";
         h = "IBKR Desktop";
         v = "ProtonVPN";
+      };
+    }
+    {
+      description = "Switch workspaces with mouse side buttons";
+      manipulators = lib.mapAttrsToList (button: arrow: {
+        type = "basic";
+        from.pointing_button = button;
+        to = [
+          {
+            key_code = arrow;
+            modifiers = [ "control" ];
+            repeat = false;
+          }
+        ];
+      }) {
+        # Preserve the existing OpenLogi directions.
+        button4 = "right_arrow";
+        button5 = "left_arrow";
       };
     }
   ];
