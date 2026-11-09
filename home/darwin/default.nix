@@ -26,10 +26,14 @@ in
 
   config = mkIf config.home-config-manager.isDarwin {
     # Copy app bundles into ~/Applications/Home Manager Apps so Spotlight and
-    # the Dock see real apps. Updating a notarised bundle needs the terminal to
-    # hold App Management (Privacy & Security); activation checks for it first.
+    # the Dock see real apps. The terminal needs App Management permission.
     targets.darwin = {
-      copyApps.enable = true;
+      copyApps = {
+        enable = true;
+        # The preflight resets every App Management grant on any write failure,
+        # including root-owned apps. Let rsync report the actual error instead.
+        enableChecks = false;
+      };
       linkApps.enable = false;
     };
 

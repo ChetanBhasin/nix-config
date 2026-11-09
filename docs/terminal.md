@@ -557,6 +557,27 @@ alacritty --version
 2. **Verify config syntax**: Check for TOML syntax errors in config file
 3. **Rebuild home-manager**: `home-manager switch`
 
+On macOS, apply from Apple Terminal with permission enabled under **System
+Settings → Privacy & Security → App Management**. Without the Developer ID
+certificate used by this configuration, Alacritty's ad-hoc signature changes
+when its binary changes, requiring a new grant.
+
+Home Manager's app-copy preflight is disabled because it resets all App
+Management grants on any write failure, including ordinary ownership errors.
+The actual copy still requires macOS permission. If rsync reports permission
+errors, check ownership of the affected app:
+
+```bash
+ls -ld "$HOME/Applications/Home Manager Apps/Signal.app"
+```
+
+If it is owned by root, repair that app and retry:
+
+```bash
+sudo chown -R "$(id -un):$(id -gn)" "$HOME/Applications/Home Manager Apps/Signal.app"
+make apply-darwin host=markus
+```
+
 #### **5. Zsh Plugins Not Loading**
 **Symptoms**: No syntax highlighting, autosuggestions, or tab completion
 
