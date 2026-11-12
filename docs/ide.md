@@ -260,9 +260,9 @@ auto-starts rust-analyzer on Rust buffers even without setup. The rustaceanvim
 commands and features below apply to that opt-in.
 
 All Cargo features is a Cargo feature selection, not full rust-analyzer parity:
-glancer v0.2.0 does not execute proc macros, and build script outputs must already
+glancer v0.4.0 does not execute proc macros, and build script outputs must already
 exist from a build or check. New items and imports may need a save before they
-appear in completions. See [glancer's limitations](https://github.com/rust-glancer/rust-glancer/blob/v0.2.0/docs/src/usage/LIMITATIONS.md).
+appear in completions. See [glancer's limitations](https://github.com/rust-glancer/rust-glancer/blob/v0.4.0/docs/src/usage/LIMITATIONS.md).
 
 ### 🔧 **Core Features**
 

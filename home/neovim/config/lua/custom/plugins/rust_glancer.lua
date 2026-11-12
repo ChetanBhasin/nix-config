@@ -1,7 +1,7 @@
 -- ═══════════════════════════════════════════════════════════════════════════════
 -- 🦀 RUST-GLANCER LSP CONFIGURATION (native vim.lsp, not rustaceanvim)
 -- ═══════════════════════════════════════════════════════════════════════════════
--- rust-glancer v0.2.0 reads all configuration from initialization options only
+-- rust-glancer v0.4.0 reads all configuration from initialization options only
 -- (no workspace/configuration support) and does not execute proc macros.
 -- init_options schema: crates/lsp/proto/src/config in the rust-glancer repo.
 

@@ -33,16 +33,16 @@ let
 in
 rustPlatform.buildRustPackage {
   pname = "rust-glancer";
-  version = "0.2.0";
+  version = "0.4.0";
 
   src = fetchFromGitHub {
     owner = "rust-glancer";
     repo = "rust-glancer";
-    rev = "v0.2.0";
-    hash = "sha256-3oQpIUsBnYL8dt/wUCHsHcK9/kwJxNlSAw8jbkLf6XY=";
+    rev = "v0.4.0";
+    hash = "sha256-Rkmwg2YS4Du32HheQdDzTuRIbjum5XWJFA5q8uTuTLE=";
   };
 
-  cargoHash = "sha256-snH6iK+hQgnqc24Z7xXmg457mf5R+ujdc4PGgOXK7Vs=";
+  cargoHash = "sha256-DhleQDl7IAnyhNkIfqbZSdKHEY7SVH8xzkYOKsgCbT8=";
 
   nativeBuildInputs = [ makeWrapper ];
 
