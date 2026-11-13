@@ -274,11 +274,37 @@ in
       run /System/Library/PrivateFrameworks/SystemAdministration.framework/Resources/activateSettings -u
     '';
 
-    # Karabiner rewrites this file, so seed a writable copy instead of linking
-    # it to the read-only Nix store. Later UI changes remain intact.
-    home.activation.seedKarabiner = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    # Keep Karabiner's file writable, refreshing only our profile's rule groups.
+    home.activation.syncKarabiner = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
       if [[ ! -e ${lib.escapeShellArg configFile} ]]; then
         run install -Dm600 ${karabinerConfig} ${lib.escapeShellArg configFile}
+      elif [[ ! -v DRY_RUN ]]; then
+        (
+          target=${lib.escapeShellArg configFile}
+          tmp=$(mktemp "$target.XXXXXX")
+          trap 'rm -f "$tmp"' EXIT
+          cp -p "$target" "$tmp"
+          ${pkgs.jq}/bin/jq --slurpfile generated ${karabinerConfig} '
+            $generated[0].profiles[0] as $managed
+            | $managed.complex_modifications.rules as $rules
+            | . as $before
+            | .profiles |= map(
+                if .name == $managed.name then
+                  .complex_modifications.rules |= (
+                    (. // []) as $existing
+                    | [$existing[] | .description as $description
+                       | ($rules | map(select(.description == $description)) | .[0]) // .]
+                      + [$rules[] | .description as $description
+                         | select($existing | all(.description != $description))]
+                  )
+                else . end
+              )
+            | select(. != $before)
+          ' "$target" > "$tmp"
+          if [[ -s "$tmp" ]]; then
+            mv "$tmp" "$target"
+          fi
+        )
       fi
     '';
   };

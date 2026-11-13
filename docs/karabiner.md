@@ -15,14 +15,19 @@ the keyboard type that matches your hardware. macOS permissions require your
 interaction; Hammerspoon is uninstalled on apply.
 
 The first activation seeds a writable `~/.config/karabiner/karabiner.json` with
-all seven rule groups enabled. Existing profiles and UI changes are preserved.
-To enable these rules in an existing profile, open **Complex Modifications →
-Add predefined rule** and add the groups under **nix-config keyboard shortcuts**.
+all seven rule groups enabled in the **Linux shortcuts** profile. Later applies
+automatically refresh this profile's Nix rule groups and add new ones. Karabiner
+reloads changes automatically; removing and reimporting rules is unnecessary.
 
-The importable asset is managed by Nix; Karabiner copies enabled rules into its
-own config. After changing the Nix rules and applying, remove only the old
-enabled groups from this repository and add them again from **Add predefined rule**.
-Do not reset your entire config: activation never overwrites it.
+Custom rule groups, their priority, device settings, other profiles and the
+selected profile are preserved. Edits to the Nix rule groups in Karabiner are
+replaced on apply; make those changes in `home/darwin/karabiner.nix` instead.
+Keep their descriptions unchanged so activation can identify them.
+
+An existing config without a **Linux shortcuts** profile is left unchanged.
+Create a profile with that name and select it to receive automatic updates.
+For another profile, add rules manually from **Complex Modifications → Add
+predefined rule → nix-config keyboard shortcuts**; those copies are not refreshed.
 
 ## Ctrl shortcuts
 
@@ -76,8 +81,8 @@ Ctrl+Option window shortcuts and Cmd+Option launchers keep working.
 
 ## Mouse workspace switching
 
-Enable **Modify events** for the mouse in Karabiner's **Devices** tab, then add
-**Switch workspaces with mouse side buttons** from the Nix predefined rules.
+Enable **Modify events** for the mouse in Karabiner's **Devices** tab. The
+**Linux shortcuts** profile receives the workspace rule automatically on apply.
 The LIFT connected through a Bolt receiver appears as **USB Receiver**.
 
 The directions match the previous OpenLogi configuration:
