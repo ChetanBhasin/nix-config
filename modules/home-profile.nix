@@ -34,7 +34,6 @@ in
         modules.homeManager.terminal-personal
         modules.homeManager.neovim-personal
         modules.homeManager.tmux-personal
-        modules.homeManager.maki-personal
         modules.homeManager.zen
         modules.homeManager.karabiner
         modules.homeManager.hyprland

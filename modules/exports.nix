@@ -15,14 +15,12 @@ in
       neovim
       terminal
       tmux
-      maki
       ;
     default = {
       imports = [
         modules.neovim
         modules.terminal
         modules.tmux
-        modules.maki
       ];
     };
   };

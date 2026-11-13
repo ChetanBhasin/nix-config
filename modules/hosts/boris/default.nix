@@ -179,7 +179,6 @@ in
               })
               cryptomator
               protonmail-bridge
-              secretspec
               zoom-us
               (writeShellApplication {
                 name = "keyring-unlock";

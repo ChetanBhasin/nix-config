@@ -33,13 +33,6 @@
       url = "github:dmmulroy/jj-starship";
     };
 
-    # Maki is not in nixpkgs. Fetch the personal fork through GitHub so the
-    # locked input is portable across Darwin and Linux home-directory layouts.
-    # Its own flake pins the Rust toolchain and the Cargo git deps, so do not
-    # make it follow this configuration's nixpkgs.
-    maki = {
-      url = "github:ChetanBhasin/maki";
-    };
   };
 
   outputs =

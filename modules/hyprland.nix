@@ -232,7 +232,7 @@
                 gaps_out = 8;
                 border_size = 2;
                 # Local overrides rather than theme roles: `activeBorder`/
-                # `inactiveBorder` are shared by quickshell, fzf, bat, maki
+                # `inactiveBorder` are shared by quickshell, fzf, bat
                 # and hyprlock, so window borders pick their own colours here.
                 # Orange marks focus, blue marks unfocused, and neither is the
                 # amber (#c9a257) that tmux paints its focused pane frame in.

@@ -11,6 +11,10 @@ let
       environment.systemPackages =
         with pkgs;
         [
+          # Development environments and secret management
+          devenv
+          (lib.hiPrio secretspec) # Prefer the standalone CLI over devenv's bundled copy.
+
           # Development Build Tools
           autoconf
           automake
