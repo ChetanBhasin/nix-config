@@ -4,30 +4,41 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Architecture Overview
 
-This is a cross-platform Nix configuration supporting both macOS (Darwin) and Linux (NixOS) systems. The configuration uses a unified approach where shared packages and configurations are centralized, while platform-specific settings are isolated.
+This is a cross-platform Nix configuration for macOS (nix-darwin) and Linux
+(NixOS), organized by feature using the Dendritic pattern.
 
-### Key Architectural Components
+`flake.nix` declares inputs and bootstraps flake-parts. `import-tree` discovers
+Nix files under `modules/`, excluding paths prefixed with `_`. Discovered files
+are flake-parts modules; private underscore files can be ordinary modules
+imported explicitly by their owner. A feature contributes ordinary NixOS,
+Darwin, or Home Manager module values through `flake.modules.<class>.<name>`.
+Importing its outer file registers those values; hosts and profiles choose
+which lower-level modules to use.
 
-**Flake Structure (`flake.nix`)**:
-- `darwinConfigurations`: macOS systems using nix-darwin (hugh, markus)
-- `homeManagerModules`: Exportable Home Manager modules for external use (neovim, terminal, tmux, maki)
-- `nixosModules` and `darwinModules`: Reusable module functions for platform-specific setups
-- Home Manager integration for both platforms with user-specific configurations
+### Layout
 
-**Package Organization**:
-- `systemPackages/`: Cross-platform system packages (development tools, languages, databases)
-- `darwin/default.nix`: macOS-specific system configuration, Homebrew casks, and system preferences
-- `home/default.nix`: User-level packages with platform conditionals (Darwin vs Linux)
+- `modules/hosts/{hugh,markus}.nix` and `modules/hosts/boris/default.nix`:
+  explicit host outputs and host-local system and Home Manager settings.
+  Boris directly imports its private NixOS module `boris/_hardware.nix`.
+- `modules/{terminal,tmux,neovim}/`: feature directories with independent personal
+  and exportable Home Manager implementations. The personal terminal files merge
+  into one `terminal-personal` module, selected once by the home profile.
+- `modules/maki.nix`, `hyprland.nix`, `quickshell.nix`, `karabiner.nix`, `zen.nix`:
+  feature definitions, including related platform and user settings together.
+- `modules/nixpkgs.nix`: shared package configuration and ordered overlays.
+- `modules/nix.nix`, `user.nix`: Nix/Determinate and user/Home Manager integration.
+- `modules/system-packages.nix`, `home-profile.nix`, `darwin-desktop.nix`:
+  shared packages, personal profile composition, and macOS desktop policy.
+- `modules/exports.nix`: the stable `homeManagerModules` public entry points and
+  the Darwin host-output option declaration.
+- `home/`: shell, Lua, tmux, and Quickshell assets; no Nix module wiring.
+- `packages/`: raw package expressions; `theme/gruvbox-night.nix`: palette data.
+  These are outside the auto-imported module tree.
 
-**Host Configuration**:
-- `hosts/{hostname}/`: Host-specific configurations
-- `hosts/{hostname}/configuration.nix`: System-level settings per host
-- `hosts/{hostname}/home.nix`: User-level Home Manager configuration per host
-
-**Modularity Strategy**:
-- Shared packages are centralized to avoid duplication
-- Platform-specific packages use conditional logic (`lib.optionals pkgs.stdenv.hostPlatform.isDarwin`)
-- Homebrew is minimized - only used when packages lack aarch64-darwin support in nixpkgs
+Capture flake inputs and the module registry in the outer flake-parts module;
+keep `pkgs`, `config`, and `lib` for the inner module's evaluation context. Use
+explicit imports from the registry rather than generic host builders. Preserve
+private/public differences and opt-in defaults when changing feature wiring.
 
 ## Common Commands
 
@@ -62,10 +73,10 @@ nix flake update
 ## Configuration Guidelines
 
 **Package Placement Rules**:
-1. Cross-platform system packages → `systemPackages/default.nix`
-2. Darwin-specific system packages → `darwin/default.nix` environment.systemPackages
-3. User-specific packages → `home/default.nix` with platform conditionals
-4. GUI applications → Homebrew casks in `darwin/default.nix` (only if not available in nixpkgs)
+1. Cross-platform system packages → `modules/system-packages.nix`
+2. Darwin-specific system packages → `modules/darwin-desktop.nix` environment.systemPackages
+3. User-specific packages → `modules/home-profile.nix` with platform conditionals
+4. GUI applications → their feature module, or Homebrew casks in `modules/darwin-desktop.nix` (only if not available in nixpkgs)
 
 **Application State Files**:
 
@@ -80,15 +91,15 @@ responded by building a fresh empty profile and stranding the real one — on
 1. `force = true` is allowed only on `config.lib.file.mkOutOfStoreSymlink`, where
    the real data lives outside the store.
 2. Config an app writes back to is seeded copy-if-absent from an activation
-   script, never projected. `seedFile` in `modules/homeManager/maki.nix` is the
+   script, never projected. `seedFile` in `modules/maki.nix` is the
    pattern: `[[ ! -e "$target" ]] && install -Dm600 "$source" "$target"`.
 3. Read-only store projection is fine only for files the app never writes.
 4. When an app owns a file this repo therefore cannot manage, snapshot it before
    `linkGeneration` instead — see `home.activation.snapshotZenIni` in
-   `home/darwin/default.nix`.
+   `modules/zen.nix`.
 
 **Darwin-Specific Features**:
-- System preferences and dock configuration in `darwin/default.nix`
+- System preferences and dock configuration in `modules/darwin-desktop.nix`
 - Homebrew management with conditional packages based on `enableProf`/`enableExtras` options
 - TouchID sudo authentication support
 - Extensive font management through Homebrew casks
@@ -108,7 +119,7 @@ responded by building a fresh empty profile and stranding the real one — on
 ## Shell Configuration
 
 The shell setup uses a layered approach:
-- `home/zsh/default.nix`: Main zsh configuration with plugins (via nixpkgs)
+- `modules/terminal/shell.nix`: Main zsh configuration with plugins (via nixpkgs)
 - `home/zsh/sources.sh`: Platform-agnostic shell configuration (symlinked to `~/.sources`)
 - `home/zsh/sources_darwin.sh` / `sources_linux.sh`: Platform-specific config (symlinked to `~/.sources_platform`)
 
@@ -123,26 +134,21 @@ FZF configuration is managed via `programs.fzf` in nix, not shell exports.
 
 The repository exports standalone Home Manager modules via `homeManagerModules` for use in other flakes:
 
-**Module Structure (`modules/homeManager/`)**:
-- `neovim.nix`: NeoVim IDE with LSP, treesitter, 50+ plugins (options under `cb.neovim.*`)
-- `terminal.nix`: Zsh + FZF + Starship + Direnv + Zoxide + Alacritty (options under `cb.terminal.*`)
-- `tmux.nix`: Modern tmux with sessions, FZF, Gruvbox Night theme (options under `cb.tmux.*`)
-- `maki.nix`: Maki coding agent with a Lua config, Gruvbox Night theme, the rv review plugin, and seeded writable permissions (options under `cb.maki.*`)
-- `default.nix`: Index that exports all modules
+**Feature implementation**:
+- `modules/neovim/export.nix`: NeoVim IDE (options under `cb.neovim.*`)
+- `modules/terminal/export.nix`: Zsh + FZF + Starship + Direnv + Zoxide + Alacritty
+  (options under `cb.terminal.*`)
+- `modules/tmux/export.nix`: Tmux and optional fleet support (`cb.tmux.*`)
+- `modules/maki.nix`: Maki, its theme/plugins, and seeded writable permissions
+  (`cb.maki.*`)
+- `modules/exports.nix`: individual public modules and the combined default
 
-**Design Principles**:
-- Modules are self-contained and can be used independently
-- Each module has an `enable` option (defaults to `false`) for explicit opt-in
-- Config files are referenced via relative paths from the module files
-- Platform-specific behavior handled via `pkgs.stdenv.hostPlatform.isDarwin` checks
-
-**Relationship with `home/` Directory**:
-- `home/` contains the internal configuration used by `darwinConfigurations`
-- `modules/homeManager/` contains exportable versions with options
-- These are intentionally parallel (some duplication) to:
-  - Keep existing configurations stable
-  - Allow external modules to evolve independently
-  - Avoid breaking changes when adding features
+Public modules remain self-contained Home Manager modules. Each feature's
+`enable` defaults to `false`; consumers do not need flake-parts or import-tree.
+Personal implementations live alongside the public modules and intentionally
+remain separate where their defaults and behavior differ. Maki's personal
+module imports its public implementation and opts into the chosen features.
+Application assets remain under `home/` and can be shared by both variants.
 
 **Usage by External Flakes**:
 ```nix
@@ -163,7 +169,7 @@ See `docs/modules.md` for complete option documentation.
 
 ## Coding Agent
 
-**Maki** (`home/maki/`, `modules/homeManager/maki.nix`) is the configured coding
+**Maki** (`modules/maki.nix`, assets in `home/maki/`) is the configured coding
 agent: a Rust TUI optimized for context spend, using the Gruvbox Night palette.
 It is not in nixpkgs; the `maki` flake input supplies it through an overlay.
 Config lives in `~/.config/maki`, with `init.lua`, `plugin.toml`, `AGENTS.md`,

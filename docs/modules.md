@@ -2,6 +2,27 @@
 
 This repository exports standalone Home Manager modules that can be used in your own Nix flake configurations. These modules provide battle-tested configurations for editors, terminal tools, multiplexers, and the Maki coding agent.
 
+## Repository organization
+
+The repository uses Dendritic flake-parts modules: auto-imported files in
+`modules/` contribute named Darwin, NixOS, or Home Manager modules. Features keep
+related system and user contributions together; hosts in `modules/hosts/`
+select them. `flake.nix` only declares inputs and imports the module tree.
+Paths prefixed with `_` are excluded from discovery and can hold private
+ordinary modules: `modules/hosts/boris/default.nix` directly imports its
+`_hardware.nix`.
+
+Host-specific Home Manager settings are inline with each host's system settings.
+The personal terminal files merge into one `terminal-personal` module selected
+by the home profile. `modules/exports.nix` owns the public Home Manager aliases
+and the Darwin host-output option declaration.
+
+The public `homeManagerModules` entry points and `cb.*` options are unchanged.
+They are ordinary standalone Home Manager modules; consumers do not need
+flake-parts or import-tree. The personal implementations in each feature remain
+separate where their behavior differs. App assets stay in `home/`, raw package
+expressions in `packages/`, and palette data in `theme/`, outside auto-import.
+
 ## Quick Start
 
 Add this repository as a flake input and import the modules you need:
@@ -294,7 +315,7 @@ Maki owns its writable state (sessions, auth tokens, memories, folder trust, mod
 | `~/.config/maki/init.lua` | Read-only store symlink |
 | `~/.config/maki/plugin.toml` | Read-only store symlink |
 | `~/.config/maki/AGENTS.md` | Read-only store symlink |
-| `~/.config/maki/themes/gruvbox-night.toml` | Read-only store symlink, generated from `modules/theme/gruvbox-night.nix` |
+| `~/.config/maki/themes/gruvbox-night.toml` | Read-only store symlink, generated from `theme/gruvbox-night.nix` |
 | `~/.config/maki/lua/roles.lua` | Read-only store symlink, with `require("roles").setup{...}` appended to `init.lua` |
 | `~/.config/maki/lua/rv.lua` | Read-only store symlink, with `require("rv")` appended to `init.lua` |
 | `~/.config/maki/commands/` | Read-only symlink per file; the directory stays writable |

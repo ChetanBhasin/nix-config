@@ -3,7 +3,7 @@
 Karabiner-Elements replaces Hammerspoon on both Macs. Homebrew installs the
 official signed app because the pinned nix-darwin service uses an obsolete
 Karabiner service layout ([upstream issue](https://github.com/nix-darwin/nix-darwin/issues/1041)).
-Rules live in `home/darwin/karabiner.nix`.
+Rules live in `modules/karabiner.nix`.
 
 ## Setup and updates
 
@@ -21,7 +21,7 @@ reloads changes automatically; removing and reimporting rules is unnecessary.
 
 Custom rule groups, their priority, device settings, other profiles and the
 selected profile are preserved. Edits to the Nix rule groups in Karabiner are
-replaced on apply; make those changes in `home/darwin/karabiner.nix` instead.
+replaced on apply; make those changes in `modules/karabiner.nix` instead.
 Keep their descriptions unchanged so activation can identify them.
 
 An existing config without a **Linux shortcuts** profile is left unchanged.

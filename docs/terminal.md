@@ -368,16 +368,17 @@ The "Super" key abstraction allows the same mental model across platforms while 
 ### 📁 **File Structure**
 
 ```
-home/
-├── zsh/
-│   ├── default.nix          # Main Zsh configuration
-│   └── sources.sh           # Shell environment and functions
-├── defaultPrograms/
-│   └── default.nix          # Program integration (includes Alacritty)
-└── default.nix              # Package definitions
+modules/
+├── terminal/
+│   ├── shell.nix            # Personal Zsh and FZF configuration
+│   ├── personal.nix         # Program integration (includes Alacritty)
+│   ├── export.nix           # Standalone cb.terminal module
+│   └── darwin.nix           # macOS terminal app installation
+└── home-profile.nix         # Personal profile and package definitions
+home/zsh/sources.sh          # Shell environment and functions
 ```
 
-### 🐚 **Zsh Configuration (`home/zsh/default.nix`)**
+### 🐚 **Zsh Configuration (`modules/terminal/shell.nix`)**
 
 **Key features configured**:
 - **FZF integration**: Proper shell bindings for all FZF features
@@ -423,7 +424,7 @@ export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'
 export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
 ```
 
-### 🖥️ **Alacritty Configuration (`home/defaultPrograms/default.nix`)**
+### 🖥️ **Alacritty Configuration (`modules/terminal/personal.nix`)**
 
 **Optimized for**:
 - **Cross-platform**: Works on macOS and Linux
@@ -436,7 +437,7 @@ export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
 programs.alacritty = {
   enable = true;
   settings = {
-    colors = (import ../../modules/theme/gruvbox-night.nix).alacritty;
+    colors = (import ../../theme/gruvbox-night.nix).alacritty;
     font.normal.family = "JetBrainsMono Nerd Font";
     font.size = 14.0;
     window.option_as_alt = "OnlyLeft";  # macOS
@@ -445,7 +446,7 @@ programs.alacritty = {
 };
 ```
 
-### 📦 **Package Dependencies (`home/default.nix`)**
+### 📦 **Package Dependencies (`modules/home-profile.nix`)**
 
 **Modern CLI tools included**:
 ```nix
@@ -675,7 +676,7 @@ export FZF_CTRL_R_OPTS="$FZF_CTRL_R_OPTS --exact"
 time zsh -i -c exit
 
 # If slow, disable specific plugins temporarily to identify bottlenecks
-# Check plugin loading in home/zsh/default.nix
+# Check plugin loading in modules/terminal/shell.nix
 ```
 
 #### **4. FZF Preview Performance**

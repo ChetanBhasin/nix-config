@@ -1,4 +1,4 @@
--- Canonical Lua projection of modules/theme/gruvbox-night.nix.
+-- Canonical Lua projection of theme/gruvbox-night.nix.
 -- Keep literal values here because Neovim's runtime config is shared by the
 -- internal and exportable Home Manager modules.
 

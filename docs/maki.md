@@ -2,7 +2,7 @@
 
 [Maki](https://github.com/tontinton/maki) is a Rust TUI coding agent whose design goal is minimal context spend: a single binary, a small fixed prompt, and tools shaped so that what reaches the context window is what the turn actually needs.
 
-Everything here is managed by `modules/homeManager/maki.nix` from the sources in `home/maki/config/`. See [modules.md](modules.md#homemanagermodulesmaki) for the option reference.
+Everything here is managed by `modules/maki.nix` from the sources in `home/maki/config/`. See [modules.md](modules.md#homemanagermodulesmaki) for the option reference.
 
 ## What the configuration gives you
 
@@ -64,7 +64,7 @@ Every setting below is a deliberate choice rather than a default someone liked.
 | `always_workflow` | `false` | `code_execution` calling `task` is unbounded fan-out. Use `/workflow` per session |
 | `ui.splash_animation` | `false` | Quiet startup: nothing between invocation and prompt |
 | `ui.show_thinking` | `true` | Reasoning stays visible |
-| `ui.theme` | `"gruvbox-night"` | The shared palette in `modules/theme/gruvbox-night.nix` |
+| `ui.theme` | `"gruvbox-night"` | The shared palette in `theme/gruvbox-night.nix` |
 | `agent.rtk` | `true` | `rtk` is on Maki's PATH through the module; it trims bash output before it is paid for |
 | `agent.stale_read_check` | `true` | An anchored edit against a stale read lands silently in the wrong place |
 | `agent.compaction_instructions` | requirements, commands, evidence, artifacts | Preserve mandatory requirements, including the failures and the missing evidence |
