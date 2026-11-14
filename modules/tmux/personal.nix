@@ -86,12 +86,14 @@
           set -g @cb_tmux_which_key ${builtins.toJSON "${config.xdg.configHome}/tmux/which-key-init.tmux"}
           set -g @cb_tmux_rename_popup ${builtins.toJSON "${renamePopup}"}
           set -g @cb_tmux_fleet 1
-          ${builtins.readFile ../../home/tmux/tmux.conf}
+          ${config.lib.stylix.render (builtins.readFile ../../home/tmux/tmux.conf)}
         '';
       };
 
       # Pre-generated which-key menu (generated from which-key-config.yaml via build.py)
-      xdg.configFile."tmux/which-key-init.tmux".source = ../../home/tmux/which-key-init.tmux;
+      xdg.configFile."tmux/which-key-init.tmux".text = config.lib.stylix.render (
+        builtins.readFile ../../home/tmux/which-key-init.tmux
+      );
 
       xdg.configFile."tmux-fleet/config.json".source = tmuxFleetConfig;
 

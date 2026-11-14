@@ -5,9 +5,6 @@
       lib,
       ...
     }:
-    let
-      theme = import ../../theme/gruvbox-night.nix;
-    in
     {
       programs.zsh = {
         enable = true;
@@ -80,7 +77,6 @@
           "--border"
           "--inline-info"
         ]
-        ++ theme.fzf
         ++ [
           # Vim-style navigation (works alongside arrow keys)
           "--bind=alt-j:down,alt-k:up"

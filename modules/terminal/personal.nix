@@ -1,8 +1,7 @@
 {
   flake.modules.homeManager.terminal-personal =
-    { pkgs, ... }:
+    { config, pkgs, ... }:
     let
-      theme = import ../../theme/gruvbox-night.nix;
 
       # Keep escape-sequence keybindings independent of TOML string quoting.
       esc = builtins.fromJSON ''"\u001b"'';
@@ -112,16 +111,16 @@
 
           # Character/prompt
           character = {
-            success_symbol = "[➜](bold fg:${theme.base0B})";
-            error_symbol = "[➜](bold fg:${theme.base08})";
-            vicmd_symbol = "[](bold fg:${theme.base0B})";
+            success_symbol = "[➜](bold fg:base0b)";
+            error_symbol = "[➜](bold fg:base08)";
+            vicmd_symbol = "[](bold fg:base0b)";
           };
 
           # Directory
           directory = {
             truncation_length = 3;
             truncate_to_repo = true;
-            style = "bold fg:${theme.primaryAccent}";
+            style = "bold fg:base0a";
           };
 
           custom = {
@@ -135,7 +134,7 @@
           # Nix shell indicator
           nix_shell = {
             symbol = "❄️ ";
-            style = "bold fg:${theme.base0D}";
+            style = "bold fg:base0d";
             format = "[$symbol$state( \\($name\\))]($style) ";
           };
 
@@ -143,14 +142,14 @@
           cmd_duration = {
             min_time = 2000;
             show_milliseconds = false;
-            style = "bold fg:${theme.base0A}";
+            style = "bold fg:base0a";
             format = "[⏱ $duration]($style) ";
           };
 
           # Jobs indicator
           jobs = {
             symbol = "✦";
-            style = "bold fg:${theme.base0D}";
+            style = "bold fg:base0d";
             threshold = 1;
             format = "[$symbol$number]($style) ";
           };
@@ -158,25 +157,25 @@
           # Language-specific modules (compact)
           rust = {
             symbol = "rs ";
-            style = "bold fg:${theme.base08}";
+            style = "bold fg:base08";
             format = "[$symbol$version]($style) ";
           };
 
           python = {
             symbol = "py ";
-            style = "bold fg:${theme.base0A}";
+            style = "bold fg:base0a";
             format = "[$symbol$version]($style) ";
           };
 
           nodejs = {
             symbol = "node ";
-            style = "bold fg:${theme.base0B}";
+            style = "bold fg:base0b";
             format = "[$symbol$version]($style) ";
           };
 
           golang = {
             symbol = "go ";
-            style = "bold fg:${theme.base0C}";
+            style = "bold fg:base0c";
             format = "[$symbol$version]($style) ";
           };
 
@@ -184,21 +183,21 @@
           kubernetes = {
             disabled = false;
             symbol = "☸ ";
-            style = "dimmed fg:${theme.base0D}";
+            style = "dimmed fg:base0d";
             format = "[$symbol$context]($style) ";
           };
 
           # AWS - compact, right-aligned
           aws = {
             symbol = "aws:";
-            style = "dimmed fg:${theme.base0A}";
+            style = "dimmed fg:base0a";
             format = "[$symbol$profile]($style) ";
           };
 
           # Docker
           docker_context = {
             symbol = "docker:";
-            style = "bold fg:${theme.base0D}";
+            style = "bold fg:base0d";
             format = "[$symbol$context]($style) ";
           };
 
@@ -206,22 +205,19 @@
           time = {
             disabled = false;
             format = "[$time]($style) ";
-            style = "bold dimmed fg:${theme.base03}";
+            style = "bold dimmed fg:base03";
           };
         };
       };
 
       programs.bat = {
         enable = true;
-        config.theme = theme.name;
-        themes.${theme.name}.src = pkgs.writeText "${theme.name}.tmTheme" theme.bat;
       };
 
       # Alacritty terminal emulator, installed and configured via nix/home-manager.
       programs.alacritty = {
         enable = true;
         settings = {
-          colors = theme.alacritty;
 
           window = {
             dimensions = {
@@ -234,28 +230,7 @@
             };
             dynamic_padding = true;
             decorations = "Buttonless";
-            opacity = 1.0;
             option_as_alt = "OnlyLeft";
-          };
-
-          font = {
-            normal = {
-              family = "JetBrainsMono Nerd Font";
-              style = "Regular";
-            };
-            bold = {
-              family = "JetBrainsMono Nerd Font";
-              style = "Bold";
-            };
-            italic = {
-              family = "JetBrainsMono Nerd Font";
-              style = "Italic";
-            };
-            bold_italic = {
-              family = "JetBrainsMono Nerd Font";
-              style = "Bold Italic";
-            };
-            size = 14.0;
           };
 
           cursor = {

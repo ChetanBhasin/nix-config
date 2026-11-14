@@ -1,3 +1,7 @@
+{ config, ... }:
+let
+  themeModule = config.flake.modules.homeManager.theme;
+in
 {
   flake.modules.homeManager.neovim =
     # Standalone NeoVim module for Home Manager
@@ -18,6 +22,8 @@
       nvimConfigPath = ../../home/neovim/config;
     in
     {
+      imports = [ themeModule ];
+
       options.cb.neovim = {
         enable = lib.mkEnableOption "Chetan's NeoVim configuration";
 
@@ -80,6 +86,7 @@
       };
 
       config = lib.mkIf cfg.enable {
+        stylix.enable = lib.mkDefault true;
         programs.neovim = {
           enable = true;
           defaultEditor = cfg.defaultEditor;
@@ -125,7 +132,6 @@
               ruff
               ripgrep
               gzip
-              nerd-fonts.jetbrains-mono
 
               # Python debugging
               python313Packages.debugpy
@@ -373,6 +379,21 @@
         # Link the NeoVim lua configuration
         xdg.configFile."nvim".source = nvimConfigPath;
         xdg.configFile."nvim".recursive = true;
+
+        xdg.configFile."nvim/lua/custom/palette.lua".text =
+          "return "
+          + lib.generators.toLua { } (
+            config.lib.stylix.palette
+            // {
+              name = config.lib.stylix.colors.scheme;
+              polarity = config.stylix.polarity;
+              dim_neutral = config.lib.stylix.palette.dimNeutral;
+              soft_neutral = config.lib.stylix.palette.softNeutral;
+              primary_accent = config.lib.stylix.palette.primaryAccent;
+              primary_surface = config.lib.stylix.palette.primarySurface;
+              border = config.lib.stylix.palette.inactiveBorder;
+            }
+          );
 
         xdg.configFile."nvim/lua/custom/rust_lsp_choice.lua".text = ''
           return "${cfg.rustLsp}"

@@ -45,6 +45,7 @@ in
       modules.darwin.nix
       modules.darwin.user
       modules.darwin.nixpkgs
+      modules.darwin.theme
     ];
   };
 }

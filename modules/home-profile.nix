@@ -13,6 +13,18 @@ in
     with lib;
     let
       cfg = config.home-config-manager;
+      lazyjjJj = pkgs.writeShellScript "lazyjj-jj" ''
+        exec ${lib.getExe pkgs.jujutsu} \
+          --config lazyjj.diff-format=git \
+          --config lazyjj.layout=horizontal \
+          --config lazyjj.layout-percent=30 \
+          --config 'lazyjj.highlight-color="${config.lib.stylix.palette.primarySurface}"' \
+          --config 'lazyjj.keybinds.log_tab.open-files=["enter", "o"]' \
+          "$@"
+      '';
+      lazyjj = pkgs.writeShellScriptBin "lazyjj" ''
+        exec ${lib.getExe pkgs.lazyjj} --jj-bin ${lazyjjJj} "$@"
+      '';
       slackOfficialCli = pkgs.callPackage ../packages/slack-official-cli.nix { };
       slackTui = pkgs.callPackage ../packages/slack-tui.nix { };
       zen = pkgs.callPackage ../packages/zen.nix { };
@@ -31,6 +43,7 @@ in
       };
 
       imports = [
+        modules.homeManager.theme
         modules.homeManager.terminal-personal
         modules.homeManager.neovim-personal
         modules.homeManager.tmux-personal
@@ -41,7 +54,36 @@ in
       ];
 
       config = {
+        programs.neovim.extraPackages = [ lazyjj ];
+        stylix = {
+          enable = true;
+          targets = {
+            alacritty.enable = true;
+            bat.enable = true;
+            fzf.enable = true;
+            starship.enable = true;
+            fontconfig.enable = pkgs.stdenv.hostPlatform.isLinux;
+            gtk.enable = cfg.enableHyprland;
+            qt.enable = cfg.enableHyprland;
+          };
+        };
         fonts.fontconfig = lib.mkIf cfg.includeFonts { enable = true; };
+
+        launchd.agents.wallpaper =
+          lib.mkIf (pkgs.stdenv.hostPlatform.isDarwin && config.stylix.image != null)
+            {
+              enable = true;
+              config = {
+                ProgramArguments = [
+                  "/usr/bin/osascript"
+                  "-l"
+                  "JavaScript"
+                  "${../home/wallpapers/set-wallpaper.js}"
+                  (toString config.stylix.image)
+                ];
+                RunAtLoad = true;
+              };
+            };
 
         home.packages =
           with pkgs;
@@ -123,7 +165,6 @@ in
 
           ]
           ++ lib.optionals cfg.includeFonts [
-            nerd-fonts.jetbrains-mono
             nerd-fonts.symbols-only
           ]
           ++ lib.optionals cfg.enableExtras [

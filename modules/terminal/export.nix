@@ -1,3 +1,7 @@
+{ config, ... }:
+let
+  themeModule = config.flake.modules.homeManager.theme;
+in
 {
   flake.modules.homeManager.terminal =
     # Standalone Terminal module for Home Manager
@@ -12,7 +16,6 @@
 
     let
       cfg = config.cb.terminal;
-      theme = import ../../theme/gruvbox-night.nix;
 
       # Paths to shell scripts (relative to this module)
       shellScriptsPath = ../../home/zsh;
@@ -38,6 +41,8 @@
       ) 9;
     in
     {
+      imports = [ themeModule ];
+
       options.cb.terminal = {
         enable = lib.mkEnableOption "Chetan's terminal configuration";
 
@@ -114,6 +119,15 @@
 
       config = lib.mkIf cfg.enable (
         lib.mkMerge [
+          {
+            stylix.enable = lib.mkDefault true;
+            stylix.targets = {
+              alacritty.enable = lib.mkDefault cfg.enableAlacritty;
+              bat.enable = lib.mkDefault true;
+              fzf.enable = lib.mkDefault cfg.enableFzf;
+              starship.enable = lib.mkDefault cfg.enableStarship;
+            };
+          }
           # Zsh configuration
           (lib.mkIf cfg.enableZsh {
             programs.zsh = {
@@ -202,7 +216,6 @@
                 "--border"
                 "--inline-info"
               ]
-              ++ theme.fzf
               ++ [
                 # Vim-style navigation
                 "--bind=alt-j:down,alt-k:up"
@@ -274,84 +287,84 @@
                 };
 
                 character = {
-                  success_symbol = "[➜](bold fg:${theme.base0B})";
-                  error_symbol = "[➜](bold fg:${theme.base08})";
-                  vicmd_symbol = "[](bold fg:${theme.base0B})";
+                  success_symbol = "[➜](bold fg:base0b)";
+                  error_symbol = "[➜](bold fg:base08)";
+                  vicmd_symbol = "[](bold fg:base0b)";
                 };
 
                 directory = {
                   truncation_length = 3;
                   truncate_to_repo = true;
-                  style = "bold fg:${theme.primaryAccent}";
+                  style = "bold fg:base0a";
                 };
 
                 nix_shell = {
                   symbol = "❄️ ";
-                  style = "bold fg:${theme.base0D}";
+                  style = "bold fg:base0d";
                   format = "[$symbol$state( \\($name\\))]($style) ";
                 };
 
                 cmd_duration = {
                   min_time = 2000;
                   show_milliseconds = false;
-                  style = "bold fg:${theme.base0A}";
+                  style = "bold fg:base0a";
                   format = "[⏱ $duration]($style) ";
                 };
 
                 jobs = {
                   symbol = "✦";
-                  style = "bold fg:${theme.base0D}";
+                  style = "bold fg:base0d";
                   threshold = 1;
                   format = "[$symbol$number]($style) ";
                 };
 
                 rust = {
                   symbol = "rs ";
-                  style = "bold fg:${theme.base08}";
+                  style = "bold fg:base08";
                   format = "[$symbol$version]($style) ";
                 };
 
                 python = {
                   symbol = "py ";
-                  style = "bold fg:${theme.base0A}";
+                  style = "bold fg:base0a";
                   format = "[$symbol$version]($style) ";
                 };
 
                 nodejs = {
                   symbol = "node ";
-                  style = "bold fg:${theme.base0B}";
+                  style = "bold fg:base0b";
                   format = "[$symbol$version]($style) ";
                 };
 
                 golang = {
                   symbol = "go ";
-                  style = "bold fg:${theme.base0C}";
+                  style = "bold fg:base0c";
                   format = "[$symbol$version]($style) ";
                 };
 
                 kubernetes = {
                   disabled = false;
                   symbol = "☸ ";
-                  style = "dimmed fg:${theme.base0D}";
+                  style = "dimmed fg:base0d";
                   format = "[$symbol$context]($style) ";
                 };
 
                 aws = {
                   symbol = "aws:";
-                  style = "dimmed fg:${theme.base0A}";
+                  style = "dimmed fg:base0a";
                   format = "[$symbol$profile]($style) ";
                 };
 
                 docker_context = {
                   symbol = "docker:";
-                  style = "bold fg:${theme.base0D}";
+                  style = "bold fg:base0d";
                   format = "[$symbol$context]($style) ";
                 };
 
                 time = {
                   disabled = false;
                   format = "[$time]($style) ";
-                  style = "bold dimmed fg:${theme.base03}";
+                  style = "bold dimmed fg:base03";
                 };
               };
             };
@@ -361,8 +374,6 @@
           {
             programs.bat = {
               enable = true;
-              config.theme = theme.name;
-              themes.${theme.name}.src = pkgs.writeText "${theme.name}.tmTheme" theme.bat;
             };
           }
 
@@ -388,7 +399,6 @@
             programs.alacritty = {
               enable = true;
               settings = {
-                colors = theme.alacritty;
 
                 # Window configuration
                 window = {
@@ -402,31 +412,9 @@
                   };
                   dynamic_padding = true;
                   decorations = "Buttonless";
-                  opacity = 1.0;
                 }
                 // lib.optionalAttrs pkgs.stdenv.hostPlatform.isDarwin {
                   option_as_alt = "OnlyLeft";
-                };
-
-                # Font configuration
-                font = {
-                  normal = {
-                    family = "JetBrainsMono Nerd Font";
-                    style = "Regular";
-                  };
-                  bold = {
-                    family = "JetBrainsMono Nerd Font";
-                    style = "Bold";
-                  };
-                  italic = {
-                    family = "JetBrainsMono Nerd Font";
-                    style = "Italic";
-                  };
-                  bold_italic = {
-                    family = "JetBrainsMono Nerd Font";
-                    style = "Bold Italic";
-                  };
-                  size = 14.0;
                 };
 
                 # Cursor configuration

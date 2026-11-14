@@ -1,5 +1,4 @@
--- Gruvbox Night: custom hard-dark surfaces with restrained, warm accents.
--- The shared palette lives in custom.palette; this file owns highlight behavior.
+-- Stylix generates custom.palette; this file owns editor highlight behavior.
 
 local colors = require("custom.palette")
 
@@ -8,12 +7,12 @@ local function highlight(name, value)
 end
 
 function DefineColors()
-    vim.o.background = "dark"
+    vim.o.background = colors.polarity == "light" and "light" or "dark"
 
     -- Base16 supplies broad syntax coverage; the overrides below refine focused
     -- states and plugin surfaces without requiring a separate colorscheme plugin.
     require("base16-colorscheme").setup(colors)
-    vim.g.colors_name = "gruvbox-night"
+    vim.g.colors_name = colors.name
 
     -- Keep ordinary surfaces calm while making active UI consistently golden.
     highlight("Normal", { fg = colors.base05, bg = colors.base00 })

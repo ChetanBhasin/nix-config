@@ -23,6 +23,64 @@ flake-parts or import-tree. The personal implementations in each feature remain
 separate where their behavior differs. App assets stay in `home/`, raw package
 expressions in `packages/`, and palette data in `theme/`, outside auto-import.
 
+## Themes with Stylix
+
+`modules/stylix.nix` owns theme defaults. `theme/gruvbox-night.nix` contains only
+the Base16 scheme. Native Stylix targets configure Alacritty, Bat, FZF and
+Starship; the existing Neovim, tmux, Hyprland, Hyprlock and Quickshell layouts
+consume the same evaluated Stylix colors and fonts. The custom editor and tmux
+targets stay disabled to avoid replacing their layouts. Linux also uses Stylix
+for GTK, Qt, fontconfig, the console and the Bibata cursor.
+
+Every public module imports Stylix itself and keeps `cb.*.enable = false` by
+default. Enabling a feature enables its theme. Importing disabled features does
+not enable programs or install fonts. Consumers need neither flake-parts nor an
+additional Stylix import. Omit a separate direct import of
+`inputs.stylix.homeModules.stylix`: the anonymous upstream initializer cannot
+be imported twice. When system Stylix already integrates Home Manager,
+the module uses that integration.
+
+Customize through standard Stylix options in the same Home Manager module:
+
+```nix
+{ pkgs, ... }: {
+  cb.terminal.enable = true;
+  stylix = {
+    base16Scheme = "${pkgs.base16-schemes}/share/themes/gruvbox-dark-hard.yaml";
+    polarity = "dark";
+    fonts.monospace = {
+      package = pkgs.nerd-fonts.jetbrains-mono;
+      name = "JetBrainsMono Nerd Font";
+    };
+    fonts.sizes.terminal = 14;
+    opacity.terminal = 1.0;
+  };
+}
+```
+
+On repository hosts, set these options at the system level to let Home Manager
+inherit them, or override them for an individual user. `stylix.override.base0A`
+changes the shared focus accent without duplicating application settings.
+The original sixteen Gruvbox Night colors are retained; extra UI shades now
+use Base16 roles so switching schemes updates every custom surface too.
+macOS stays dark by default; explicitly setting system `stylix.polarity = "light"`
+selects light appearance on activation (a logout/login may be needed).
+Browser profiles and other app-owned state remain outside theme management.
+The personal lazyjj wrapper passes its Stylix highlight on the command line;
+Home Manager does not own the writable jj user configuration.
+
+Repository hosts also share `home/wallpapers/orbital-lesson.png` through
+`stylix.image`. A personal macOS LaunchAgent applies it through AppKit at
+login; Hyprland uses Stylix's hyprpaper target. Public terminal/editor/tmux
+exports do not set a personal image or install a wallpaper agent. Replace it
+at the system level with `stylix.image = ./my-wallpaper.png;`.
+
+The wallpaper is a static 5120 × 2160 render of an editable SVG, using colors
+sampled from the selected solar-system reference. The global Gruvbox scheme
+is unchanged, and changing it does not recolor the image. Its SVG source,
+render command and direct macOS apply command are in
+[the wallpaper notes](../home/wallpapers/README.md).
+
 ## Quick Start
 
 Add this repository as a flake input and import the modules you need:
@@ -106,7 +164,7 @@ Full-featured NeoVim IDE with LSP, treesitter, completion, and 50+ curated plugi
 - **Git**: gitsigns, lazygit, lazyjj integration
 - **Languages**: Enhanced support for Rust, Go, Python, Nix, TypeScript
 - **Debug**: DAP (Debug Adapter Protocol) for Python
-- **Theme**: Custom Gruvbox Night palette with a muted-gold interaction accent and local highlight overrides
+- **Theme**: Stylix colors (Gruvbox Night by default) with local highlight behavior
 
 ---
 
@@ -228,7 +286,7 @@ The default package pins tmux commit `fe8f9ff` from upstream PR [#5433](https://
 - **Fleet picker**: Searchable local and SSH-backed tmux sessions from a
   daemon-maintained, per-host cache without nested tmux
 - **FZF**: Session switcher, URL picker, content extractor
-- **Theme**: Gruvbox Night custom status line with a muted-gold focus accent
+- **Theme**: Custom status line using the shared Stylix palette
 - **Pane focus**: Rounded four-sided active frame with a slight gutter, using
   the pinned upstream separate-border implementation
 - **Which-Key**: Discoverable command palette via `Prefix Space`

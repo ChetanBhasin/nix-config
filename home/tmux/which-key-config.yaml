@@ -7,7 +7,7 @@ keybindings:
 title:
   style: "align=centre,bold"
   prefix: "tmux"
-  prefix_style: "fg=#c9a257,bold"
+  prefix_style: "fg=@primaryAccent@,bold"
 
 position:
   x: C

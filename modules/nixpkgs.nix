@@ -1,6 +1,5 @@
 { inputs, ... }:
 let
-  gruvboxTheme = import ../theme/gruvbox-night.nix;
   nixpkgsConfig = {
     config = {
       allowUnfree = true;
@@ -23,30 +22,6 @@ let
       (_final: prev: {
         tmux = prev.tmux.overrideAttrs (old: {
           configureFlags = (old.configureFlags or [ ]) ++ [ "--disable-jemalloc" ];
-        });
-
-        lazyjj = prev.lazyjj.overrideAttrs (old: {
-          postInstall = (old.postInstall or "") + ''
-            mv "$out/bin/lazyjj" "$out/bin/lazyjj-unwrapped"
-
-            cat > "$out/bin/lazyjj-jj" <<EOF
-            #!/bin/sh
-            exec ${prev.jujutsu}/bin/jj \
-              --config lazyjj.diff-format=git \
-              --config lazyjj.layout=horizontal \
-              --config lazyjj.layout-percent=30 \
-              --config 'lazyjj.highlight-color="${gruvboxTheme.primarySurface}"' \
-              --config 'lazyjj.keybinds.log_tab.open-files=["enter", "o"]' \
-              "\$@"
-            EOF
-
-            cat > "$out/bin/lazyjj" <<EOF
-            #!/bin/sh
-            exec "$out/bin/lazyjj-unwrapped" --jj-bin "$out/bin/lazyjj-jj" "\$@"
-            EOF
-
-            chmod +x "$out/bin/lazyjj" "$out/bin/lazyjj-jj"
-          '';
         });
       })
       (

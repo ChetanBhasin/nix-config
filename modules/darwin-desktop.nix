@@ -64,7 +64,6 @@ in
         system.defaults = {
           NSGlobalDomain = {
             # Appearance
-            AppleInterfaceStyle = "Dark";
             AppleShowScrollBars = "WhenScrolling";
 
             # Locale & Measurement
@@ -273,7 +272,6 @@ in
         };
 
         fonts.packages = with pkgs; [
-          nerd-fonts.jetbrains-mono
           nerd-fonts.symbols-only
         ];
 

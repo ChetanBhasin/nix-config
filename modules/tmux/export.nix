@@ -1,3 +1,7 @@
+{ config, ... }:
+let
+  themeModule = config.flake.modules.homeManager.theme;
+in
 {
   flake.modules.homeManager.tmux =
     # Standalone Tmux module for Home Manager
@@ -47,6 +51,8 @@
       );
     in
     {
+      imports = [ themeModule ];
+
       options.cb.tmux = {
         enable = lib.mkEnableOption "Chetan's tmux configuration";
 
@@ -133,6 +139,7 @@
       };
 
       config = lib.mkIf cfg.enable {
+        stylix.enable = lib.mkDefault true;
         programs.tmux = {
           enable = true;
           package = cfg.package;
@@ -185,13 +192,15 @@
             set -g @cb_tmux_fzf ${if cfg.enableFzfIntegration then "1" else "0"}
             set -g @cb_tmux_thumbs ${if cfg.enableThumbs then "1" else "0"}
             set -g @cb_tmux_fleet ${if cfg.fleet.enable then "1" else "0"}
-            ${builtins.readFile (tmuxConfigPath + "/tmux.conf")}
+            ${config.lib.stylix.render (builtins.readFile (tmuxConfigPath + "/tmux.conf"))}
             ${cfg.extraConfig}
           '';
         };
 
         # Pre-generated which-key menu configuration
-        xdg.configFile."tmux/which-key-init.tmux".source = tmuxConfigPath + "/which-key-init.tmux";
+        xdg.configFile."tmux/which-key-init.tmux".text = config.lib.stylix.render (
+          builtins.readFile (tmuxConfigPath + "/which-key-init.tmux")
+        );
 
         xdg.configFile."tmux-fleet/config.json" = lib.mkIf cfg.fleet.enable {
           source = tmuxFleetConfig;

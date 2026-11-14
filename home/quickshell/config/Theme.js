@@ -22,10 +22,10 @@ var accentSurface = "@primarySurface@"
 var border = "@inactiveBorder@"
 var activeBorder = "@activeBorder@"
 
-var fontFamily = "JetBrainsMono Nerd Font"
-var fontSize = 13
-var smallFontSize = 11
-var largeFontSize = 18
+var fontFamily = "@fontFamily@"
+var fontSize = @fontSize@
+var smallFontSize = fontSize - 2
+var largeFontSize = fontSize + 5
 var barHeight = 44
 var islandHeight = 34
 var radius = 10

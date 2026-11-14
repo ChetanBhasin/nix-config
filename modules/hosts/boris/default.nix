@@ -146,10 +146,6 @@ in
         };
       };
 
-      # The greeter and other surfaces outside home-manager's fontconfig need the
-      # desktop's face available system-wide.
-      fonts.packages = [ pkgs.nerd-fonts.jetbrains-mono ];
-
       environment = {
         systemPackages = with pkgs; [
           onePasswordPolkitPolicy
@@ -157,11 +153,6 @@ in
           jdk
           podman-compose
           podman-tui
-          # A bare Wayland session ships no default cursor theme, so the pointer
-          # falls back to a built-in arrow that reads as broken. Bibata-Original-Ice
-          # is the closest standard match to the Mac pointer: sharp, white, black
-          # outline.
-          bibata-cursors
         ];
 
       };
@@ -260,6 +251,7 @@ in
       modules.nixos.nix
       modules.nixos.user
       modules.nixos.nixpkgs
+      modules.nixos.theme
     ];
   };
 }

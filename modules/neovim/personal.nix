@@ -59,12 +59,10 @@
               ruff
               ripgrep
               gzip
-              nerd-fonts.jetbrains-mono
               # Python debugging
               python313Packages.debugpy
               # Version control TUIs
               lazygit
-              lazyjj
               dockerfile-language-server
               typescript-language-server
               yaml-language-server
@@ -271,6 +269,21 @@
 
         xdg.configFile."nvim".source = ../../home/neovim/config;
         xdg.configFile."nvim".recursive = true;
+
+        xdg.configFile."nvim/lua/custom/palette.lua".text =
+          "return "
+          + lib.generators.toLua { } (
+            config.lib.stylix.palette
+            // {
+              name = config.lib.stylix.colors.scheme;
+              polarity = config.stylix.polarity;
+              dim_neutral = config.lib.stylix.palette.dimNeutral;
+              soft_neutral = config.lib.stylix.palette.softNeutral;
+              primary_accent = config.lib.stylix.palette.primaryAccent;
+              primary_surface = config.lib.stylix.palette.primarySurface;
+              border = config.lib.stylix.palette.inactiveBorder;
+            }
+          );
 
         # Nix-controlled selector read by lua/custom/plugins/rust.lua.
         xdg.configFile."nvim/lua/custom/rust_lsp_choice.lua".text = ''

@@ -24,7 +24,7 @@ A comprehensive Nix configuration for reproducible development environments acro
 - 🎯 **Terminal Multiplexer**: tmux with discoverable bindings, session management, and persistence
 - 📦 **Package Management**: Nix + Home Manager for reproducible environments
 - 🔧 **Cross-Platform**: macOS (Darwin) and Linux (NixOS) support
-- 🎨 **Consistent Theming**: Custom Gruvbox Night palette with muted-gold focus accents across all applications
+- 🎨 **Consistent Theming**: Stylix manages colors, fonts and supported app themes, with Gruvbox Night as the default
 - ⚡ **Performance Optimized**: Fast startup times and efficient resource usage
 - 🔐 **Security Focused**: Proper SSH configurations and secure defaults
 

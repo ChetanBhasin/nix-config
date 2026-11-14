@@ -217,7 +217,7 @@ FZF (Fuzzy Finder) is the heart of the enhanced terminal experience, providing:
 
 ### 🎨 **Visual Configuration**
 
-FZF uses Gruvbox Night’s hard-dark, warm-neutral palette:
+FZF receives the shared palette from Stylix (Gruvbox Night by default):
 - **Warm dark background** with comfortable normal-text contrast
 - **Muted-gold primary accent** for cursors, selected items, focused borders, active tabs, and prompts
 - **Blue semantic accents** for information text and code functions
@@ -432,14 +432,12 @@ export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
 - **Visual consistency**: Gruvbox Night’s warm-neutral palette
 - **Performance**: GPU-accelerated rendering
 
-**Key settings**:
+Colors, fonts and opacity come from Stylix (`modules/stylix.nix`). Behavioral settings remain in the terminal feature:
+
 ```nix
 programs.alacritty = {
   enable = true;
   settings = {
-    colors = (import ../../theme/gruvbox-night.nix).alacritty;
-    font.normal.family = "JetBrainsMono Nerd Font";
-    font.size = 14.0;
     window.option_as_alt = "OnlyLeft";  # macOS
     selection.save_to_clipboard = true;
   };
@@ -871,13 +869,17 @@ fzf_imports() {
 ### 🎨 **Customization Examples**
 
 #### **Theme Customization**
-```bash
-# Light theme for FZF
-export FZF_DEFAULT_OPTS="
-  --color=bg+:#ccd0da,bg:#eff1f5,spinner:#dc8a78,hl:#d20f39
-  --color=fg:#4c4f69,header:#d20f39,info:#8839ef,pointer:#dc8a78
-  --color=marker:#dc8a78,fg+:#4c4f69,prompt:#8839ef,hl+:#d20f39"
+Set the theme once through Stylix; FZF, Alacritty, Bat, the prompt and custom
+editor/multiplexer surfaces follow it. See [theme configuration](modules.md#themes-with-stylix).
 
+```nix
+{ pkgs, ... }: {
+  stylix.base16Scheme = "${pkgs.base16-schemes}/share/themes/gruvbox-dark-hard.yaml";
+  stylix.fonts.sizes.terminal = 14;
+}
+```
+
+```bash
 # Custom preview commands
 export FZF_CTRL_T_OPTS="
   --preview '([[ -f {} ]] && (bat --style=numbers --color=always {} || cat {})) || 

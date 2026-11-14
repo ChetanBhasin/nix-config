@@ -40,14 +40,6 @@
       options = "ctrl:swap_lwin_lctl,ctrl:swap_rwin_rctl";
     };
 
-    environment = {
-      # System-wide so greetd sessions and every client inherit it; shell-profile
-      # variables (home-manager's sessionVariables) never reach the compositor.
-      sessionVariables = {
-        XCURSOR_THEME = "Bibata-Original-Ice";
-        XCURSOR_SIZE = "24";
-      };
-    };
   };
   flake.modules.homeManager.hyprland =
     {
@@ -59,12 +51,12 @@
     with lib;
     let
       cfg = config.home-config-manager;
-      theme = import ../theme/gruvbox-night.nix;
+      theme = config.lib.stylix.palette;
       # Hyprland/hyprlock take colours as rgb(RRGGBB); the palette stores them as #RRGGBB.
       rgb = colour: "rgb(${removePrefix "#" colour})";
       # Hyprlang parses alpha colours only as rgba(RRGGBBAA), alpha last.
       rgba = alpha: colour: "rgba(${removePrefix "#" colour}${alpha})";
-      font = "JetBrainsMono Nerd Font";
+      font = config.stylix.fonts.monospace.name;
       terminal = "alacritty";
       toLua = generators.toLua { };
       luaCall = name: args: generators.mkLuaInline "${name}(${concatMapStringsSep ", " toLua args})";
@@ -178,6 +170,9 @@
           }
         ];
 
+        services.hyprpaper.enable = config.stylix.image != null;
+        stylix.targets.hyprpaper.enable = true;
+
         wayland.windowManager.hyprland = {
           enable = true;
           # NixOS `programs.hyprland` already provides the compositor wrapper and the
@@ -257,8 +252,7 @@
               misc = {
                 disable_hyprland_logo = true;
                 disable_splash_rendering = true;
-                # A solid themed background means no wallpaper daemon and no image
-                # asset need to be shipped at all.
+                # Keep a themed fallback while hyprpaper loads the Stylix image.
                 background_color = rgb theme.base00;
                 force_default_wallpaper = 0;
               };
