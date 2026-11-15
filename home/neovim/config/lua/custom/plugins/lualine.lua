@@ -2,13 +2,13 @@
 -- 🎨 ENHANCED LUALINE CONFIGURATION
 -- ═══════════════════════════════════════════════════════════════════════════════
 
--- Shared Berrit palette and semantic aliases.
+-- Shared palette and semantic aliases.
 local palette = require("custom.palette")
 local colors = {
     bg = palette.base00,
     bg_alt = palette.base01,
     fg = palette.base05,
-    fg_bright = palette.base06,
+    status_text = palette.statusText,
     grey = palette.soft_neutral,
     grey_light = palette.base04,
     accent = palette.primary_accent,
@@ -21,22 +21,21 @@ local colors = {
     hint = palette.hint,
 }
 
--- Keep mode sections calm and uniform while the muted-gold block provides a clear
--- active-state anchor across the editor and the surrounding desktop.
-local function mode_theme(accent_bg)
+-- Preset selection colors control whether the mode label is filled or quiet.
+local function mode_theme()
     return {
-        a = { fg = colors.bg, bg = accent_bg },
+        a = { fg = palette.selectionFg, bg = palette.selectionBg },
         b = { fg = colors.fg, bg = colors.bg_alt },
-        c = { fg = colors.fg_bright, bg = colors.bg },
+        c = { fg = colors.status_text, bg = colors.bg },
     }
 end
 
-local berrit = {
-    normal = mode_theme(colors.accent),
-    insert = mode_theme(colors.accent),
-    visual = mode_theme(colors.accent),
-    replace = mode_theme(colors.accent),
-    command = mode_theme(colors.accent),
+local status_theme = {
+    normal = mode_theme(),
+    insert = mode_theme(),
+    visual = mode_theme(),
+    replace = mode_theme(),
+    command = mode_theme(),
     inactive = {
         a = { fg = colors.grey, bg = colors.bg_alt },
         b = { fg = colors.grey, bg = colors.bg_alt },
@@ -107,7 +106,7 @@ end
 require('lualine').setup {
     options = {
         icons_enabled = true,
-        theme = berrit,
+        theme = status_theme,
         -- Beautiful powerline separators
         component_separators = { left = '󰿟', right = '󰿟' },
         section_separators = { left = '', right = '' },

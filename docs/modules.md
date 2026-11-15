@@ -25,18 +25,37 @@ expressions in `packages/`, and palette data in `theme/`, outside auto-import.
 
 ## Themes with Stylix
 
-`modules/stylix.nix` owns the theme registry and `cb.theme` selector. The default,
-`"berrit"`, retains the previous Gruvbox-derived palette, JetBrains Mono Nerd Font,
-amber interaction accents and original Orbital Lesson wallpaper. Set
-`cb.theme = "berrit";` in a Darwin, NixOS or standalone Home Manager configuration.
-Home Manager inherits the host selection by default; host files need no setting
-for Berrit. `theme/berrit.nix` contains the sixteen unchanged Base16 colors.
+`modules/stylix.nix` owns the theme registry and `cb.theme` selector. Berrit stays
+the default; no host opts into Navy automatically.
+
+| Preset | Palette and chrome | Font | Wallpaper |
+| --- | --- | --- | --- |
+| `berrit` | Original warm palette, amber filled tabs and pane frames | JetBrains Mono Nerd Font | Original Orbital Lesson |
+| `navy` | Dark navy, muted red focus, matching normal/bright fog text, quiet status surfaces | Lilex Nerd Font | Same Orbital Lesson composition recolored in navy/red |
+
+To choose Navy, add this one line inside the existing host module body, such as
+`flake.modules.darwin.hugh` in `modules/hosts/hugh.nix`:
+
+```nix
+cb.theme = "navy";
+```
+
+The host's Home Manager configuration inherits that selection. Remove the line
+or use `cb.theme = "berrit";` to return to Berrit. A standalone Home Manager
+consumer can select the same preset alongside any enabled public feature:
+
+```nix
+{
+  cb.theme = "navy";
+  cb.terminal.enable = true;
+}
+```
 
 Native Stylix targets configure Alacritty, Bat, FZF, Starship, Neovim, Hyprland and
 Hyprlock. Neovim keeps its local highlight layer after the native colorscheme;
 tmux and Quickshell retain their layouts using the same evaluated palette.
-Hyprland keeps orange/blue window borders and Hyprlock keeps its blurred desktop
-background. Linux also uses Stylix for GTK, Qt, fontconfig and the console.
+Berrit keeps orange/blue window borders and a blurred Hyprlock desktop backdrop;
+Navy uses muted red focus borders and its wallpaper without blur. Linux also uses Stylix for GTK, Qt, fontconfig and the console.
 Explicit Stylix palette, font and image settings remain available as overrides.
 
 Every public module imports Stylix itself and keeps `cb.*.enable = false` by
@@ -66,19 +85,20 @@ Customize through standard Stylix options in the same Home Manager module:
 ```
 
 On repository hosts, set these options at the system level to let Home Manager
-inherit them, or override them for an individual user. `stylix.override.base0A`
-changes the shared focus accent without duplicating application settings.
-The original sixteen Berrit colors are retained; extra UI shades now
-use Base16 roles so switching schemes updates every custom surface too.
+inherit them. Explicit Stylix settings can also override an individual user's
+colors or fonts. `stylix.override.base0A` changes Berrit's shared focus accent;
+`stylix.override.base0F` changes Navy's. Both presets derive custom UI colors from
+the effective Stylix palette, so direct palette overrides still propagate.
 macOS stays dark by default; explicitly setting system `stylix.polarity = "light"`
 selects light appearance on activation (a logout/login may be needed).
 Browser profiles and other app-owned state remain outside theme management.
 The personal lazyjj wrapper passes its Stylix highlight on the command line;
 Home Manager does not own the writable jj user configuration.
 
-Repository hosts select `home/wallpapers/berrit.png` through `stylix.image`.
-The original 5120 × 2160 Orbital Lesson artwork is unchanged; its resolved SVG
-is `home/wallpapers/berrit.svg`. Personal profiles expose the selected image at
+Repository hosts select `home/wallpapers/berrit.png` or `navy.png` through
+`stylix.image`. Both are 5120 × 2160 renders with editable, fully resolved SVGs.
+Berrit preserves the original artwork byte-for-byte; Navy changes only its
+colors. Personal profiles expose the selected image at
 `~/Pictures/Wallpapers/current.png`. The macOS wallpaper agent checks at login
 and every 30 seconds, changing only a visible Space whose image differs.
 Hyprland uses Stylix's hyprpaper target. Public terminal/editor/tmux exports do

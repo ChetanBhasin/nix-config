@@ -52,6 +52,7 @@
     let
       cfg = config.home-config-manager;
       theme = config.lib.stylix.palette;
+      lock = config.lib.stylix.lock;
       # Hyprland/hyprlock take colours as rgb(RRGGBB); the palette stores them as #RRGGBB.
       rgb = colour: "rgb(${removePrefix "#" colour})";
       rgba = alpha: colour: "rgba(${removePrefix "#" colour}${alpha})";
@@ -175,11 +176,7 @@
           hyprland.enable = true;
           hyprlock = {
             enable = true;
-            image.enable = false;
-            colors.override = (config.stylix.base16.mkSchemeAttrs config.lib.stylix.colors).override {
-              base03 = theme.inactiveBorder;
-              base0A = theme.base0C;
-            };
+            image.enable = lock.useWallpaper;
           };
         };
 
@@ -445,16 +442,10 @@
               grace = 2;
             };
 
-            # Retain the blurred desktop veil while Stylix owns field colors.
-            background = {
+            # Each preset supplies its backdrop; Stylix owns the image and colors.
+            background = lock.background // {
               monitor = "";
-              path = "screenshot";
-              blur_size = 25;
-              blur_passes = 2;
-              brightness = 0.45;
-              contrast = 0.8;
-              vibrancy = 0.1;
-              color = mkForce (rgba "cc" theme.base00);
+              color = mkForce (rgba lock.backgroundAlpha theme.base00);
             };
 
             input-field = {
@@ -463,10 +454,10 @@
               position = "0, 58";
               halign = "center";
               valign = "center";
-              rounding = 14;
-              outline_thickness = 2;
+              rounding = lock.rounding;
+              outline_thickness = lock.outline;
               dots_center = true;
-              inner_color = mkForce (rgba "66" theme.base01);
+              inner_color = mkForce (rgba lock.inputAlpha theme.lockInput);
               placeholder_text = "Password";
             };
 

@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="5120" height="2160" viewBox="0 0 640 270">
+  <title>A small lesson in orbit</title>
+  <desc>A tiny alien astronomy club studies a floating planetary model; one pupil has climbed onto a planet's ring.</desc>
+  <defs>
+    <clipPath id="amber-body">
+      <circle cx="344" cy="119" r="34"/>
+    </clipPath>
+    <clipPath id="ringed-body">
+      <circle cx="394" cy="158" r="10"/>
+    </clipPath>
+    <g id="pupil">
+      <path fill="currentColor" d="M-6 -3 C-10 -10 -6 -16 0 -16 C6 -16 10 -10 6 -3 Q4 1 0 2 Q-4 1 -6 -3 Z M-4 1 Q0 -1 4 1 L5 9 Q4 12 1 10 H-1 Q-4 12 -5 9 Z"/>
+      <path fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" d="M-4 3 L-6 7 M4 3 L6 7"/>
+      <g fill="#101722">
+        <ellipse cx="-2.2" cy="-8.5" rx="1.2" ry="2" transform="rotate(-12 -2.2 -8.5)"/>
+        <ellipse cx="2.2" cy="-8.5" rx="1.2" ry="2" transform="rotate(12 2.2 -8.5)"/>
+      </g>
+    </g>
+  </defs>
+
+  <rect width="640" height="270" fill="#101722"/>
+  <g id="lesson" transform="translate(-24 16)">
+  <g fill="none" stroke="#968762" stroke-width="0.65" opacity="0.55">
+    <path d="M302 99 C319 76 351 71 378 79"/>
+    <path d="M296 132 C294 157 317 179 351 177"/>
+  </g>
+
+  <circle cx="344" cy="119" r="34" fill="#c77870"/>
+  <g clip-path="url(#amber-body)">
+    <path fill="#cf877d" d="M306 102 L338 81 L353 121 L327 145 Z"/>
+    <path fill="#b96a64" d="M338 81 L381 111 L353 121 Z"/>
+    <path fill="#9e5553" d="M353 121 L372 148 L338 157 L327 145 Z"/>
+  </g>
+  <circle cx="302" cy="99" r="6.5" fill="#667f9f"/>
+  <circle cx="378" cy="79" r="4.3" fill="#ca8c88"/>
+  <circle cx="351" cy="177" r="4" fill="#b7aa82"/>
+
+  <g transform="rotate(-18 394 158)">
+    <ellipse cx="394" cy="158" rx="19" ry="5" fill="none" stroke="#aeb8c8" stroke-width="1"/>
+    <circle cx="394" cy="158" r="10" fill="#92a9c7"/>
+    <path clip-path="url(#ringed-body)" fill="#4a6282" d="M386 153 Q395 156 402 151 Q405 155 403 160 Q394 163 384 159 Z"/>
+    <path d="M375 158 A19 5 0 0 0 413 158" fill="none" stroke="#aeb8c8" stroke-width="1"/>
+  </g>
+
+  <g transform="translate(258 171)">
+    <path fill="#b7aa82" d="M-6 -6 C-11 -13 -6 -21 1 -21 C8 -21 11 -14 7 -7 Q4 -3 0 -3 Q-4 -3 -6 -6 Z"/>
+    <path fill="#968762" d="M-5 -3 Q0 -6 5 -3 L6 9 Q4 13 1 10 H-1 Q-5 13 -6 9 Z"/>
+    <path fill="none" stroke="#b7aa82" stroke-width="2.8" stroke-linecap="round" d="M5 -2 Q14 -5 18 -15 L20 -21 M-5 -1 Q-10 4 -12 0"/>
+    <g fill="#101722">
+      <ellipse cx="0" cy="-13" rx="1.2" ry="2"/>
+      <ellipse cx="4.5" cy="-13" rx="1.2" ry="2"/>
+    </g>
+    <path d="M1 -8 Q3 -6.5 5 -8" fill="none" stroke="#101722" stroke-width="0.7" stroke-linecap="round"/>
+  </g>
+  <use href="#pupil" color="#92a9c7" transform="translate(291 190) rotate(-8)"/>
+  <use href="#pupil" color="#b7aa82" transform="translate(317 201) rotate(7)"/>
+
+  <g transform="translate(409 145)">
+    <path fill="#c77870" d="M-4 -3 C-7 -8 -4 -12 0 -12 C5 -12 7 -8 4 -3 Q2 0 0 0 Q-2 0 -4 -3 Z"/>
+    <path fill="#c77870" d="M-3 0 Q0 -2 3 0 L4 5 Q2 8 -2 6 Z"/>
+    <path fill="none" stroke="#c77870" stroke-width="1.8" stroke-linecap="round" d="M-3 1 L-8 -1 M3 1 L8 -2 M0 6 L3 10 M3 5 L6 8"/>
+    <ellipse cx="-1.7" cy="-7" rx="0.9" ry="1.5" fill="#101722"/>
+    <ellipse cx="1.7" cy="-7" rx="0.9" ry="1.5" fill="#101722"/>
+  </g>
+  </g>
+</svg>

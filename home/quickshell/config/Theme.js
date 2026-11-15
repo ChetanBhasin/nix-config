@@ -28,5 +28,5 @@ var smallFontSize = fontSize - 2
 var largeFontSize = fontSize + 5
 var barHeight = 44
 var islandHeight = 34
-var radius = 10
-var smallRadius = 7
+var radius = @shellRadius@
+var smallRadius = @shellSmallRadius@

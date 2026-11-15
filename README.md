@@ -24,7 +24,7 @@ A comprehensive Nix configuration for reproducible development environments acro
 - 🎯 **Terminal Multiplexer**: tmux with discoverable bindings, session management, and persistence
 - 📦 **Package Management**: Nix + Home Manager for reproducible environments
 - 🔧 **Cross-Platform**: macOS (Darwin) and Linux (NixOS) support
-- 🎨 **Consistent Theming**: Stylix manages colors, fonts and supported app themes, with Berrit as the default
+- 🎨 **Consistent Theming**: Stylix manages colors, fonts and supported app themes, with Berrit as the default and Navy available through `cb.theme = "navy";`
 - ⚡ **Performance Optimized**: Fast startup times and efficient resource usage
 - 🔐 **Security Focused**: Proper SSH configurations and secure defaults
 

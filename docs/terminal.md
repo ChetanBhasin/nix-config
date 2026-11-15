@@ -217,7 +217,9 @@ FZF (Fuzzy Finder) is the heart of the enhanced terminal experience, providing:
 
 ### 🎨 **Visual Configuration**
 
-FZF receives the shared palette from Stylix (Berrit by default):
+FZF receives the selected palette from Stylix. Berrit is the default; Navy is
+selected with `cb.theme = "navy";` and uses muted red focus on dark navy surfaces.
+Berrit retains these defaults:
 - **Warm dark background** with comfortable normal-text contrast
 - **Muted-gold primary accent** for cursors, selected items, focused borders, active tabs, and prompts
 - **Blue semantic accents** for information text and code functions
@@ -982,6 +984,9 @@ C-Space ? a/d        # Help menu: list/describe keys
 - Explicit `ZOOM`, `COMMAND`, `COPY`, and `SYNC` mode badges
 
 #### 🎯 **Active Pane Clarity**
+These are Berrit defaults. Navy keeps the same layout with a dark active tab,
+muted red labels, quiet pane borders and a single-line stock-tmux fallback.
+
 - The active window is the only solid muted-gold tab in the status bar
 - The active pane gets a rounded muted-gold frame on all four sides, including terminal-edge corners
 - Every pane reserves a one-cell frame, creating a slight gutter; inactive frames remain blank so focus stays dominant

@@ -9,6 +9,97 @@ let
       accent = "base0A";
       hint = "base0F";
       comment = "base04";
+      roles = {
+        selectionBg = "base0A";
+        selectionFg = "base00";
+        statusText = "base06";
+        paneBorder = "base03";
+        paneActiveBorder = "base0A";
+        lockInput = "base01";
+      };
+      tokens = {
+        paneBorderLines = "heavy";
+        shellRadius = "10";
+        shellSmallRadius = "7";
+      };
+      lock = {
+        useWallpaper = false;
+        background = {
+          path = "screenshot";
+          blur_size = 25;
+          blur_passes = 2;
+          brightness = 0.45;
+          contrast = 0.8;
+          vibrancy = 0.1;
+        };
+        backgroundAlpha = "cc";
+        inputAlpha = "66";
+        rounding = 14;
+        outline = 2;
+      };
+      targets = {
+        hyprland = {
+          base0D = "base09";
+          base03 = "base0D";
+        };
+        hyprlock = {
+          base03 = "base02";
+          base0A = "base0C";
+        };
+      };
+    };
+    navy = {
+      scheme = import ../theme/navy.nix;
+      image = ../home/wallpapers/navy.png;
+      font = "lilex";
+      fontName = "Lilex Nerd Font";
+      accent = "base0F";
+      hint = "base0D";
+      comment = "base03";
+      roles = {
+        selectionBg = "base01";
+        selectionFg = "base0F";
+        statusText = "base05";
+        paneBorder = "base02";
+        paneActiveBorder = "base02";
+        lockInput = "base00";
+      };
+      tokens = {
+        paneBorderLines = "single";
+        shellRadius = "4";
+        shellSmallRadius = "3";
+      };
+      lock = {
+        useWallpaper = true;
+        background.blur_passes = 0;
+        backgroundAlpha = "ff";
+        inputAlpha = "ff";
+        rounding = 4;
+        outline = 1;
+      };
+      targets = {
+        gtk = {
+          base0D = "base0F";
+          base0E = "base0A";
+        };
+        qt = {
+          base0D = "base0F";
+          base0E = "base0F";
+        };
+        hyprland = {
+          base0D = "base0F";
+          base03 = "base02";
+        };
+        hyprlock = {
+          base03 = "base02";
+          base0A = "base0F";
+        };
+        fzf = {
+          base0A = "base0F";
+          base0C = "base0F";
+          base0D = "base0F";
+        };
+      };
     };
   };
   defaults =
@@ -63,9 +154,12 @@ in
     let
       theme = themes.${config.cb.theme};
       colors = config.lib.stylix.colors.withHashtag;
-      # Rebuild derived formats before overriding an already overridden scheme.
+      # Derive formats once from the raw scheme, preserving global overrides.
       overrideColors =
-        overrides: (config.stylix.base16.mkSchemeAttrs config.lib.stylix.colors).override overrides;
+        overrides:
+        (config.stylix.base16.mkSchemeAttrs config.stylix.base16Scheme).override (
+          config.stylix.override // overrides
+        );
       palette =
         lib.genAttrs (map (n: "base${n}") [
           "00"
@@ -99,7 +193,9 @@ in
           primarySurface = colors.base01;
           inactiveBorder = colors.base02;
           activeBorder = colors.${theme.accent};
-        };
+        }
+        // lib.mapAttrs (_: slot: colors.${slot}) theme.roles;
+      renderValues = palette // theme.tokens;
     in
     {
       key = "nix-config-stylix";
@@ -117,18 +213,19 @@ in
         )
       ) inputs.stylix.homeModules.stylix;
       config = {
-        stylix.targets = {
-          # The custom tmux layout renders its colors from the same palette.
-          tmux.enable = lib.mkDefault false;
-          hyprland.colors.override = overrideColors {
-            base0D = colors.base09;
-            base03 = colors.base0D;
+        stylix.targets =
+          lib.mapAttrs (_: slots: {
+            colors.override = overrideColors (lib.mapAttrs (_: slot: colors.${slot}) slots);
+          }) theme.targets
+          // {
+            # The custom tmux layout renders its colors from the same palette.
+            tmux.enable = lib.mkDefault false;
           };
-        };
         lib.stylix.palette = palette;
-        lib.stylix.render = builtins.replaceStrings (map (name: "@${name}@") (builtins.attrNames palette)) (
-          builtins.attrValues palette
-        );
+        lib.stylix.lock = theme.lock;
+        lib.stylix.render = builtins.replaceStrings (map (name: "@${name}@") (
+          builtins.attrNames renderValues
+        )) (builtins.attrValues renderValues);
         home.packages = lib.mkIf config.stylix.enable config.stylix.fonts.packages;
       };
     };
