@@ -1,25 +1,56 @@
 { inputs, ... }:
 let
+  themes = {
+    berrit = {
+      scheme = import ../theme/berrit.nix;
+      image = ../home/wallpapers/berrit.png;
+      font = "jetbrains-mono";
+      fontName = "JetBrainsMono Nerd Font";
+      accent = "base0A";
+      hint = "base0F";
+      comment = "base04";
+    };
+  };
   defaults =
-    { lib, pkgs, ... }:
     {
-      stylix = {
-        # System-to-Home Manager inheritance uses mkDefault (1000).
-        autoEnable = lib.mkOverride 1100 false;
-        base16Scheme = lib.mkOverride 1100 (import ../theme/gruvbox-night.nix);
-        polarity = lib.mkOverride 1100 "dark";
-        fonts = {
-          monospace = {
-            package = lib.mkOverride 1100 pkgs.nerd-fonts.jetbrains-mono;
-            name = lib.mkOverride 1100 "JetBrainsMono Nerd Font";
-          };
-          sizes = {
-            terminal = lib.mkOverride 1100 14;
-            desktop = lib.mkOverride 1100 13;
+      config,
+      lib,
+      pkgs,
+      specialArgs,
+      ...
+    }:
+    let
+      theme = themes.${config.cb.theme};
+    in
+    {
+      options.cb.theme = lib.mkOption {
+        type = lib.types.enum (builtins.attrNames themes);
+        default = "berrit";
+        description = "Shared color, font and wallpaper theme.";
+      };
+      config = {
+        cb.theme = lib.mkDefault (specialArgs.osConfig.cb.theme or "berrit");
+        stylix = {
+          # System-to-Home Manager inheritance uses mkDefault (1000).
+          autoEnable = lib.mkOverride 1100 false;
+          base16Scheme = lib.mkOverride 1100 theme.scheme;
+          polarity = lib.mkOverride 1100 "dark";
+          fonts = {
+            monospace = {
+              package = lib.mkOverride 1100 pkgs.nerd-fonts.${theme.font};
+              name = lib.mkOverride 1100 theme.fontName;
+            };
+            sizes = {
+              terminal = lib.mkOverride 1100 14;
+              desktop = lib.mkOverride 1100 13;
+            };
           };
         };
       };
     };
+  wallpaper = { config, lib, ... }: {
+    stylix.image = lib.mkDefault themes.${config.cb.theme}.image;
+  };
 in
 {
   flake.modules.homeManager.theme =
@@ -30,7 +61,11 @@ in
       ...
     }:
     let
+      theme = themes.${config.cb.theme};
       colors = config.lib.stylix.colors.withHashtag;
+      # Rebuild derived formats before overriding an already overridden scheme.
+      overrideColors =
+        overrides: (config.stylix.base16.mkSchemeAttrs config.lib.stylix.colors).override overrides;
       palette =
         lib.genAttrs (map (n: "base${n}") [
           "00"
@@ -51,18 +86,19 @@ in
           "0F"
         ]) (name: colors.${name})
         // {
-          signal = colors.base0A;
+          signal = colors.${theme.accent};
           dimNeutral = colors.base03;
           softNeutral = colors.base04;
-          hint = colors.base0F;
+          hint = colors.${theme.hint};
+          comment = colors.${theme.comment};
           ok = colors.base0B;
           warning = colors.base0A;
           error = colors.base08;
           info = colors.base0D;
-          primaryAccent = colors.base0A;
+          primaryAccent = colors.${theme.accent};
           primarySurface = colors.base01;
           inactiveBorder = colors.base02;
-          activeBorder = colors.base0A;
+          activeBorder = colors.${theme.accent};
         };
     in
     {
@@ -82,11 +118,12 @@ in
       ) inputs.stylix.homeModules.stylix;
       config = {
         stylix.targets = {
-          # These applications retain custom layouts and consume the palette below.
-          neovim.enable = lib.mkDefault false;
+          # The custom tmux layout renders its colors from the same palette.
           tmux.enable = lib.mkDefault false;
-          hyprland.enable = lib.mkDefault false;
-          hyprlock.enable = lib.mkDefault false;
+          hyprland.colors.override = overrideColors {
+            base0D = colors.base09;
+            base03 = colors.base0D;
+          };
         };
         lib.stylix.palette = palette;
         lib.stylix.render = builtins.replaceStrings (map (name: "@${name}@") (builtins.attrNames palette)) (
@@ -102,9 +139,9 @@ in
       imports = [
         inputs.stylix.darwinModules.stylix
         defaults
+        wallpaper
       ];
       stylix.enable = true;
-      stylix.image = lib.mkDefault ../home/wallpapers/orbital-lesson.png;
       fonts.packages = config.stylix.fonts.packages;
       system.defaults.NSGlobalDomain = {
         AppleInterfaceStyle = if config.stylix.polarity == "light" then null else "Dark";
@@ -131,10 +168,10 @@ in
       imports = [
         inputs.stylix.nixosModules.stylix
         defaults
+        wallpaper
       ];
       stylix = {
         enable = true;
-        image = lib.mkDefault ../home/wallpapers/orbital-lesson.png;
         cursor = {
           package = lib.mkDefault pkgs.bibata-cursors;
           name = lib.mkDefault "Bibata-Original-Ice";

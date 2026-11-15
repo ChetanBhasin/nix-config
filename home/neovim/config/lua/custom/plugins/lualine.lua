@@ -2,7 +2,7 @@
 -- 🎨 ENHANCED LUALINE CONFIGURATION
 -- ═══════════════════════════════════════════════════════════════════════════════
 
--- Shared Gruvbox Night palette and semantic aliases.
+-- Shared Berrit palette and semantic aliases.
 local palette = require("custom.palette")
 local colors = {
     bg = palette.base00,
@@ -31,7 +31,7 @@ local function mode_theme(accent_bg)
     }
 end
 
-local gruvbox_night = {
+local berrit = {
     normal = mode_theme(colors.accent),
     insert = mode_theme(colors.accent),
     visual = mode_theme(colors.accent),
@@ -107,7 +107,7 @@ end
 require('lualine').setup {
     options = {
         icons_enabled = true,
-        theme = gruvbox_night,
+        theme = berrit,
         -- Beautiful powerline separators
         component_separators = { left = '󰿟', right = '󰿟' },
         section_separators = { left = '', right = '' },

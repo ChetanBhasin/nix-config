@@ -32,7 +32,7 @@ which lower-level modules to use.
 - `modules/exports.nix`: the stable `homeManagerModules` public entry points and
   the Darwin host-output option declaration.
 - `home/`: shell, Lua, tmux, and Quickshell assets; no Nix module wiring.
-- `packages/`: raw package expressions; `theme/gruvbox-night.nix`: palette data.
+- `packages/`: raw package expressions; `theme/berrit.nix`: palette data.
   These are outside the auto-imported module tree.
 
 Capture flake inputs and the module registry in the outer flake-parts module;

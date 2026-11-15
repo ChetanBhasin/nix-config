@@ -51,7 +51,7 @@ todo.setup({
         exclude = {}, -- Filetypes to exclude
     },
 
-    -- Semantic fallbacks mirror Gruvbox Night's diagnostics and accents.
+    -- Semantic fallbacks mirror Berrit's diagnostics and accents.
     colors = {
         error = { "DiagnosticError", "ErrorMsg", palette.error },
         warning = { "DiagnosticWarn", "WarningMsg", palette.warning },

@@ -9,12 +9,10 @@ end
 function DefineColors()
     vim.o.background = colors.polarity == "light" and "light" or "dark"
 
-    -- Base16 supplies broad syntax coverage; the overrides below refine focused
-    -- states and plugin surfaces without requiring a separate colorscheme plugin.
-    require("base16-colorscheme").setup(colors)
+    -- Stylix loads the Base16 colorscheme before this custom UI layer.
     vim.g.colors_name = colors.name
 
-    -- Keep ordinary surfaces calm while making active UI consistently golden.
+    -- Shared theme roles keep focused surfaces consistent across the desktop.
     highlight("Normal", { fg = colors.base05, bg = colors.base00 })
     highlight("NormalNC", { fg = colors.base04, bg = colors.base00 })
     highlight("NormalFloat", { fg = colors.base05, bg = colors.base01 })
@@ -24,7 +22,7 @@ function DefineColors()
     highlight("WinSeparator", { fg = colors.base02, bg = colors.base00 })
     highlight("VertSplit", { fg = colors.base02, bg = colors.base00 })
 
-    highlight("Comment", { fg = colors.soft_neutral, italic = true })
+    highlight("Comment", { fg = colors.comment, italic = true })
     highlight("@comment", { link = "Comment" })
     highlight("@lsp.type.comment", { link = "Comment" })
 

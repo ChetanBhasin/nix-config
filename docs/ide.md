@@ -589,7 +589,7 @@ inlayHints = {
 
 ### 🎨 **Theme and Appearance**
 
-- **Color scheme**: Stylix palette (Gruvbox Night by default), with shared active/focused UI colors
+- **Color scheme**: Stylix palette (Berrit by default), with shared active/focused UI colors
 - **Inlay hint styling**: Subtle gray italic text
 - **Status line**: Lualine with file information
 - **Icons**: Nerdfont icons throughout

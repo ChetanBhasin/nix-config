@@ -112,7 +112,7 @@ hist_stats     # Show most used commands statistics
 ```
 
 ### 🎨 **Visual Enhancements**
-- **Gruvbox Night theme** integration across all tools
+- **Berrit theme** integration across all tools
 - **Syntax highlighting** in file previews
 - **Git status indicators** in file listings
 - **Color-coded output** for better readability
@@ -217,7 +217,7 @@ FZF (Fuzzy Finder) is the heart of the enhanced terminal experience, providing:
 
 ### 🎨 **Visual Configuration**
 
-FZF receives the shared palette from Stylix (Gruvbox Night by default):
+FZF receives the shared palette from Stylix (Berrit by default):
 - **Warm dark background** with comfortable normal-text contrast
 - **Muted-gold primary accent** for cursors, selected items, focused borders, active tabs, and prompts
 - **Blue semantic accents** for information text and code functions
@@ -336,7 +336,7 @@ Alacritty is configured as a **modern, GPU-accelerated terminal emulator** with:
 
 ### 🎨 **Visual Configuration**
 
-- **Theme**: Custom Gruvbox Night palette
+- **Theme**: Custom Berrit palette
 - **Font**: JetBrains Mono Nerd Font at 14pt for excellent readability
 - **Cursor**: Block cursor with unfocused hollow
 - **Padding**: 8px padding for comfortable viewing
@@ -429,7 +429,7 @@ export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
 **Optimized for**:
 - **Cross-platform**: Works on macOS and Linux
 - **Tmux integration**: Super+1-9 switches tmux windows (Cmd on macOS, Ctrl+Shift on Linux)
-- **Visual consistency**: Gruvbox Night’s warm-neutral palette
+- **Visual consistency**: Berrit’s warm-neutral palette
 - **Performance**: GPU-accelerated rendering
 
 Colors, fonts and opacity come from Stylix (`modules/stylix.nix`). Behavioral settings remain in the terminal feature:
@@ -976,7 +976,7 @@ C-Space ? a/d        # Help menu: list/describe keys
 - Inactive window tabs remain uniformly dark; only bell alerts turn red
 
 #### 🎨 **Beautiful Status Line**
-- Gruvbox Night palette in a compact, one-row top bar
+- Berrit palette in a compact, one-row top bar
 - The session name, windows, selected-pane title, and time stay visible; optional context is hidden as the client narrows
 - Optional command, battery, and path context remains width-aware; SSH hosts appear on the right
 - Explicit `ZOOM`, `COMMAND`, `COPY`, and `SYNC` mode badges

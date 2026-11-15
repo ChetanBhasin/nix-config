@@ -109,7 +109,7 @@ Item {
             color: Theme.border
         }
 
-        GruvboxButton {
+        ShellButton {
             width: 26
             height: 26
             icon: "󰓎"

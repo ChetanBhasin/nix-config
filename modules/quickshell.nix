@@ -31,8 +31,8 @@
         programs.quickshell = {
           enable = true;
           package = pkgs.quickshell;
-          configs."gruvbox-night" = quickshellConfig;
-          activeConfig = "gruvbox-night";
+          configs."desktop" = quickshellConfig;
+          activeConfig = "desktop";
           systemd = {
             enable = true;
             target = "hyprland-session.target";

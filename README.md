@@ -24,7 +24,7 @@ A comprehensive Nix configuration for reproducible development environments acro
 - 🎯 **Terminal Multiplexer**: tmux with discoverable bindings, session management, and persistence
 - 📦 **Package Management**: Nix + Home Manager for reproducible environments
 - 🔧 **Cross-Platform**: macOS (Darwin) and Linux (NixOS) support
-- 🎨 **Consistent Theming**: Stylix manages colors, fonts and supported app themes, with Gruvbox Night as the default
+- 🎨 **Consistent Theming**: Stylix manages colors, fonts and supported app themes, with Berrit as the default
 - ⚡ **Performance Optimized**: Fast startup times and efficient resource usage
 - 🔐 **Security Focused**: Proper SSH configurations and secure defaults
 
@@ -92,7 +92,7 @@ You can use the editor, terminal, and multiplexer configurations in your own fla
 |--------|-------------|---------|
 | `neovim` | Full NeoVim IDE with LSP, treesitter, and 50+ plugins | `cb.neovim.enable`, `cb.neovim.enableTmuxIntegration`, `cb.neovim.treesitterGrammars` |
 | `terminal` | Zsh + FZF + Starship + Direnv + Zoxide + Alacritty | `cb.terminal.enable`, `cb.terminal.enableFzf`, `cb.terminal.enableStarship`, `cb.terminal.viMode` |
-| `tmux` | Modern tmux with sessions, FZF, and Gruvbox Night theme | `cb.tmux.enable`, `cb.tmux.enableVimIntegration`, `cb.tmux.enableSessionPersistence` |
+| `tmux` | Modern tmux with sessions, FZF, and Berrit theme | `cb.tmux.enable`, `cb.tmux.enableVimIntegration`, `cb.tmux.enableSessionPersistence` |
 | `default` | All modules combined | All options from above |
 
 See [Module Options Documentation](docs/modules.md) for complete configuration options.

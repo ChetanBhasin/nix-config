@@ -26,11 +26,20 @@
       };
       sshCommand =
         if pkgs.stdenv.hostPlatform.isDarwin then "/usr/bin/ssh" else "${pkgs.openssh}/bin/ssh";
+      fleetFzf = pkgs.writeShellScript "fleet-fzf" ''
+        exec ${pkgs.fzf}/bin/fzf --color=${
+          lib.escapeShellArg (
+            lib.concatStringsSep "," (
+              lib.mapAttrsToList (name: color: "${name}:${color}") config.programs.fzf.colors
+            )
+          )
+        } "$@"
+      '';
       tmuxFleetConfig = pkgs.writeText "tmux-fleet-config.json" (
         builtins.toJSON {
           ssh_targets = config.home-config-manager.tmuxFleetSshTargets;
           tmux_command = "${tmuxPackage}/bin/tmux";
-          fzf_command = "${pkgs.fzf}/bin/fzf";
+          fzf_command = "${fleetFzf}";
           ssh_command = sshCommand;
           false_command = "${pkgs.coreutils}/bin/false";
         }
@@ -38,6 +47,7 @@
       );
     in
     {
+      stylix.targets.fzf.enable = lib.mkDefault true;
       programs.tmux = {
         enable = true;
         package = tmuxPackage;

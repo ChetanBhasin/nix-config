@@ -29,7 +29,6 @@ const PICKER_ARGUMENTS: &[&str] = &[
     "--cycle",
     "--prompt=Sessions › ",
     "--header=Enter attach/connect · Esc quit · typing filters every displayed host/session",
-    "--color=bg:#1d2021,bg+:#3c3836,fg:#d0c0a0,fg+:#ebdbb2,hl:#84a9b2,hl+:#c9a257,prompt:#c9a257,pointer:#c9a257,marker:#84a9b2,spinner:#84a9b2,border:#504945,header:#96918a,info:#7c6f64",
 ];
 #[derive(Debug, Eq, PartialEq)]
 enum RemoteExit {

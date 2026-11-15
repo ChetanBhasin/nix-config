@@ -24,7 +24,12 @@
       };
 
       config = {
+        stylix.targets.neovim = {
+          enable = lib.mkDefault true;
+          plugin = "base16-nvim";
+        };
         programs.neovim = {
+          sideloadInitLua = true;
           enable = true;
           defaultEditor = true;
           viAlias = true;
@@ -88,7 +93,6 @@
               bufferline-nvim
               dressing-nvim
               fidget-nvim
-              base16-nvim
               FTerm-nvim
               undotree
               # Visual enhancement plugins

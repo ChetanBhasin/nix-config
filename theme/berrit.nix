@@ -1,11 +1,11 @@
-# Gruvbox Night: a warm, lower-strain take on Base16 Gruvbox Dark Hard.
+# Berrit: a warm, lower-strain take on Base16 Gruvbox Dark Hard.
 # The hard background stays unmistakably Gruvbox, while lifted foregrounds and
 # restrained accents remain readable in daylight. Muted gold is the shared
 # interaction accent; syntax and diagnostics retain their conventional roles.
 {
-  scheme = "Gruvbox Night";
+  scheme = "Berrit";
   author = "Chetan Bhasin";
-  slug = "gruvbox-night";
+  slug = "berrit";
   variant = "dark";
 
   base00 = "#1d2021";

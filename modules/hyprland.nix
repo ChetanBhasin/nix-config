@@ -54,7 +54,6 @@
       theme = config.lib.stylix.palette;
       # Hyprland/hyprlock take colours as rgb(RRGGBB); the palette stores them as #RRGGBB.
       rgb = colour: "rgb(${removePrefix "#" colour})";
-      # Hyprlang parses alpha colours only as rgba(RRGGBBAA), alpha last.
       rgba = alpha: colour: "rgba(${removePrefix "#" colour}${alpha})";
       font = config.stylix.fonts.monospace.name;
       terminal = "alacritty";
@@ -123,8 +122,8 @@
         '';
       };
       quickshell = getExe pkgs.quickshell;
-      launcherCommand = "${quickshell} ipc --config gruvbox-night call launcher toggle";
-      dashboardCommand = "${quickshell} ipc --config gruvbox-night call dashboard toggle";
+      launcherCommand = "${quickshell} ipc --config desktop call launcher toggle";
+      dashboardCommand = "${quickshell} ipc --config desktop call dashboard toggle";
       arrangeCommand = action: "${arrangeWindow}/bin/hyprland-arrange-window ${action}";
       # The XKB swap hides both modifier layers from a fresh Hyprland install
       # (Win key = Cmd in apps, leftmost key = Ctrl for window ops), so one
@@ -171,7 +170,18 @@
         ];
 
         services.hyprpaper.enable = config.stylix.image != null;
-        stylix.targets.hyprpaper.enable = true;
+        stylix.targets = {
+          hyprpaper.enable = true;
+          hyprland.enable = true;
+          hyprlock = {
+            enable = true;
+            image.enable = false;
+            colors.override = (config.stylix.base16.mkSchemeAttrs config.lib.stylix.colors).override {
+              base03 = theme.inactiveBorder;
+              base0A = theme.base0C;
+            };
+          };
+        };
 
         wayland.windowManager.hyprland = {
           enable = true;
@@ -226,15 +236,6 @@
                 gaps_in = 4;
                 gaps_out = 8;
                 border_size = 2;
-                # Local overrides rather than theme roles: `activeBorder`/
-                # `inactiveBorder` are shared by quickshell, fzf, bat
-                # and hyprlock, so window borders pick their own colours here.
-                # Orange marks focus, blue marks unfocused, and neither is the
-                # amber (#c9a257) that tmux paints its focused pane frame in.
-                col = {
-                  active_border = rgb theme.base09;
-                  inactive_border = rgb theme.base0D;
-                };
                 layout = "dwindle";
                 resize_on_border = true;
               };
@@ -252,8 +253,6 @@
               misc = {
                 disable_hyprland_logo = true;
                 disable_splash_rendering = true;
-                # Keep a themed fallback while hyprpaper loads the Stylix image.
-                background_color = rgb theme.base00;
                 force_default_wallpaper = 0;
               };
 
@@ -446,42 +445,30 @@
               grace = 2;
             };
 
-            # A live screencopy of the desktop, blurred and dimmed toward base00,
-            # reads as a layered veil over the session. The semi-transparent
-            # base00 colour stands in when screencopy is unavailable.
-            background = [
-              {
-                monitor = "";
-                path = "screenshot";
-                blur_size = 25;
-                blur_passes = 2;
-                brightness = 0.45;
-                contrast = 0.8;
-                vibrancy = 0.1;
-                color = rgba "cc" theme.base00;
-              }
-            ];
+            # Retain the blurred desktop veil while Stylix owns field colors.
+            background = {
+              monitor = "";
+              path = "screenshot";
+              blur_size = 25;
+              blur_passes = 2;
+              brightness = 0.45;
+              contrast = 0.8;
+              vibrancy = 0.1;
+              color = mkForce (rgba "cc" theme.base00);
+            };
 
-            input-field = [
-              {
-                monitor = "";
-                # hyprlock sizes the field font from its height, so the taller
-                # field gives the larger type.
-                size = "300, 56";
-                position = "0, 58";
-                halign = "center";
-                valign = "center";
-                rounding = 14;
-                outline_thickness = 2;
-                dots_center = true;
-                outer_color = rgb theme.inactiveBorder;
-                inner_color = rgba "66" theme.base01;
-                font_color = rgb theme.base05;
-                check_color = rgb theme.base0C;
-                fail_color = rgb theme.base08;
-                placeholder_text = "Password";
-              }
-            ];
+            input-field = {
+              monitor = "";
+              size = "300, 56";
+              position = "0, 58";
+              halign = "center";
+              valign = "center";
+              rounding = 14;
+              outline_thickness = 2;
+              dots_center = true;
+              inner_color = mkForce (rgba "66" theme.base01);
+              placeholder_text = "Password";
+            };
 
             # A centered vertical stack: account, clock, date, field, hint.
             label = [

@@ -29,7 +29,7 @@ vim.g.rainbow_delimiters = {
     },
 }
 
--- Use Gruvbox's full accent wheel while keeping the sequence subdued.
+-- Use the shared accent wheel while keeping the sequence subdued.
 vim.api.nvim_set_hl(0, 'RainbowDelimiterRed', { fg = palette.base08, bold = true })
 vim.api.nvim_set_hl(0, 'RainbowDelimiterYellow', { fg = palette.base0A, bold = true })
 vim.api.nvim_set_hl(0, 'RainbowDelimiterBlue', { fg = palette.base0D, bold = true })

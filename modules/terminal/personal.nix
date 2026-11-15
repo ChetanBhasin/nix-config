@@ -120,7 +120,7 @@
           directory = {
             truncation_length = 3;
             truncate_to_repo = true;
-            style = "bold fg:base0a";
+            style = "bold fg:${config.lib.stylix.palette.primaryAccent}";
           };
 
           custom = {

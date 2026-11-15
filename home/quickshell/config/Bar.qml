@@ -46,7 +46,7 @@ PanelWindow {
             anchors.centerIn: parent
             spacing: 4
 
-            GruvboxButton {
+            ShellButton {
                 width: 28
                 height: 28
                 icon: "󰍜"

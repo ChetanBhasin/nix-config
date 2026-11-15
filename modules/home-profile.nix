@@ -69,6 +69,10 @@ in
         };
         fonts.fontconfig = lib.mkIf cfg.includeFonts { enable = true; };
 
+        home.file."Pictures/Wallpapers/current.png" = lib.mkIf (config.stylix.image != null) {
+          source = config.stylix.image;
+        };
+
         launchd.agents.wallpaper =
           lib.mkIf (pkgs.stdenv.hostPlatform.isDarwin && config.stylix.image != null)
             {
@@ -82,6 +86,8 @@ in
                   (toString config.stylix.image)
                 ];
                 RunAtLoad = true;
+                StartInterval = 30;
+                ProcessType = "Background";
               };
             };
 

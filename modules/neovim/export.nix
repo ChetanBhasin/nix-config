@@ -87,7 +87,12 @@ in
 
       config = lib.mkIf cfg.enable {
         stylix.enable = lib.mkDefault true;
+        stylix.targets.neovim = {
+          enable = lib.mkDefault true;
+          plugin = "base16-nvim";
+        };
         programs.neovim = {
+          sideloadInitLua = true;
           enable = true;
           defaultEditor = cfg.defaultEditor;
           viAlias = true;
@@ -170,7 +175,6 @@ in
               # UI enhancements
               lualine-nvim
               bufferline-nvim
-              base16-nvim
               alpha-nvim
               indent-blankline-nvim
               rainbow-delimiters-nvim

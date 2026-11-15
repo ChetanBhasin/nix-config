@@ -25,12 +25,19 @@ expressions in `packages/`, and palette data in `theme/`, outside auto-import.
 
 ## Themes with Stylix
 
-`modules/stylix.nix` owns theme defaults. `theme/gruvbox-night.nix` contains only
-the Base16 scheme. Native Stylix targets configure Alacritty, Bat, FZF and
-Starship; the existing Neovim, tmux, Hyprland, Hyprlock and Quickshell layouts
-consume the same evaluated Stylix colors and fonts. The custom editor and tmux
-targets stay disabled to avoid replacing their layouts. Linux also uses Stylix
-for GTK, Qt, fontconfig, the console and the Bibata cursor.
+`modules/stylix.nix` owns the theme registry and `cb.theme` selector. The default,
+`"berrit"`, retains the previous Gruvbox-derived palette, JetBrains Mono Nerd Font,
+amber interaction accents and original Orbital Lesson wallpaper. Set
+`cb.theme = "berrit";` in a Darwin, NixOS or standalone Home Manager configuration.
+Home Manager inherits the host selection by default; host files need no setting
+for Berrit. `theme/berrit.nix` contains the sixteen unchanged Base16 colors.
+
+Native Stylix targets configure Alacritty, Bat, FZF, Starship, Neovim, Hyprland and
+Hyprlock. Neovim keeps its local highlight layer after the native colorscheme;
+tmux and Quickshell retain their layouts using the same evaluated palette.
+Hyprland keeps orange/blue window borders and Hyprlock keeps its blurred desktop
+background. Linux also uses Stylix for GTK, Qt, fontconfig and the console.
+Explicit Stylix palette, font and image settings remain available as overrides.
 
 Every public module imports Stylix itself and keeps `cb.*.enable = false` by
 default. Enabling a feature enables its theme. Importing disabled features does
@@ -61,7 +68,7 @@ Customize through standard Stylix options in the same Home Manager module:
 On repository hosts, set these options at the system level to let Home Manager
 inherit them, or override them for an individual user. `stylix.override.base0A`
 changes the shared focus accent without duplicating application settings.
-The original sixteen Gruvbox Night colors are retained; extra UI shades now
+The original sixteen Berrit colors are retained; extra UI shades now
 use Base16 roles so switching schemes updates every custom surface too.
 macOS stays dark by default; explicitly setting system `stylix.polarity = "light"`
 selects light appearance on activation (a logout/login may be needed).
@@ -69,17 +76,15 @@ Browser profiles and other app-owned state remain outside theme management.
 The personal lazyjj wrapper passes its Stylix highlight on the command line;
 Home Manager does not own the writable jj user configuration.
 
-Repository hosts also share `home/wallpapers/orbital-lesson.png` through
-`stylix.image`. A personal macOS LaunchAgent applies it through AppKit at
-login; Hyprland uses Stylix's hyprpaper target. Public terminal/editor/tmux
-exports do not set a personal image or install a wallpaper agent. Replace it
-at the system level with `stylix.image = ./my-wallpaper.png;`.
-
-The wallpaper is a static 5120 × 2160 render of an editable SVG, using colors
-sampled from the selected solar-system reference. The global Gruvbox scheme
-is unchanged, and changing it does not recolor the image. Its SVG source,
-render command and direct macOS apply command are in
-[the wallpaper notes](../home/wallpapers/README.md).
+Repository hosts select `home/wallpapers/berrit.png` through `stylix.image`.
+The original 5120 × 2160 Orbital Lesson artwork is unchanged; its resolved SVG
+is `home/wallpapers/berrit.svg`. Personal profiles expose the selected image at
+`~/Pictures/Wallpapers/current.png`. The macOS wallpaper agent checks at login
+and every 30 seconds, changing only a visible Space whose image differs.
+Hyprland uses Stylix's hyprpaper target. Public terminal/editor/tmux exports do
+not set an image or install an agent. Override with `stylix.image = ./my-wallpaper.png;`.
+Palette changes do not recolor the static image. See
+[wallpaper notes](../home/wallpapers/README.md).
 
 ## Quick Start
 
@@ -164,7 +169,7 @@ Full-featured NeoVim IDE with LSP, treesitter, completion, and 50+ curated plugi
 - **Git**: gitsigns, lazygit, lazyjj integration
 - **Languages**: Enhanced support for Rust, Go, Python, Nix, TypeScript
 - **Debug**: DAP (Debug Adapter Protocol) for Python
-- **Theme**: Stylix colors (Gruvbox Night by default) with local highlight behavior
+- **Theme**: Stylix colors (Berrit by default) with local highlight behavior
 
 ---
 
@@ -231,7 +236,7 @@ Complete terminal environment with Zsh, FZF, Starship prompt, and more.
 
 ### `homeManagerModules.tmux`
 
-Modern tmux configuration with session management, FZF integration, and the Gruvbox Night theme.
+Modern tmux configuration with session management, FZF integration, and the Berrit theme.
 
 #### Options
 
