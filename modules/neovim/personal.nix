@@ -67,7 +67,6 @@
               # Python debugging
               python313Packages.debugpy
               # Version control TUIs
-              lazygit
               dockerfile-language-server
               typescript-language-server
               yaml-language-server

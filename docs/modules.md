@@ -106,6 +106,27 @@ not set an image or install an agent. Override with `stylix.image = ./my-wallpap
 Palette changes do not recolor the static image. See
 [wallpaper notes](../home/wallpapers/README.md).
 
+## Personal application themes
+
+The personal profile also enables native Stylix colors for LazyGit, K9s, Zed
+and Obsidian. These integrations stay outside the public feature exports.
+
+- LazyGit merges the writable user config with a generated theme via
+  `LG_CONFIG_FILE`; its selected row uses the shared dark surface.
+- K9s selects the generated `stylix` skin through `K9S_SKIN`. Cluster settings
+  and the writable main config remain app-owned.
+- Zed installs the stable **Base16 Chetan** theme. Select it once in an existing
+  installation; changing `cb.theme` then updates its colors under the same name.
+- Obsidian installs **chetan-stylix.css** into existing vaults found through the
+  app's vault registry. Enable that CSS snippet once in each existing vault.
+  The installer updates only its marked snippet and preserves other files.
+
+Missing LazyGit/Zed settings and Obsidian appearance files are seeded only if
+absent. Existing settings, editor fonts and sizes, and vault contents remain
+app-owned. Zed and Obsidian font targets are disabled. Firefox and Zen are outside
+this integration. Apply the configuration and start a new shell for the CLI
+environment variables to take effect.
+
 ## Quick Start
 
 Add this repository as a flake input and import the modules you need:

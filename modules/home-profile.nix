@@ -44,6 +44,7 @@ in
 
       imports = [
         modules.homeManager.theme
+        modules.homeManager.personal-app-themes
         modules.homeManager.terminal-personal
         modules.homeManager.neovim-personal
         modules.homeManager.tmux-personal
@@ -99,7 +100,6 @@ in
             bazelisk
             duckdb
             gh
-            k9s
             bitwarden-cli
             slackOfficialCli
             slackTui
@@ -110,7 +110,6 @@ in
             lens
             obsidian
             slack
-            zed-editor
 
             # User shell and terminal utilities
             zsh-completions

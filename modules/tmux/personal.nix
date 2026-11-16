@@ -157,7 +157,6 @@
         alacritty.terminfo
         coreutils
         git
-        lazygit
       ];
     };
 }
