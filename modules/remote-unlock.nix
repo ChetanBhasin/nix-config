@@ -7,7 +7,7 @@
     }:
     let
       initrdSshHostKeyPath = "/etc/secrets/initrd/ssh_host_ed25519_key";
-      initrdSshHostKeySource = ../secrets/initrd/ssh_host_ed25519_key;
+      initrdSshHostKeySource = "${../secrets/initrd/ssh_host_ed25519_key}";
       unlockAuthorizedKeys = map (
         key: ''command="systemctl default" ${key}''
       ) config.users.users.root.openssh.authorizedKeys.keys;
